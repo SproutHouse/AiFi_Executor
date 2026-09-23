@@ -1,0 +1,52 @@
+# Your tap. Run from the GitHub mobile app: Actions → approve → Run workflow, paste the proposal id, choose yes.
+name: approve
+on:
+  workflow_dispatch:
+    inputs:
+      proposal_id:
+        description: "Proposal id from the alert"
+        required: true
+        type: string
+      confirm:
+        description: "Execute this proposal?"
+        required: true
+        type: choice
+        options: ["no", "yes"]
+permissions:
+  contents: write
+concurrency:
+  group: executor
+  cancel-in-progress: false
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install the exchange SDK only when live mode is configured
+        run: |
+          if [ "$(python3 -c 'import json;print(json.load(open("config/settings.json"))["mode"])')" = "live" ]; then
+            pip install --quiet hyperliquid-python-sdk==0.24.0
+          fi
+      - name: Execute the proposal
+        env:
+          PROPOSAL_ID: ${{ inputs.proposal_id }}
+          CONFIRM: ${{ inputs.confirm }}
+          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
+          HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
+          HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
+        run: python3 scripts/approve.py --id "$PROPOSAL_ID" --confirm "$CONFIRM"
+      - name: Commit state
+        if: always()
+        run: |
+          git config user.name "aifi-runner"
+          git config user.email "aifi-runner@users.noreply.github.com"
+          git add -A state || true
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -q -m "Approve $PROPOSAL_ID"
+          for i in 1 2 3; do git pull -q --rebase --autostash || true; git push -q && exit 0; sleep 10; done; exit 1
+        env:
+          PROPOSAL_ID: ${{ inputs.proposal_id }}

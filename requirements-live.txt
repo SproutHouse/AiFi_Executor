@@ -1,0 +1,3 @@
+# Only needed in live mode (order signing). Pinned. Before the first live order, replace this file with a
+# full hash-locked set: pip download hyperliquid-python-sdk==0.24.0 -d /tmp/w && pip hash /tmp/w/*  (see docs/SECURITY.md)
+hyperliquid-python-sdk==0.24.0 --hash=sha256:f472dd4f6d8ef0e66182c7627276400462c86fbc0929eb5b63feda3ae45605f6
