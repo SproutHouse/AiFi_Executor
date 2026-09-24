@@ -26,6 +26,7 @@ exchange. There is no language model anywhere in the loop.
 
 | File | What it is |
 |---|---|
+| [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Setup and going live, one step at a time, nothing assumed |
 | [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) | The plain-English version |
 | [docs/LOGIC.md](docs/LOGIC.md) | The exact rules, versioned |
 | [docs/RISK.md](docs/RISK.md) | Sizing, caps, throttle, what leverage is for |

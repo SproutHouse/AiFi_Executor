@@ -26,7 +26,8 @@ exchange.
 4. Expire proposals past the last bar close.
 5. Manage exits: stop check (paper), regime and 4-hour flips, trailing.
 6. Live: reconcile the ledger against the exchange (below).
-7. Look for entries in allowlisted names; run the pre-trade checklist; execute or propose by the hour.
+7. Look for entries book by book, name by name; run the pre-trade checklist including the book's own risk
+   cap; execute or propose by the hour. Every candidate carries its book and the benchmark's mark at entry.
 8. Write state, equity point, run summary, `LEDGER.md`; send the daily line at 08:00 local.
 
 ## Orders in live mode, `src/executor/live.py`

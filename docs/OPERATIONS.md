@@ -2,14 +2,22 @@
 
 ## First-time setup
 
-1. Create the private repository `AiFi_Executor` on GitHub under the SproutHouse account, empty, no
-   README. Then from this checkout: `git remote add origin https://github.com/SproutHouse/AiFi_Executor.git && git push -u origin main`.
+1. The private repository `SproutHouse/AiFi_Executor` exists (created 2026-09-23) and this checkout's
+   `origin` points at it. Pushing needs a GitHub token with the **`workflow` scope**, because the repository
+   contains `.github/workflows`; the token the Mac keychain holds for AiFi lacks it and GitHub refuses the
+   push. Either add `workflow` to that classic token at github.com/settings/tokens, or create a fine-grained
+   token limited to this repository with "Contents: write" and "Workflows: write", then
+   `git credential-osxkeychain erase` for host github.com so the next `git push -u origin main` asks for the
+   new token.
 2. Settings → Branches: protect `main` (require the owner; allow the runner's pushes by not requiring
    pull requests, or add the runner to the bypass list).
 3. Settings → Secrets and variables → Actions → `ALERT_WEBHOOK` = `https://ntfy.sh/<a long random topic>`.
    Subscribe to that topic in the ntfy app. Use a different topic from the desk's.
 4. Actions → **cycle** → Run workflow once. Check the run log and that `state/` was committed.
 5. Confirm the alert arrived. Paper mode is now running six times a day.
+6. Let paper run for several days before any wallet work: you should see readings in `state/runs/`, at
+   least one proposal alert, and refusals with reasons. This is the shakedown the skipped paper period
+   would have given; do not shorten it below a few days.
 
 ## Every day
 

@@ -31,7 +31,9 @@ carry percentages of the pot, never dollar amounts, because the ntfy topic is on
 - Branch protection on `main`; only the owner pushes; the runner commits `state/` with its own identity.
 - Actions pinned to commit hashes (`actions/checkout` v7.0.1, `actions/setup-python` v7.0.0). No third-party
   actions.
-- The account is the trust root: passkey or hardware key for GitHub, no shared personal access tokens.
+- The account is the trust root: passkey or hardware key for GitHub. Tokens: prefer a fine-grained token
+  limited to this repository (Contents write, Workflows write) over a classic token with broad scopes; the
+  `workflow` scope is required to push workflow files at all. Never store a token in this repository.
 - No auto-commit or sync tooling of any kind in this checkout.
 
 ## Supply chain

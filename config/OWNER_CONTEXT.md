@@ -12,4 +12,7 @@ _Edited by the owner. The executor does not read this file; people do, before ch
 | Where it runs | GitHub Actions, private repository AiFi_Executor, same account as AiFi | 2026-09-23 |
 | Venue rule | non-KYC only: Hyperliquid; never a KYC exchange | 2026-09-22 |
 | Paper period | skipped by decision; paper mode remains the default until the key secrets exist | 2026-09-23 |
+| Books | one engine, five books (bitcoin, eth-defi, solana, hype, bnb), each scored against its blue chip; a book that does not beat holding its blue chip over 30 trades is proposed for retirement | 2026-09-23 |
+| Paper shakedown | several days of paper cycles before wallet work, even though the long paper period is skipped | 2026-09-23 |
+| GitHub | repository SproutHouse/AiFi_Executor created; push needs a token with the workflow scope | 2026-09-23 |
 | Hyperliquid Terms clause 1.5 | to be read and confirmed by the owner before going live | pending |
