@@ -48,7 +48,8 @@ src/executor/  common · indicators · hl_data · binance_data · regime · sign
 scripts/   run_cycle.py · approve.py · control.py · review.py · verify_keys.py
 state/     positions_<mode>.json · paper.json · proposals/ · ledger/ · runs/ · review/   (committed by the runner)
 tests/     unit tests, standard library only:  cd tests && python3 -m unittest -v
-.github/workflows/  cycle (every 4h) · approve (your tap) · control (halt/resume/flatten) · review (Sunday)
+.github/workflows/  cycle (every 4h) · approve · control (halt/resume/flatten) · review (Sunday) · runner-watch
+ops/runner/  setup.sh: turns a fresh Ubuntu VM (Oracle Always Free, Europe) into the self-hosted runner
 ```
 
 ## Run it locally

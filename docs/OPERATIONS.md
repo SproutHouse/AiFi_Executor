@@ -65,6 +65,33 @@ The throttle halts on its own at a 20% drawdown; `resume` clears that too, so lo
 exit by the rules. To move a name between books, edit the file and commit; the change applies from the next
 cycle. The Sunday review's "Book verdicts" section tells you when a book has earned or lost its place.
 
+## Running outside the United States and Canada
+
+GitHub's free runners are in US data centres and the free plan cannot choose a region, so the executor
+can instead run on a server you control, registered with GitHub as a self-hosted runner. GitHub then only
+schedules the jobs; every call to Hyperliquid leaves from your server.
+
+Free, always-on, outside the US and Canada: Oracle Cloud Always Free, home region Frankfurt, Amsterdam or
+Zurich, shape VM.Standard.A1.Flex with 1 OCPU and 6 GB, Ubuntu 24.04. Oracle asks for a card and identity
+checks at signup; nothing is charged within the free limits. Two known quirks: Always Free capacity in
+popular regions is sometimes "out of capacity", so retry another hour or choose a less busy region; and
+Oracle reclaims idle Always Free instances unless the account is upgraded to Pay As You Go, which stays
+free within the same limits.
+
+1. Create the VM; add your SSH public key; note its public IP.
+2. On GitHub: Settings → Actions → Runners → New self-hosted runner → Linux → copy the registration token.
+3. SSH in and run the setup script with that token:
+   `curl -fsSL https://raw.githubusercontent.com/SproutHouse/AiFi_Executor/main/ops/runner/setup.sh -o setup.sh && bash setup.sh <token>`
+   It installs Python and the runner, opens only SSH in the firewall, turns on unattended security
+   updates, and registers the runner as a service that survives reboots.
+4. GitHub → Settings → Actions → Runners should show `executor-eu` as Idle.
+5. GitHub → Settings → Secrets and variables → Actions → Variables → New repository variable
+   `RUNNER_LABEL` = `self-hosted`. From the next cycle every workflow except `runner-watch` runs on your
+   server. Setting the variable back to `ubuntu-latest` (or deleting it) returns to GitHub's runners.
+6. `runner-watch` runs on GitHub every six hours and only reads the repository: it alerts you if no cycle
+   has run for five hours, which is how you learn the server is down. Stops on the exchange protect open
+   positions meanwhile.
+
 ## Changing a rule or a parameter
 
 Settings changes are commits, reviewed in the Sunday review's light. A rule change is a new `LOGIC.md`

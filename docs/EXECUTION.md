@@ -13,7 +13,8 @@ GitHub Actions cron `5 0,4,8,12,16,20 * * *` (UTC): five minutes after each 4-ho
 | 16:00 | 12:00 | 11:00 | approval |
 | 20:00 | 16:00 | 15:00 | approval |
 
-GitHub's cron can start late. If a run begins more than 45 minutes after the bar close, entries for that bar
+Where the jobs run is chosen by the repository variable `RUNNER_LABEL`: unset, GitHub's own US runners;
+`self-hosted`, your own server in Europe (see OPERATIONS.md). GitHub's cron can start late. If a run begins more than 45 minutes after the bar close, entries for that bar
 are skipped and recorded; exits and trailing still run. Stops are unaffected because they sit on the
 exchange.
 

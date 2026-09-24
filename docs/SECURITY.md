@@ -36,6 +36,15 @@ carry percentages of the pot, never dollar amounts, because the ntfy topic is on
   `workflow` scope is required to push workflow files at all. Never store a token in this repository.
 - No auto-commit or sync tooling of any kind in this checkout.
 
+## The self-hosted runner
+
+When `RUNNER_LABEL` points at your own server, that server sees the secrets during a job. Keep it dedicated
+to this one purpose, inbound firewall closed except SSH with keys, unattended security updates on, the
+runner running as its own unprivileged user (the setup script does all of this), and nothing else installed.
+Anyone who can push a workflow to this repository can run code on that server, which is one more reason the
+account and the branch stay locked down. `runner-watch` stays on GitHub's runners on purpose: it never
+touches the exchange and it is what tells you the server went quiet.
+
 ## Supply chain
 
 - Paper mode imports nothing outside the Python standard library.

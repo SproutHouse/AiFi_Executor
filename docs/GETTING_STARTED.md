@@ -92,6 +92,27 @@ What to look for: the first entry alert, the stop order appearing on the exchang
 it under open orders), exits arriving on their own, and the Sunday review. Keep the pot small until thirty
 real trades have happened.
 
+## Part 3 — move the robot to a server in Europe
+
+**Step 14. Open an Oracle Cloud account.** cloud.oracle.com, Always Free. Choose the home region carefully,
+it cannot be changed later: Frankfurt, Amsterdam or Zurich. Oracle asks for a card and identity checks;
+nothing is charged inside the free limits.
+
+**Step 15. Create the small computer.** Compute → Instances → Create. Image Ubuntu 24.04, shape
+VM.Standard.A1.Flex, 1 OCPU, 6 GB. Add your SSH public key. If it says out of capacity, try again later or
+pick another shape. Note the public IP. Afterwards, upgrade the account to Pay As You Go so Oracle does not
+reclaim the machine for being idle; it stays free within the limits.
+
+**Step 16. Get a registration token.** GitHub → the repository → Settings → Actions → Runners → New
+self-hosted runner → Linux. Copy the token shown in the `./config.sh` line. It lasts one hour.
+
+**Step 17. Run the setup script on the server.** `ssh ubuntu@<the IP>`, then paste the one line from
+OPERATIONS.md with your token at the end. Done when GitHub's Runners page shows `executor-eu` as Idle.
+
+**Step 18. Flip the switch.** GitHub → Settings → Secrets and variables → Actions → Variables → New
+repository variable: name `RUNNER_LABEL`, value `self-hosted`. From the next cycle the robot runs from
+Europe. Done when the next cycle's log shows the runner name `executor-eu`.
+
 ## If anything feels wrong
 
 Actions → control → Run workflow → `halt` stops new trades; `flatten` closes everything now. From the

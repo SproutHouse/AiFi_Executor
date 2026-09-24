@@ -11,26 +11,25 @@ concurrency:
   cancel-in-progress: false
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12"
-      - name: Install the exchange SDK only when live mode is configured
+      - name: Python (a venv with the exchange SDK only when live mode is configured)
+        id: py
         run: |
           if [ "$(python3 -c 'import json;print(json.load(open("config/settings.json"))["mode"])')" = "live" ]; then
-            pip install --quiet hyperliquid-python-sdk==0.24.0
+            python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
+            echo "bin=.venv/bin/python" >> "$GITHUB_OUTPUT"
           else
-            echo "paper mode: standard library only"
+            echo "paper mode: system python3, standard library only"; echo "bin=python3" >> "$GITHUB_OUTPUT"
           fi
       - name: Run the cycle
         env:
           ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
           HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
           HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
-        run: python3 scripts/run_cycle.py
+        run: ${{ steps.py.outputs.bin }} scripts/run_cycle.py
       - name: Commit state
         if: always()
         run: |

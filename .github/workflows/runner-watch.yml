@@ -1,0 +1,35 @@
+# Runs on GitHub's own runner and touches only GitHub and the alert channel, never the exchange.
+# Its one job: tell you when the executor has stopped running, for example when the self-hosted runner is down.
+name: runner-watch
+on:
+  schedule:
+    - cron: "40 */6 * * *"
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Age of the last cycle
+        env:
+          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          from datetime import datetime, timezone
+          try:
+              t = json.load(open("state/runs/last_run.json"))["t"]
+              age_h = (time.time() - datetime.fromisoformat(t.replace("Z", "+00:00")).timestamp()) / 3600
+          except Exception as e:
+              age_h, t = 999, f"unreadable ({e})"
+          print(f"last cycle {t}, {age_h:.1f} h ago")
+          if age_h > 5:
+              url = os.environ.get("ALERT_WEBHOOK", "")
+              if url.startswith("https://"):
+                  body = f"No cycle for {age_h:.0f} hours (last {t}). Is the runner down? Positions are protected by exchange-resident stops.".encode()
+                  urllib.request.urlopen(urllib.request.Request(url, data=body, headers={"Title": "Executor: not running", "User-Agent": "aifi-executor/1.0"}, method="POST"), timeout=20).read()
+              raise SystemExit("executor stale")
+          PY

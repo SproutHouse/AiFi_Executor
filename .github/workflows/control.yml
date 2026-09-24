@@ -20,17 +20,18 @@ concurrency:
   cancel-in-progress: false
 jobs:
   control:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12"
-      - name: Install the exchange SDK only when live mode is configured
+      - name: Python (a venv with the exchange SDK only when live mode is configured)
+        id: py
         run: |
           if [ "$(python3 -c 'import json;print(json.load(open("config/settings.json"))["mode"])')" = "live" ]; then
-            pip install --quiet hyperliquid-python-sdk==0.24.0
+            python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
+            echo "bin=.venv/bin/python" >> "$GITHUB_OUTPUT"
+          else
+            echo "bin=python3" >> "$GITHUB_OUTPUT"
           fi
       - name: Apply
         env:
@@ -41,9 +42,9 @@ jobs:
           HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
         run: |
           case "$ACTION" in
-            flatten) python3 scripts/control.py --flatten ;;
-            halt)    python3 scripts/control.py --halt "$REASON" ;;
-            resume)  python3 scripts/control.py --resume ;;
+            flatten) ${{ steps.py.outputs.bin }} scripts/control.py --flatten ;;
+            halt)    ${{ steps.py.outputs.bin }} scripts/control.py --halt "$REASON" ;;
+            resume)  ${{ steps.py.outputs.bin }} scripts/control.py --resume ;;
           esac
       - name: Commit state
         if: always()

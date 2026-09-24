@@ -85,6 +85,14 @@ rules without a human, emotional step. Tier A now executes at any hour; tier B i
 because the backtest showed pullbacks doubled drawdown for extra R, and an unattended tier B needs its own
 evidence first. The approval workflow and the online-hours model stay available as a setting.
 
+## 2026-09-24 · Run from Europe
+
+The owner wants no grey area about where the executor's requests originate. GitHub's free runners cannot
+choose a region, so the workflows now take their runner from a repository variable, and a setup script
+turns an Oracle Always Free VM in Frankfurt, Amsterdam or Zurich into a self-hosted runner. A GitHub-hosted
+watchdog that never touches the exchange reports when the server goes quiet. The Python setup action was
+dropped at the same time: the code is standard library, and live mode builds its own venv.
+
 ## Open questions
 
 - Pot size and maximum acceptable loss in the owner's own numbers, before live.
