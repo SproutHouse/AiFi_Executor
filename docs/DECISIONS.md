@@ -78,6 +78,13 @@ need one global cap, because a book alone generates too few trades to learn from
 because only Hyperliquid-listed, aged, liquid names pass the venue rule. Robinhood Chain and the on-chain
 second tier wait for history and for a spend-capped wallet design.
 
+## 2026-09-24 · No approvals
+
+After the first overnight cycle produced two tier B proposals, the owner decided execution should follow the
+rules without a human, emotional step. Tier A now executes at any hour; tier B is recorded and not traded,
+because the backtest showed pullbacks doubled drawdown for extra R, and an unattended tier B needs its own
+evidence first. The approval workflow and the online-hours model stay available as a setting.
+
 ## Open questions
 
 - Pot size and maximum acceptable loss in the owner's own numbers, before live.

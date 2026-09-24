@@ -305,7 +305,17 @@ class Cycle:
                     L.record_refusal(cand, failed, self.now, "pre-trade")
                 self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} REFUSED: " + "; ".join(f"{c['check']} ({c['detail']})" for c in failed))
                 return
-            auto = self.hours_mode == "auto" and cand["tier"] in self.s["offline_auto_tiers"]
+            ap = self.s.get("approval", {"mode": "online_hours"})
+            if ap.get("mode") == "never":
+                if cand["tier"] not in ap.get("auto_tiers", ["A"]):
+                    self.counts["refused"] += 1
+                    if not self.dry:
+                        L.record_refusal(cand, f"tier {cand['tier']} is not automated and approvals are disabled", self.now, "policy")
+                    self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} recorded, not traded (tier not automated)")
+                    return
+                auto = True
+            else:
+                auto = self.hours_mode == "auto" and cand["tier"] in self.s["offline_auto_tiers"]
             if auto and not self.dry:
                 if self.execute_entry(cand, sizing, mark, ctx):
                     self.counts["entered"] += 1

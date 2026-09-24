@@ -1,4 +1,4 @@
-# Decision logic — version 1.1
+# Decision logic — version 1.2
 
 _Every rule here is implemented in the file named beside it, and only there. Change the rule in the code,
 bump the version, add a changelog line. Never let this page and the code disagree._
@@ -63,13 +63,13 @@ Tier A may execute automatically during offline hours. Tier B always needs appro
 | Weekly flip | weekly direction not bullish → close at mark | `cycle.manage_exits` |
 | Manual | `control flatten` closes everything reduce-only and sets HALT | `scripts/control.py` |
 
-## 6. Hours and approval
+## 6. Approval policy
 
 | Rule | Value | Where |
 |---|---|---|
-| Time zone | America/Toronto | `settings.timezone` |
-| Online hours | 10:00 ≤ local hour < 22:00 → every entry is a proposal | `hours.mode` |
-| Offline hours | otherwise → tier A executes; tier B is a proposal | `hours.mode`, `settings.offline_auto_tiers` |
+| Mode (v1.2, owner's decision 2026-09-24) | `never`: no human approval. Tier A executes on its own at any hour. Tier B signals are recorded as refused with the reason "tier not automated" and not traded, so their frequency stays measurable | `settings.approval`, `cycle.find_entry` |
+| Alternative mode | `online_hours`: 10:00 ≤ local hour < 22:00 America/Toronto → every entry is a proposal; otherwise tier A executes and tier B is a proposal | `hours.mode`, `settings.offline_auto_tiers` |
+| Enabling tier B | add "B" to `settings.approval.auto_tiers`; a rule change, so it needs the versioning discipline in section 8 | `settings.approval` |
 | Proposal expiry | the next 4-hour close (UTC) | `hours.next_bar_close` |
 | Approval drift | refused if mark has risen more than 1% above the mark at signal time | `scripts/approve.py` |
 | Approval recheck | every pre-trade check runs again with the current book | `scripts/approve.py` |
@@ -102,6 +102,9 @@ Never automatic: any change to this page. See [DECISIONS.md](DECISIONS.md) for t
 
 ## Changelog
 
+- **v1.2 — 2026-09-24.** Approval mode `never`: tier A executes on its own around the clock; tier B is
+  recorded, not traded. The owner's reason: execution should follow the rules, not a human mood. Everything
+  else unchanged.
 - **v1.1 — 2026-09-23.** Books: per-book allowlist, benchmark, pot share and risk cap under the global cap;
   relative R against holding the benchmark on every closed trade; book verdicts in the Sunday review; sweep
   intent recorded. No change to triggers, exits, sizing or global caps.

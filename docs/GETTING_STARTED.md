@@ -39,11 +39,10 @@ If no alert arrives at this point that is normal; alerts only fire when somethin
 **Step 5. Let it practise for a few days.**
 Why: it is now trading pretend money, six times a day. This is how you learn what its messages look like
 before real money is involved.
-What you will see: a push when it proposes a trade during your day, a push when it enters or exits at night,
-and one summary line each morning. `state/ledger/LEDGER.md` on GitHub is its notebook.
-How to try approving: when a proposal arrives, open the GitHub app → Actions → approve → Run workflow →
-paste the id from the message → choose yes. Or ignore it; it expires at the next 4-hour candle.
-Done when: you have seen at least one proposal and one refusal and you understand both.
+What you will see: a push when it enters or exits, and one summary line each morning. It does not ask you
+anything: tier A signals execute on their own, tier B signals are written down and skipped.
+`state/ledger/LEDGER.md` on GitHub is its notebook; `state/ledger/refused.jsonl` lists what it skipped and why.
+Done when: you have seen at least one entry and one refusal and you understand both.
 
 ## Part 2 — the wallet (real money, small)
 

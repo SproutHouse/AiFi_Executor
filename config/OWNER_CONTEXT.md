@@ -6,7 +6,7 @@ _Edited by the owner. The executor does not read this file; people do, before ch
 |---|---|---|
 | Pot on Hyperliquid | about 5% of the portfolio, an amount whose total loss changes nothing | 2026-09-23, default accepted |
 | Maximum loss before the bot goes flat and waits | 20% of the pot (the throttle's halt level) | 2026-09-23 |
-| Autonomy | online hours 10:00–22:00 America/Toronto: approval only · offline: tier A automatic · exits always automatic | 2026-09-23 |
+| Autonomy | no human approval at any hour; tier A executes on its own, tier B recorded but not traded, exits always automatic. (Superseded the 2026-09-23 online-hours model.) | 2026-09-24 |
 | How long a proposal waits | until the next 4-hour close | 2026-09-23 |
 | Quiet hours for alerts | none during the first weeks | 2026-09-23 |
 | Where it runs | GitHub Actions, private repository AiFi_Executor, same account as AiFi | 2026-09-23 |

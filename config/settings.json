@@ -44,5 +44,12 @@
     "sanity_band_pct": 2.0,
     "candle_days_daily": 1500,
     "candle_days_4h": 120
+  },
+  "approval": {
+    "mode": "never",
+    "auto_tiers": [
+      "A"
+    ],
+    "_doc": "mode never: no human approval anywhere; tiers in auto_tiers execute on their own at any hour, other tiers are recorded as refused and not traded. mode online_hours: the earlier model (proposals 10-22 local, offline_auto_tiers overnight)."
   }
 }

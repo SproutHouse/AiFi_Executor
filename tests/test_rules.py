@@ -147,3 +147,9 @@ class Books(unittest.TestCase):
         expected = (rec["pnl"] - 0.05 * pos["notional"]) / pos["risk_amt"]
         self.assertAlmostEqual(rec["rel_R"], expected)
         self.assertGreater(rec["R"], rec["rel_R"])
+
+
+class ApprovalPolicy(unittest.TestCase):
+    def test_settings_mode_never(self):
+        self.assertEqual(S_["approval"]["mode"], "never")
+        self.assertEqual(S_["approval"]["auto_tiers"], ["A"])

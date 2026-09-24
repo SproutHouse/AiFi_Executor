@@ -15,8 +15,8 @@ exchange. There is no language model anywhere in the loop.
 - Risk per trade is 1% of the pot; open risk is capped at 4%; leverage at 3x; positions at 6.
 - Every stop is an exchange-resident, reduce-only trigger order on the mark price. If this bot is down,
   the exchange still exits.
-- Entries during online hours (10:00 to 22:00 America/Toronto) wait for the owner's tap. Offline, only
-  tier A signals execute on their own. Exits never wait for anyone.
+- No human approval: tier A signals execute on their own at any hour; tier B signals are recorded and not
+  traded. Exits never wait for anyone. The online-hours approval model remains available as a setting.
 - Names are grouped into books per ecosystem, each scored against its blue chip; a book that does not beat
   holding its blue chip over 30 trades is proposed for retirement.
 - Every refusal is written down with its reasons. Rules change only by a new version that beat the old one

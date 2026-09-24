@@ -21,9 +21,10 @@
 
 ## Every day
 
-- A proposal alert names the coin, the stop, the size as a percentage of the pot and an id. To take it:
-  GitHub mobile → Actions → **approve** → Run workflow → paste the id → confirm `yes`. To pass: do nothing;
-  it expires at the next 4-hour close.
+- With approval mode `never` (current), there are no proposals: tier A entries simply happen and you are
+  told. If you switch back to `online_hours`, a proposal alert names the coin, the stop, the size and an
+  id; to take it: GitHub mobile → Actions → **approve** → Run workflow → paste the id → confirm `yes`.
+  To pass: do nothing; it expires at the next 4-hour close.
 - Entries, exits and problems each send one alert. At 08:00 local a one-line daily summary arrives.
 - `state/ledger/LEDGER.md` is the book; `state/runs/last_run.json` says what the last cycle saw.
 

@@ -28,16 +28,17 @@ simply having held that blue chip for the same hours. After 30 trades a book tha
 blue chip is proposed for retirement: its share of the pot would go to the blue chip itself. That is how
 "accumulate the blue chip" becomes a number.
 
-## Your hours
+## Who decides
 
-- **10:00 to 22:00 in Toronto time:** every entry becomes a proposal. You get a push notification with
-  the coin, the stop, the size as a percentage of the pot, and an id. You approve from your phone through
-  GitHub, or you ignore it and it expires when the next 4-hour candle closes.
-- **22:00 to 10:00:** tier A signals execute by themselves. Tier A means a 4-hour flip while the pair's
-  daily and weekly are bullish and Bitcoin's weekly is bullish too. Pullbacks and anything less aligned
-  still wait for you.
+- **Nobody approves trades.** Since 2026-09-24 the robot acts on its rules alone, at any hour. Tier A
+  signals execute: a 4-hour flip while the pair's daily and weekly are bullish and Bitcoin's weekly is
+  bullish too. Tier B signals, the pullbacks and the less aligned flips, are written down but not traded,
+  so we can count them and decide later with evidence whether to switch them on.
+- **You still get told.** A push for every entry, exit and problem, and one summary line each morning.
 - **Exits never wait.** A stop, a 4-hour or daily flip against, or a weekly flip closes the position at
   the next cycle, day or night.
+- The approval workflow still exists for the day you want it back; the earlier online-hours model is one
+  setting away.
 
 ## How the money is protected
 
