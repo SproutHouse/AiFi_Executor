@@ -68,6 +68,11 @@ def pre_trade(cand, sizing, positions, equity, s, flags):
         f"{(open_risk + ra) / equity * 100:.2f}% of equity after entry, cap {s['open_risk_cap_pct']}%")
     add("gross exposure cap", gross + no <= s["gross_exposure_cap_x"] * equity + 1e-9,
         f"{(gross + no) / equity:.2f}x after entry, cap {s['gross_exposure_cap_x']}x")
+    cap_b = flags.get("book_cap_pct")
+    if cap_b is not None and cand.get("book"):
+        book_risk = sum(p.get("risk_amt", 0) for p in positions.values() if p.get("book") == cand["book"])
+        add("book open-risk cap", book_risk + ra <= cap_b / 100 * equity + 1e-9,
+            f"book {cand['book']}: {(book_risk + ra) / equity * 100:.2f}% after entry, cap {cap_b}%")
     add("price sanity band", flags.get("sanity_ok", True), flags.get("sanity_detail", ""))
     add("universe filters", flags.get("universe_ok", True), "; ".join(flags.get("universe_reasons", [])))
     return all(c["ok"] for c in checks), checks

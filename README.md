@@ -17,6 +17,8 @@ exchange. There is no language model anywhere in the loop.
   the exchange still exits.
 - Entries during online hours (10:00 to 22:00 America/Toronto) wait for the owner's tap. Offline, only
   tier A signals execute on their own. Exits never wait for anyone.
+- Names are grouped into books per ecosystem, each scored against its blue chip; a book that does not beat
+  holding its blue chip over 30 trades is proposed for retirement.
 - Every refusal is written down with its reasons. Rules change only by a new version that beat the old one
   out of sample; the bot cannot edit its own parameters.
 
@@ -39,7 +41,7 @@ exchange. There is no language model anywhere in the loop.
 ## Layout
 
 ```
-config/    settings.json (every parameter) · allowlist.json (names the owner allows)
+config/    settings.json (every parameter) · books.json (books: names, benchmark, pot share, cap) · OWNER_CONTEXT.md
 src/executor/  common · indicators · hl_data · binance_data · regime · signals · universe · risk · hours
                proposals · ledger · paper · live · cycle · review
 scripts/   run_cycle.py · approve.py · control.py · review.py · verify_keys.py

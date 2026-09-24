@@ -19,6 +19,15 @@ short list of large, liquid coins, it asks three questions and acts on the answe
 If all three are yes, it works out a position size from one number, how far away the stop is, so that
 losing the trade costs about 1% of the pot. Then, depending on the hour, it either asks you or acts.
 
+## Books
+
+The names are grouped into books, one per ecosystem: bitcoin, eth-defi, solana, hype, bnb. Every book runs
+the same rules. What differs is which names it may trade, how much of the pot it may put at risk, and the
+blue chip it is measured against. Every closed trade records not only its result in R but its result against
+simply having held that blue chip for the same hours. After 30 trades a book that does not beat holding its
+blue chip is proposed for retirement: its share of the pot would go to the blue chip itself. That is how
+"accumulate the blue chip" becomes a number.
+
 ## Your hours
 
 - **10:00 to 22:00 in Toronto time:** every entry becomes a proposal. You get a push notification with

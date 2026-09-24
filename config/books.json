@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "note": "One engine, several books. Rules, indicators, sizing and the global caps are shared and frozen; a book is an allowlist, a benchmark coin to score against, a pot share and its own risk cap. Edited by the owner only. Names marked untested were not in the 2020-2026 backtests and must still pass the universe filters on the day.",
+  "books": [
+    {"book": "bitcoin",  "enabled": true, "benchmark": "BTC",  "pot_share_pct": 20, "open_risk_cap_pct": 1.0, "sweep_gains_to_benchmark": false,
+     "names": [{"coin": "BTC", "note": "backtested"}]},
+    {"book": "eth-defi", "enabled": true, "benchmark": "ETH",  "pot_share_pct": 35, "open_risk_cap_pct": 2.5, "sweep_gains_to_benchmark": false,
+     "names": [{"coin": "ETH", "note": "backtested"}, {"coin": "AAVE", "note": "backtested"}, {"coin": "UNI", "note": "backtested"},
+               {"coin": "LINK", "note": "backtested"}, {"coin": "CRV", "note": "backtested"}]},
+    {"book": "solana",   "enabled": true, "benchmark": "SOL",  "pot_share_pct": 25, "open_risk_cap_pct": 2.0, "sweep_gains_to_benchmark": false,
+     "names": [{"coin": "SOL", "note": "backtested"}, {"coin": "JUP", "note": "untested"}, {"coin": "JTO", "note": "untested"},
+               {"coin": "PENGU", "note": "untested"}, {"coin": "PUMP", "note": "untested"}]},
+    {"book": "hype",     "enabled": true, "benchmark": "HYPE", "pot_share_pct": 10, "open_risk_cap_pct": 1.0, "sweep_gains_to_benchmark": false,
+     "names": [{"coin": "HYPE", "note": "untested"}]},
+    {"book": "bnb",      "enabled": true, "benchmark": "BNB",  "pot_share_pct": 10, "open_risk_cap_pct": 1.0, "sweep_gains_to_benchmark": false,
+     "names": [{"coin": "BNB", "note": "untested"}, {"coin": "CAKE", "note": "untested"}]}
+  ]
+}

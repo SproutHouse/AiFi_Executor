@@ -112,3 +112,38 @@ class Paper(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Books(unittest.TestCase):
+    def test_books_load_and_union(self):
+        b = C.books()
+        self.assertIn("eth-defi", b)
+        self.assertEqual(b["solana"]["benchmark"], "SOL")
+        allow = C.allowlist()
+        self.assertEqual(len(allow), len(set(allow)))
+        self.assertEqual(C.book_of("AAVE")[0], "eth-defi")
+        self.assertEqual(C.book_of("ZZZ"), (None, None))
+
+    def test_book_cap(self):
+        cand = {"coin": "UNI", "book": "eth-defi"}
+        z = K.size(1000.0, 100.0, 96.0, S_, 40)                     # risk 10 = 1%
+        pos = {"ETH": {"risk_amt": 10.0, "notional": 250.0, "book": "eth-defi"},
+               "AAVE": {"risk_amt": 10.0, "notional": 250.0, "book": "eth-defi"}}
+        ok, checks = K.pre_trade(cand, z, pos, 1000.0, S_, {"fresh": True, "book_cap_pct": 2.5})
+        self.assertFalse(ok)
+        self.assertIn("book open-risk cap", [c["check"] for c in checks if not c["ok"]])
+        ok2, _ = K.pre_trade(cand, z, pos, 1000.0, S_, {"fresh": True, "book_cap_pct": 3.0})
+        self.assertTrue(ok2)
+
+    def test_relative_R(self):
+        import os
+        from executor import ledger as L
+        cand = {"coin": "AAVE", "kind": "flip", "tier": "A", "stop": 95.0, "bar_t": 0, "book": "eth-defi", "benchmark": "ETH", "bench_mark": 2000.0}
+        z = K.size(1000.0, 100.0, 95.0, S_, 40)
+        pos = PA.open_position(cand, z, 100.0, S_, 0)
+        rec = L.record_close(pos, 110.0, "4h flip", 3600 * 24, 0.0, 0.0, bench_exit=2100.0)   # trade +10%, benchmark +5%
+        self.assertEqual(rec["book"], "eth-defi")
+        self.assertAlmostEqual(rec["bench_ret"], 0.05)
+        expected = (rec["pnl"] - 0.05 * pos["notional"]) / pos["risk_amt"]
+        self.assertAlmostEqual(rec["rel_R"], expected)
+        self.assertGreater(rec["R"], rec["rel_R"])

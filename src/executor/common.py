@@ -75,9 +75,34 @@ def settings():
     return s
 
 
+def books():
+    """Enabled books from config/books.json: {book: {benchmark, pot_share_pct, open_risk_cap_pct, sweep, names[]}}"""
+    b = load_json(CONFIG / "books.json") or {}
+    out = {}
+    for x in b.get("books", []):
+        if x.get("enabled", True):
+            out[x["book"]] = {"benchmark": x["benchmark"], "pot_share_pct": x.get("pot_share_pct"),
+                              "open_risk_cap_pct": x.get("open_risk_cap_pct"),
+                              "sweep": bool(x.get("sweep_gains_to_benchmark", False)),
+                              "names": [n["coin"] if isinstance(n, dict) else n for n in x.get("names", [])]}
+    return out
+
+
 def allowlist():
-    a = load_json(CONFIG / "allowlist.json") or {}
-    return [x["coin"] for x in a.get("names", []) if x.get("enabled", True)]
+    """Union of every enabled book's names, first book wins on a duplicate."""
+    seen = []
+    for b in books().values():
+        for c in b["names"]:
+            if c not in seen:
+                seen.append(c)
+    return seen
+
+
+def book_of(coin):
+    for name, b in books().items():
+        if coin in b["names"]:
+            return name, b
+    return None, None
 
 
 def http_json(url, body=None, headers=None, tries=3, timeout=30):

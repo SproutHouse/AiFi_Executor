@@ -7,6 +7,12 @@ TRADES = C.STATE / "ledger" / "trades.jsonl"
 REFUSED = C.STATE / "ledger" / "refused.jsonl"
 EQUITY = C.STATE / "ledger" / "equity.jsonl"
 MD = C.STATE / "ledger" / "LEDGER.md"
+SWEEPS = C.STATE / "ledger" / "sweeps.jsonl"
+
+
+def record_sweep_intent(book, benchmark, amount_pct_of_pot, ts, executed=False):
+    """v1.1 records the intent to convert a book's realised gain into its benchmark; spot execution is a later version."""
+    C.append_jsonl(SWEEPS, {"t": C.iso(ts), "book": book, "benchmark": benchmark, "pct_of_pot": amount_pct_of_pot, "executed": executed})
 
 
 def pos_path(mode):
@@ -21,16 +27,21 @@ def save_positions(pos, mode):
     C.write_json(pos_path(mode), {"updated": C.iso(), "mode": mode, "positions": pos})
 
 
-def record_close(pos, exit_px, reason, ts, exit_fee, funding_paid):
+def record_close(pos, exit_px, reason, ts, exit_fee, funding_paid, bench_exit=None):
     gross = (exit_px - pos["entry"]) / pos["entry"] * pos["notional"]
     pnl = gross - pos.get("entry_fee", 0.0) - exit_fee - funding_paid
+    bench_ret = rel_R = None
+    if bench_exit and pos.get("bench_entry"):
+        bench_ret = bench_exit / pos["bench_entry"] - 1
+        rel_R = (pnl - bench_ret * pos["notional"]) / pos["risk_amt"] if pos["risk_amt"] else None
     rec = {"coin": pos["coin"], "side": pos["side"], "kind": pos.get("kind"), "tier": pos.get("tier"),
            "mode": pos.get("mode"), "opened": pos["opened"], "closed": C.iso(ts), "entry": pos["entry"],
            "exit": exit_px, "stop_at_exit": pos["stop"], "notional": pos["notional"], "leverage": pos.get("leverage"),
            "risk_amt": pos["risk_amt"], "gross": gross, "fees": pos.get("entry_fee", 0.0) + exit_fee,
            "funding": funding_paid, "pnl": pnl, "R": pnl / pos["risk_amt"] if pos["risk_amt"] else 0.0,
            "reason": reason, "hours": max(1, (ts - pos["opened_ts"]) / 3600), "rules": pos.get("rules", []),
-           "context_at_entry": pos.get("context", {})}
+           "context_at_entry": pos.get("context", {}), "book": pos.get("book"), "benchmark": pos.get("benchmark"),
+           "bench_ret": bench_ret, "rel_R": rel_R}
     C.append_jsonl(TRADES, rec)
     return rec
 
@@ -64,7 +75,9 @@ def stats(tr):
     for x in tr:
         streak = streak + 1 if x["pnl"] <= 0 else 0
         worst = max(worst, streak)
+    rel = [x["rel_R"] for x in tr if x.get("rel_R") is not None]
     return {"n": len(tr), "win_rate": len(wins) / len(tr), "avg_R": sum(x["R"] for x in tr) / len(tr),
+            "avg_rel_R": (sum(rel) / len(rel)) if rel else None, "n_rel": len(rel),
             "total_R": sum(x["R"] for x in tr), "profit_factor": (gw / gl) if gl else None,
             "avg_hours": sum(x["hours"] for x in tr) / len(tr), "worst_losing_streak": worst,
             "fees_R": sum((x["fees"] + x["funding"]) / x["risk_amt"] for x in tr if x["risk_amt"]) / len(tr)}
@@ -76,25 +89,27 @@ def render_markdown(pos, summary_lines=None, mode="paper"):
     lines = ["# Ledger", "", f"_Rendered {C.iso()} in {mode} mode from state/positions_{mode}.json and state/ledger/*.jsonl. Do not edit._", ""]
     lines += ["## Open positions", ""]
     if pos:
-        lines += ["| Coin | Kind | Tier | Mode | Entry | Stop | Notional % eq | Lev | Opened |", "|---|---|---|---|---|---|---|---|---|"]
+        lines += ["| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |", "|---|---|---|---|---|---|---|---|---|"]
         for p in pos.values():
-            lines.append(f"| {p['coin']} | {p.get('kind')} | {p.get('tier')} | {p.get('mode')} | {p['entry']:.6g} | {p['stop']:.6g} | "
+            lines.append(f"| {p.get('book')} | {p['coin']} | {p.get('kind')} | {p.get('tier')} | {p['entry']:.6g} | {p['stop']:.6g} | "
                          f"{p.get('notional_pct_equity', 0):.1f}% | {p.get('leverage')}x | {p['opened'][:16]} |")
     else:
         lines.append("None.")
     lines += ["", "## Closed trades, summary", ""]
     if st["n"]:
         pf = f"{st['profit_factor']:.2f}" if st["profit_factor"] is not None else "n/a"
+        rel = f" · average {st['avg_rel_R']:+.2f} R against holding the benchmark" if st.get("avg_rel_R") is not None else ""
         lines += [f"- Trades {st['n']} · win rate {st['win_rate']:.0%} · average {st['avg_R']:+.2f} R · total {st['total_R']:+.1f} R · "
-                  f"profit factor {pf} · worst losing streak {st['worst_losing_streak']} · costs {st['fees_R']:.2f} R per trade"]
+                  f"profit factor {pf} · worst losing streak {st['worst_losing_streak']} · costs {st['fees_R']:.2f} R per trade{rel}"]
     else:
         lines.append("No closed trades yet.")
     lines += ["", "## Last 50 closed trades", ""]
     if tr:
-        lines += ["| Closed | Coin | Kind | Tier | Entry | Exit | R | Reason | Hours |", "|---|---|---|---|---|---|---|---|---|"]
+        lines += ["| Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |", "|---|---|---|---|---|---|---|---|---|---|---|"]
         for x in tr[-50:][::-1]:
-            lines.append(f"| {x['closed'][:16]} | {x['coin']} | {x['kind']} | {x['tier']} | {x['entry']:.6g} | {x['exit']:.6g} | "
-                         f"{x['R']:+.2f} | {x['reason']} | {x['hours']:.0f} |")
+            rr = f"{x['rel_R']:+.2f}" if x.get("rel_R") is not None else "n/a"
+            lines.append(f"| {x['closed'][:16]} | {x.get('book')} | {x['coin']} | {x['kind']} | {x['tier']} | {x['entry']:.6g} | {x['exit']:.6g} | "
+                         f"{x['R']:+.2f} | {rr} | {x['reason']} | {x['hours']:.0f} |")
     else:
         lines.append("None yet.")
     ref = C.read_jsonl(REFUSED)

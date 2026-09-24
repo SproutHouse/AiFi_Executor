@@ -69,6 +69,15 @@ keys; Telegram as a control plane; Pine Script conversion. Added beyond both: ex
 reduce-only exits, client order ids, reconciliation, data freshness and sanity band, late-run window, order
 rounding, emergency flatten, dependency locking, master-key hygiene, tax-ready records.
 
+## 2026-09-23 · Books instead of one bot per ecosystem
+
+The owner proposed a separate self-improving bot per ecosystem, each accumulating that chain's blue chip.
+Kept: scoring each book against its blue chip, which is the honest benchmark. Changed: one engine with
+several books rather than several engines, because five books at 1% risk each are one correlated bet and
+need one global cap, because a book alone generates too few trades to learn from without fitting noise, and
+because only Hyperliquid-listed, aged, liquid names pass the venue rule. Robinhood Chain and the on-chain
+second tier wait for history and for a spend-capped wallet design.
+
 ## Open questions
 
 - Pot size and maximum acceptable loss in the owner's own numbers, before live.

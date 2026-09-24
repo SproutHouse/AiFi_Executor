@@ -50,6 +50,12 @@ The throttle halts on its own at a 20% drawdown; `resume` clears that too, so lo
    the pot dictates; keep the pot small until 30 live trades have matched the rules.
 9. After 30 live trades with positive expectancy, consider raising the pot. Never raise the caps.
 
+## Books
+
+`config/books.json` holds the books. To retire a book, set `"enabled": false`; open positions in it still
+exit by the rules. To move a name between books, edit the file and commit; the change applies from the next
+cycle. The Sunday review's "Book verdicts" section tells you when a book has earned or lost its place.
+
 ## Changing a rule or a parameter
 
 Settings changes are commits, reviewed in the Sunday review's light. A rule change is a new `LOGIC.md`

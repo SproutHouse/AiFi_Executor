@@ -47,7 +47,7 @@ class Bars:
 
 
 def describe(cand, sizing):
-    return (f"{cand['coin']} long · {cand['kind']} tier {cand['tier']} · stop {cand['stop']:.5g} "
+    return (f"{cand['coin']} long [{cand.get('book', '?')}] · {cand['kind']} tier {cand['tier']} · stop {cand['stop']:.5g} "
             f"({sizing.get('dist_pct', 0):.1f}% away) · size {sizing.get('notional_pct_equity', 0):.1f}% of pot at "
             f"{sizing.get('leverage', '?')}x · risk {sizing.get('risk_pct', 0):.2f}% of pot")
 
@@ -97,9 +97,10 @@ class Cycle:
 
     # ------------------------------------------------------------- exits --
     def close_position(self, coin, pos, px, reason, ts):
+        bench_exit = self.marks.get(pos.get("benchmark") or "")
         if self.mode == "paper":
             fee = PA.exit_fee(pos, px, self.s)
-            rec = L.record_close(pos, px, reason, ts, fee, pos.get("funding_paid", 0.0))
+            rec = L.record_close(pos, px, reason, ts, fee, pos.get("funding_paid", 0.0), bench_exit)
             self.pot["cash"] += rec["gross"] - fee - pos.get("funding_paid", 0.0)
         else:
             if pos.get("stop_cloid"):
@@ -115,11 +116,28 @@ class Cycle:
                 return None
             px = avg
             fee = pos["sz"] * px * self.s["fee_taker_pct"] / 100
-            rec = L.record_close(pos, px, reason, ts, fee, pos.get("funding_paid", 0.0))
+            rec = L.record_close(pos, px, reason, ts, fee, pos.get("funding_paid", 0.0), bench_exit)
         del self.positions[coin]
-        self.say(f"{coin}: closed on {reason} at {px:.5g} → {rec['R']:+.2f} R")
-        C.notify("Executor: closed", f"{coin} on {reason}: {rec['R']:+.2f} R after {rec['hours']:.0f}h")
+        rel = f" · {rec['rel_R']:+.2f} R vs {pos.get('benchmark')}" if rec.get("rel_R") is not None else ""
+        self.say(f"{coin} [{pos.get('book')}]: closed on {reason} at {px:.5g} → {rec['R']:+.2f} R{rel}")
+        C.notify("Executor: closed", f"{coin} ({pos.get('book')}) on {reason}: {rec['R']:+.2f} R{rel} after {rec['hours']:.0f}h")
+        self.maybe_sweep(pos, rec, ts)
         return rec
+
+    def maybe_sweep(self, pos, rec, ts):
+        """Book policy: a realised gain is earmarked for the book's benchmark while that benchmark's weekly is bullish."""
+        _name, book = C.book_of(pos["coin"])
+        if not book or not book["sweep"] or rec["pnl"] <= 0:
+            return
+        bench = book["benchmark"]
+        try:
+            d, h = self.bars.get(bench)
+            ctx = R.context(d, h, self.now, self.s["indicators"])
+        except Exception:  # noqa: BLE001
+            return
+        if ctx["weekly_dir"] == -1 and self.equity > 0:
+            L.record_sweep_intent(pos.get("book"), bench, rec["pnl"] / self.equity * 100, ts)
+            self.say(f"{pos['coin']}: gain earmarked for {bench} ({rec['pnl'] / self.equity * 100:.2f}% of pot); execution is a later version")
 
     def manage_exits(self):
         for coin, pos in list(self.positions.items()):
@@ -176,7 +194,7 @@ class Cycle:
                 px = self.exit_price_from_fills(coin, pos)
                 if px:
                     fee = pos["sz"] * px * self.s["fee_taker_pct"] / 100
-                    rec = L.record_close(pos, px, "stop (exchange)", self.now, fee, pos.get("funding_paid", 0.0))
+                    rec = L.record_close(pos, px, "stop (exchange)", self.now, fee, pos.get("funding_paid", 0.0), self.marks.get(pos.get("benchmark") or ""))
                     del self.positions[coin]
                     self.say(f"{coin}: exchange stop fired at {px:.5g} → {rec['R']:+.2f} R")
                     C.notify("Executor: stop fired", f"{coin}: {rec['R']:+.2f} R")
@@ -203,7 +221,7 @@ class Cycle:
         context = {"btc_weekly": R.label(self.btc["weekly_dir"]), "pair_weekly": R.label(ctx["weekly_dir"]),
                    "pair_daily": R.label(ctx["daily_dir"]), "h4_range": cand.get("range"),
                    "funding_annual_pct": H.funding_annual_pct(self.ctxs.get(coin, {})), "hours_mode": self.hours_mode}
-        rules = ["LOGIC v1.0", f"trigger:{cand['kind']}", f"tier:{cand['tier']}", "stop:4h-line", "long-only"]
+        rules = ["LOGIC v1.1", f"trigger:{cand['kind']}", f"tier:{cand['tier']}", "stop:4h-line", "long-only", f"book:{cand.get('book')}"]
         if self.mode == "paper":
             pos = PA.open_position(cand, sizing, mark, self.s, self.now, "paper", context, rules)
             self.pot["cash"] -= pos["entry_fee"]
@@ -229,33 +247,42 @@ class Cycle:
         return pos
 
     def find_entries(self):
-        allow = C.allowlist()
-        for coin in allow:
+        books = C.books()
+        for book_name, book in books.items():
+            for coin in book["names"]:
+                self.find_entry(coin, book_name, book)
+
+    def find_entry(self, coin, book_name, book):
+        if True:
             if coin in self.positions:
-                continue
+                return
             row = self.ctxs.get(coin)
             if row is None:
-                continue
+                if self.verbose:
+                    self.say(f"{coin} [{book_name}]: not listed on Hyperliquid perpetuals")
+                return
             try:
                 d, h = self.bars.get(coin)
             except Exception as e:  # noqa: BLE001
                 self.say(f"{coin}: candles unavailable ({str(e)[:80]})")
-                continue
+                return
             ctx = R.context(d, h, self.now, self.s["indicators"])
             cand, _why = S.evaluate(coin, ctx, self.btc_bull)
             self.counts["evaluated"] += 1
+            if cand:
+                cand.update({"book": book_name, "benchmark": book["benchmark"], "bench_mark": self.marks.get(book["benchmark"])})
             if self.verbose:
                 h4 = ctx.get("h4") or {}
                 fa = H.funding_annual_pct(row)
-                self.say(f"{coin}: W {R.label(ctx['weekly_dir'])} · D {R.label(ctx['daily_dir'])} · 4h {R.label(h4.get('dir'))} "
+                self.say(f"{coin} [{book_name}]: W {R.label(ctx['weekly_dir'])} · D {R.label(ctx['daily_dir'])} · 4h {R.label(h4.get('dir'))} "
                          f"{h4.get('range') or ''} · {cand['kind'] + ' tier ' + cand['tier'] if cand else _why[0]} · "
                          f"vol {float(row.get('dayNtlVlm', 0)) / 1e6:.0f}M · funding {fa if fa is None else round(fa, 1)}%/yr · {ctx['days']}d history")
             if not cand:
-                continue
+                return
             self.counts["triggers"] += 1
             mark = self.marks.get(coin)
             if not mark:
-                continue
+                return
             u_ok, u_reasons = U.check(coin, row, self.s["universe"], ctx["days"])
             second = B.last_price(coin)
             if second:
@@ -267,7 +294,8 @@ class Cycle:
             sizing = K.size(self.equity, worst_entry, cand["stop"], self.s, row.get("maxLeverage"), self.thr["multiplier"])
             flags = {"halt": self.halt, "halt_reason": self.halt_reason, "throttle_halt": self.thr["halt"],
                      "drawdown_pct": self.thr["drawdown_pct"], "fresh": self.fresh, "fresh_detail": self.fresh_detail,
-                     "sanity_ok": sanity_ok, "sanity_detail": sanity_detail, "universe_ok": u_ok, "universe_reasons": u_reasons}
+                     "sanity_ok": sanity_ok, "sanity_detail": sanity_detail, "universe_ok": u_ok, "universe_reasons": u_reasons,
+                     "book_cap_pct": book.get("open_risk_cap_pct")}
             flags.update(self.rec_flags)
             ok, checks = K.pre_trade(cand, sizing, self.positions, self.equity, self.s, flags)
             if not ok:
@@ -276,7 +304,7 @@ class Cycle:
                 if not self.dry:
                     L.record_refusal(cand, failed, self.now, "pre-trade")
                 self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} REFUSED: " + "; ".join(f"{c['check']} ({c['detail']})" for c in failed))
-                continue
+                return
             auto = self.hours_mode == "auto" and cand["tier"] in self.s["offline_auto_tiers"]
             if auto and not self.dry:
                 if self.execute_entry(cand, sizing, mark, ctx):
@@ -287,7 +315,7 @@ class Cycle:
                 exp = HR.next_bar_close(self.now, C.BAR_SECONDS)
                 if self.dry:
                     self.say(f"{coin}: would PROPOSE {P.new_id(coin, cand['kind'], self.now)} ({why}) · {describe(cand, sizing)}")
-                    continue
+                    return
                 doc = P.create(cand, sizing, checks, exp, why, mark, self.mode)
                 self.counts["proposed"] += 1
                 self.say(f"{coin}: PROPOSED {doc['id']} ({why}), expires {doc['expires']}")

@@ -35,7 +35,8 @@ def open_position(cand, sizing, mark, s, ts, mode="paper", context=None, rules=N
             "sz": sizing["notional"] / entry, "risk_amt": sizing["risk_amt"], "leverage": sizing["leverage"],
             "notional_pct_equity": sizing["notional_pct_equity"], "entry_fee": fee, "funding_paid": 0.0,
             "opened": C.iso(ts), "opened_ts": ts, "last_bar_t": cand.get("bar_t", ts), "last_funding_ts": ts,
-            "context": context or {}, "rules": rules or [], "stop_cloid": None, "entry_cloid": None}
+            "context": context or {}, "rules": rules or [], "stop_cloid": None, "entry_cloid": None,
+            "book": cand.get("book"), "benchmark": cand.get("benchmark"), "bench_entry": cand.get("bench_mark")}
 
 
 def accrue_funding(pos, hourly_rate, ts):

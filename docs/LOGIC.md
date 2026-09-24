@@ -1,4 +1,4 @@
-# Decision logic — version 1.0
+# Decision logic — version 1.1
 
 _Every rule here is implemented in the file named beside it, and only there. Change the rule in the code,
 bump the version, add a changelog line. Never let this page and the code disagree._
@@ -74,11 +74,24 @@ Tier A may execute automatically during offline hours. Tier B always needs appro
 | Approval drift | refused if mark has risen more than 1% above the mark at signal time | `scripts/approve.py` |
 | Approval recheck | every pre-trade check runs again with the current book | `scripts/approve.py` |
 
+## 6b. Books
+
+A book is an allowlist, a benchmark coin, a pot share and a risk cap of its own; rules, indicators, sizing
+and the global caps are shared by every book and frozen. `config/books.json`, read by `common.books`.
+
+| Rule | Value | Where |
+|---|---|---|
+| Membership | a coin belongs to exactly one book; the first book listing it wins | `common.book_of` |
+| Book risk cap | open risk within the book ≤ the book's `open_risk_cap_pct` of the pot, checked under the global 4% | `risk.pre_trade` |
+| Benchmark | each position stores the benchmark's mark at entry; each closed trade records the benchmark's return over the same hours and **R against holding the benchmark** = (pnl − benchmark return × notional) / risk | `ledger.record_close` |
+| Book verdict | the Sunday review judges a book only at 30 closed trades; a book that does not beat holding its benchmark proposes moving its pot share to the benchmark | `review.render` |
+| Sweep | when a book has `sweep_gains_to_benchmark` on and the benchmark's weekly is bullish, a realised gain is earmarked for the benchmark in `state/ledger/sweeps.jsonl`. v1.1 records the intent; the spot conversion is a later version | `cycle.maybe_sweep` |
+
 ## 7. Pre-trade checklist, all must pass
 
 not halted · throttle not halted · data fresh and run on time · no reconciliation mismatch · sizing accepted ·
-no open position in the coin · below max positions · open-risk cap · gross exposure cap · price sanity band ·
-universe filters. Implemented in `risk.pre_trade`; every failure is written to `state/ledger/refused.jsonl`.
+no open position in the coin · below max positions · open-risk cap · book open-risk cap · gross exposure cap ·
+price sanity band · universe filters. Implemented in `risk.pre_trade`; every failure is written to `state/ledger/refused.jsonl`.
 
 ## 8. What is frozen and what adapts
 
@@ -89,6 +102,9 @@ Never automatic: any change to this page. See [DECISIONS.md](DECISIONS.md) for t
 
 ## Changelog
 
+- **v1.1 — 2026-09-23.** Books: per-book allowlist, benchmark, pot share and risk cap under the global cap;
+  relative R against holding the benchmark on every closed trade; book verdicts in the Sunday review; sweep
+  intent recorded. No change to triggers, exits, sizing or global caps.
 - **v1.0 — 2026-09-23.** Initial rules. Long-only. Flip and pullback triggers on 4-hour bars inside a
   bullish daily and weekly; tier A/B by Bitcoin's weekly; exchange-resident trailing stop on the 4-hour
   line; exits on 4-hour, daily or weekly flip. Evidence in [backtests/backtest_summary.md](backtests/backtest_summary.md).

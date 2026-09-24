@@ -22,11 +22,21 @@ def render(mode):
         pf = f"{st['profit_factor']:.2f}" if st["profit_factor"] is not None else "n/a"
         lines += [f"- Closed trades {st['n']} · win rate {st['win_rate']:.0%} · average {st['avg_R']:+.2f} R · total {st['total_R']:+.1f} R · "
                   f"profit factor {pf} · worst losing streak {st['worst_losing_streak']} · costs {st['fees_R']:.2f} R per trade", ""]
-        for key, title in (("tier", "By tier"), ("kind", "By trigger"), ("coin", "By coin"), ("reason", "By exit reason")):
-            lines += [f"## {title}", "", "| Bucket | n | Win | Avg R | Total R |", "|---|---|---|---|---|"]
+        for key, title in (("book", "By book"), ("tier", "By tier"), ("kind", "By trigger"), ("coin", "By coin"), ("reason", "By exit reason")):
+            lines += [f"## {title}", "", "| Bucket | n | Win | Avg R | Total R | Avg R vs benchmark |", "|---|---|---|---|---|---|"]
             for k, v in sorted(bucket(tr, key).items(), key=lambda kv: -kv[1]["total_R"]):
-                lines.append(f"| {k} | {v['n']} | {v['win_rate']:.0%} | {v['avg_R']:+.2f} | {v['total_R']:+.1f} |")
+                rr = f"{v['avg_rel_R']:+.2f} (n={v['n_rel']})" if v.get("avg_rel_R") is not None else "n/a"
+                lines.append(f"| {k} | {v['n']} | {v['win_rate']:.0%} | {v['avg_R']:+.2f} | {v['total_R']:+.1f} | {rr} |")
             lines.append("")
+        lines += ["## Book verdicts", ""]
+        for k, v in bucket(tr, "book").items():
+            if v["n"] < 30:
+                lines.append(f"- {k}: {v['n']} trades, too few to judge (needs 30)")
+            elif v.get("avg_rel_R") is not None and v["avg_rel_R"] <= 0:
+                lines.append(f"- {k}: {v['n']} trades, {v['avg_rel_R']:+.2f} R against holding the benchmark → does not beat holding; proposal: move this book's pot share to the benchmark")
+            else:
+                lines.append(f"- {k}: {v['n']} trades, beats holding the benchmark by {v['avg_rel_R']:+.2f} R per trade")
+        lines.append("")
     if pts:
         peak = max(p["equity"] for p in pts)
         lines += ["## Pot", "", f"- Equity points {len(pts)} · drawdown from peak {(peak - pts[-1]['equity']) / peak * 100:.1f}% · "

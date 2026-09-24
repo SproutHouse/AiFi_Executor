@@ -32,6 +32,7 @@ for, with isolated margin so one position cannot consume the others' margin.
 |---|---|---|
 | Risk per trade | 1% of the pot | expectancy is thin and losing streaks run 18 to 24 trades |
 | Open risk across positions | 4% of the pot | crypto positions stop out together; this is the real risk unit |
+| Open risk within a book | the book's own cap, 1% to 2.5%, under the global 4% | five ecosystem books are one bet on "crypto is up" in five jerseys; the global cap binds first |
 | Gross exposure | 3 × equity | bounds funding and margin use |
 | Leverage per position | 3x, isolated | liquidation always beyond twice the stop |
 | Positions | 6 | the effective number of independent bets is 1 or 2 anyway |

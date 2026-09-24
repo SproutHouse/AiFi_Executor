@@ -13,14 +13,18 @@ JSON is the record.
 | `ledger/LEDGER.md` | the rendering: open positions, summary statistics, last 50 trades, refusal count, last run |
 | `proposals/<id>.json` | proposals with status open, executed, expired, rejected or failed, the candidate, sizing and the checks that passed |
 | `runs/last_run.json`, `runs/<date>.jsonl` | what each cycle saw and did, including counts of names evaluated, triggers, refusals, proposals, entries |
-| `review/<date>.md` | the Sunday review |
+| `ledger/sweeps.jsonl` | realised gains earmarked for a book's benchmark under the sweep policy (recorded, not yet executed) |
+| `review/<date>.md` | the Sunday review, including the verdict per book |
 
 ## A closed trade
 
-`coin, side, kind, tier, mode, opened, closed, entry, exit, stop_at_exit, notional, leverage, risk_amt, gross,
-fees, funding, pnl, R, reason, hours, rules, context_at_entry`
+`coin, side, kind, tier, mode, book, benchmark, opened, closed, entry, exit, stop_at_exit, notional, leverage,
+risk_amt, gross, fees, funding, pnl, R, bench_ret, rel_R, reason, hours, rules, context_at_entry`
 
 - `R = pnl / risk_amt`. Minus 1 R is a trade that lost exactly what it was allowed to lose.
+- `rel_R = (pnl − bench_ret × notional) / risk_amt`: the trade's result against simply holding the book's
+  benchmark for the same hours. A positive R with a negative rel_R means the trade made money but holding the
+  blue chip would have made more.
 - `reason` is one of `stop`, `stop (exchange)`, `4h flip`, `daily flip`, `weekly flip`, `manual flatten`.
 - `rules` lists the rule ids that fired, so a review can group by rule.
 - `context_at_entry` records Bitcoin's weekly, the pair's weekly and daily, the 4-hour range state, the
