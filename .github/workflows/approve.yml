@@ -40,6 +40,14 @@ jobs:
           HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
           HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
         run: ${{ steps.py.outputs.bin }} scripts/approve.py --id "$PROPOSAL_ID" --confirm "$CONFIRM"
+      - name: Push the dashboard bundle
+        if: always()
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then python3 scripts/dashboard_push.py; fi
       - name: Commit state
         if: always()
         run: |

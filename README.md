@@ -36,7 +36,8 @@ exchange. There is no language model anywhere in the loop.
 | [docs/LEDGER.md](docs/LEDGER.md) | The record: files, fields, what R means |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Runbook: setup, approving, halting, going live |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Why it is built this way, with the evidence |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | Phases, gates, the dashboard |
+| [docs/DASHBOARD.md](docs/DASHBOARD.md) | The private dashboard: tabs, deployment |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Phases, gates |
 | [docs/backtests/](docs/backtests/) | The backtests and their summary |
 
 ## Layout
@@ -49,6 +50,7 @@ scripts/   run_cycle.py · approve.py · control.py · review.py · verify_keys.
 state/     positions_<mode>.json · paper.json · proposals/ · ledger/ · runs/ · review/   (committed by the runner)
 tests/     unit tests, standard library only:  cd tests && python3 -m unittest -v
 .github/workflows/  cycle (every 4h) · approve · control (halt/resume/flatten) · review (Sunday) · runner-watch
+cloud/     the dashboard: worker.js · client.js · design.js (AiFi tokens, magenta accent) · wrangler.toml
 ops/runner/  setup.sh: turns a fresh Ubuntu VM (Oracle Always Free, Europe) into the self-hosted runner
 ```
 

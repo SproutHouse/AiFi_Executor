@@ -65,6 +65,11 @@ The throttle halts on its own at a 20% drawdown; `resume` clears that too, so lo
 exit by the rules. To move a name between books, edit the file and commit; the change applies from the next
 cycle. The Sunday review's "Book verdicts" section tells you when a book has earned or lost its place.
 
+## The dashboard
+
+See [DASHBOARD.md](DASHBOARD.md). One-time: three secrets and the **deploy-dashboard** workflow. The bundle
+then refreshes after every cycle on its own.
+
 ## Running outside the United States and Canada
 
 GitHub's free runners are in US data centres and the free plan cannot choose a region, so the executor

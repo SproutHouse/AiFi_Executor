@@ -1,0 +1,15 @@
+# AiFi Executor dashboard — Cloudflare Worker + KV. Deployed by .github/workflows/deploy-dashboard.yml,
+# which creates the KV namespace "aifi-executor" if missing and writes its id below at deploy time.
+name = "aifi-executor-dashboard"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "EXEC"
+id = "KV_NAMESPACE_ID"
+
+[[rules]]
+type = "Text"
+globs = ["**/client.js"]
+fallthrough = false

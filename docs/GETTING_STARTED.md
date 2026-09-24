@@ -92,6 +92,13 @@ What to look for: the first entry alert, the stop order appearing on the exchang
 it under open orders), exits arriving on their own, and the Sunday review. Keep the pot small until thirty
 real trades have happened.
 
+## Part 2b — the dashboard, ten minutes
+
+**Step 13b. Give GitHub the Cloudflare keys.** Three repository secrets: `CLOUDFLARE_API_TOKEN` (the AiFi
+one works if it may edit Workers and KV), `CLOUDFLARE_ACCOUNT_ID`, and a new `DASHBOARD_PASSWORD` you invent.
+Then Actions → deploy-dashboard → Run workflow. The log of the deploy step prints the page's address.
+Done when: the address opens, asks for the password, and shows the Overview with the last cycle.
+
 ## Part 3 — move the robot to a server in Europe
 
 **Step 14. Open an Oracle Cloud account.** cloud.oracle.com, Always Free. Choose the home region carefully,

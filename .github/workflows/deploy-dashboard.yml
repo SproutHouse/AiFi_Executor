@@ -1,0 +1,40 @@
+# Deploys the Cloudflare Worker dashboard. Creates the KV namespace "aifi-executor" if it does not exist,
+# writes its id into wrangler.toml for the deploy, sets the dashboard password, and pushes the first bundle.
+# Secrets: CLOUDFLARE_API_TOKEN (Workers Scripts + Workers KV Storage edit), CLOUDFLARE_ACCOUNT_ID, DASHBOARD_PASSWORD.
+name: deploy-dashboard
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Ensure the KV namespace exists and bind it
+        working-directory: cloud
+        run: |
+          set -e
+          ID=$(npx --yes wrangler@4 kv namespace list | python3 -c 'import json,sys; ns=[n for n in json.load(sys.stdin) if n["title"]=="aifi-executor"]; print(ns[0]["id"] if ns else "")')
+          if [ -z "$ID" ]; then
+            npx --yes wrangler@4 kv namespace create aifi-executor >/dev/null
+            ID=$(npx --yes wrangler@4 kv namespace list | python3 -c 'import json,sys; print([n for n in json.load(sys.stdin) if n["title"]=="aifi-executor"][0]["id"])')
+          fi
+          sed -i "s/KV_NAMESPACE_ID/$ID/" wrangler.toml
+          echo "namespace $ID"
+      - name: Deploy the Worker
+        working-directory: cloud
+        run: npx --yes wrangler@4 deploy
+      - name: Set the dashboard password
+        working-directory: cloud
+        env:
+          DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
+        run: |
+          [ -n "$DASHBOARD_PASSWORD" ] || { echo "DASHBOARD_PASSWORD secret missing; the page will show 'Not configured' until it is set"; exit 0; }
+          printf '%s' "$DASHBOARD_PASSWORD" | npx --yes wrangler@4 secret put DASHBOARD_PASSWORD
+      - name: Push the first bundle
+        run: python3 scripts/dashboard_push.py

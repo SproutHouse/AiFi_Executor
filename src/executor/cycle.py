@@ -56,6 +56,7 @@ class Cycle:
     def __init__(self, dry=False, verbose=False):
         self.dry, self.verbose = dry, verbose
         self.counts = {"evaluated": 0, "triggers": 0, "refused": 0, "proposed": 0, "entered": 0}
+        self.readings = []
         self.s = C.settings()
         self.now = C.now_ts()
         self.summary = []
@@ -271,6 +272,15 @@ class Cycle:
             self.counts["evaluated"] += 1
             if cand:
                 cand.update({"book": book_name, "benchmark": book["benchmark"], "bench_mark": self.marks.get(book["benchmark"])})
+            h4r = ctx.get("h4") or {}
+            try:
+                vol_m = float(row.get("dayNtlVlm", 0)) / 1e6
+            except (TypeError, ValueError):
+                vol_m = None
+            self.readings.append({"coin": coin, "book": book_name, "weekly": R.label(ctx["weekly_dir"]), "daily": R.label(ctx["daily_dir"]),
+                                  "h4": R.label(h4r.get("dir")), "range": h4r.get("range"), "line": h4r.get("line"), "close": h4r.get("close"),
+                                  "trigger": (cand["kind"] + " tier " + cand["tier"]) if cand else None, "why": None if cand else _why[0],
+                                  "vol_m": vol_m, "funding_pct": H.funding_annual_pct(row), "days": ctx["days"], "mark": self.marks.get(coin)})
             if self.verbose:
                 h4 = ctx.get("h4") or {}
                 fa = H.funding_annual_pct(row)
@@ -358,13 +368,18 @@ class Cycle:
             self.equity, self.unreal = PA.equity(self.pot, self.positions, self.marks)
             if not self.dry:
                 PA.save_pot(self.pot)
+        for coin, pos in self.positions.items():
+            m = self.marks.get(coin)
+            if m and pos.get("entry"):
+                pos["mark"], pos["upnl_pct"] = m, (m / pos["entry"] - 1) * 100
         if not self.dry:
             L.save_positions(self.positions, self.mode)
             L.equity_point(self.now, self.equity, self.cash if self.mode == "live" else self.pot["cash"], self.unreal, self.mode)
         run_doc = {"t": C.iso(self.now), "mode": self.mode, "hours": self.hours_mode, "dry": self.dry, "fresh": self.fresh,
                    "btc_weekly": R.label(self.btc["weekly_dir"]), "btc_daily": R.label(self.btc["daily_dir"]),
                    "positions": sorted(self.positions), "open_proposals": [p["id"] for p in P.open_proposals()],
-                   "throttle": self.thr, "halt": self.halt, "counts": self.counts, "summary": self.summary}
+                   "throttle": self.thr, "halt": self.halt, "counts": self.counts, "summary": self.summary,
+                   "readings": self.readings, "equity": self.equity, "hours_local": self.local.strftime("%H:%M %Z")}
         if not self.dry:
             C.write_json(C.STATE / "runs" / "last_run.json", run_doc)
             C.append_jsonl(C.STATE / "runs" / f"{C.iso(self.now)[:10]}.jsonl", run_doc)
