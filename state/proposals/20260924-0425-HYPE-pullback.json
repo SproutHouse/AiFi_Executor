@@ -1,0 +1,99 @@
+{
+  "id": "20260924-0425-HYPE-pullback",
+  "status": "open",
+  "created": "2026-09-24T04:25:05Z",
+  "expires": "2026-09-24T08:00:00Z",
+  "expires_ts": 1790236800,
+  "why_waiting": "tier B always needs approval",
+  "mode": "paper",
+  "candidate": {
+    "coin": "HYPE",
+    "side": "long",
+    "kind": "pullback",
+    "tier": "B",
+    "stop": 91.38585193863241,
+    "signal_close": 91.892,
+    "bar_t": 1790208000,
+    "bar_T": 1790222399,
+    "range": "In Range",
+    "btc_weekly_bullish": true,
+    "book": "hype",
+    "benchmark": "HYPE",
+    "bench_mark": 91.784
+  },
+  "sizing": {
+    "entry": 92.05935199999999,
+    "stop": 91.38585193863241,
+    "dist_pct": 0.7315933109843926,
+    "risk_amt": 10.0,
+    "risk_pct": 1.0,
+    "notional": 1366.8796378885065,
+    "leverage": 3,
+    "margin": 455.6265459628355,
+    "notional_pct_equity": 136.68796378885065,
+    "liq_buffer_pct": 30.0
+  },
+  "checks": [
+    {
+      "check": "not halted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "throttle allows entries",
+      "ok": true,
+      "detail": "drawdown 0.0%"
+    },
+    {
+      "check": "data fresh and run on time",
+      "ok": true,
+      "detail": "25 min after the bar close"
+    },
+    {
+      "check": "no reconciliation mismatch",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "sizing accepted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "no open position in this coin",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "below max positions",
+      "ok": true,
+      "detail": "0 open of 6"
+    },
+    {
+      "check": "open-risk cap",
+      "ok": true,
+      "detail": "1.00% of equity after entry, cap 4.0%"
+    },
+    {
+      "check": "gross exposure cap",
+      "ok": true,
+      "detail": "1.37x after entry, cap 3.0x"
+    },
+    {
+      "check": "book open-risk cap",
+      "ok": true,
+      "detail": "book hype: 1.00% after entry, cap 1.0%"
+    },
+    {
+      "check": "price sanity band",
+      "ok": true,
+      "detail": "no second source for this coin"
+    },
+    {
+      "check": "universe filters",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "mark_at_signal": 91.784
+}
