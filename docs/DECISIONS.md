@@ -104,6 +104,16 @@ zero-equity pot crashed the pre-trade check. All were fixed as v1.3 with tests t
 a fake exchange. Deferred to after 30 live trades: enabling tier B, retiring or re-scoping the bnb book and
 the names the volume filter keeps refusing, and stripping pot-unit amounts from the dashboard API.
 
+## 2026-09-25 · Several agents instead of one busier bot
+
+The owner found the executor too idle (13 cycles, 9 signals, 0 trades: 4 blocked by the volume floor, 3 tier B, 2
+expired proposals) and wants several agents with different parameters, separate keys, one dashboard. A backtest of
+more-frequent variants (docs/backtests/variants.md) showed that more names without the Bitcoin gate trades ~1.7× as
+often with a smaller but positive edge, while pullbacks and 1-hour triggers trade far more with little or no edge.
+Decision: keep Core unchanged as the control; add Wide (31 names, no Bitcoin gate, 5M floors) and Fast (1-hour, paper
+experiment); run all in paper and let the Compare sheet decide which earns a live wallet. The engine gained an agent
+setting that isolates config, state, keys, KV keys and alerts; the runner went hourly.
+
 ## Open questions
 
 - Pot size and maximum acceptable loss in the owner's own numbers, before live.

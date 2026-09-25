@@ -31,8 +31,8 @@ def resolve_mode(s):
 
 def freshness(h4, now_ts, s):
     if not h4:
-        return False, "no 4-hour bars"
-    T = h4[-1].get("T") or (h4[-1]["t"] + C.BAR_SECONDS)
+        return False, "no trigger bars"
+    T = h4[-1].get("T") or (h4[-1]["t"] + C.bar_seconds(s))
     late = (now_ts - T) / 60
     if late < 0:
         return False, "last bar has not closed"
@@ -50,15 +50,29 @@ def no_reading(d):
 
 
 class Bars:
+    """Candles per coin: daily, the trigger timeframe, and 4-hour gate bars when the trigger is 1-hour."""
     def __init__(self, s):
-        self.s, self.cache = s, {}
+        self.s, self.cache, self.gates = s, {}, {}
+        self.tf = C.trigger_tf(s)
 
     def get(self, coin):
         if coin not in self.cache:
             d = H.candles(coin, "1d", self.s["data"]["candle_days_daily"])
-            h = H.candles(coin, "4h", self.s["data"]["candle_days_4h"])
+            days = self.s["data"].get("candle_days_trigger", self.s["data"]["candle_days_4h"]) if self.tf != "4h" else self.s["data"]["candle_days_4h"]
+            h = H.candles(coin, self.tf, days)
             self.cache[coin] = (d, h)
         return self.cache[coin]
+
+    def gate(self, coin):
+        if self.tf == "4h":
+            return None
+        if coin not in self.gates:
+            self.gates[coin] = H.candles(coin, "4h", self.s["data"]["candle_days_4h"])
+        return self.gates[coin]
+
+    def context(self, coin, now, ind):
+        d, h = self.get(coin)
+        return R.context(d, h, now, ind, self.gate(coin))
 
 
 def describe(cand, sizing):
@@ -174,8 +188,7 @@ class Cycle:
             return
         bench = book["benchmark"]
         try:
-            d, h = self.bars.get(bench)
-            ctx = R.context(d, h, self.now, self.s["indicators"])
+            ctx = self.bars.context(bench, self.now, self.s["indicators"])
         except Exception:  # noqa: BLE001
             return
         if ctx["weekly_dir"] == -1 and self.equity and self.equity > 0:
@@ -209,7 +222,7 @@ class Cycle:
 
     def manage_exit(self, coin, pos):
         d, h = self.bars.get(coin)
-        ctx = R.context(d, h, self.now, self.s["indicators"])
+        ctx = self.bars.context(coin, self.now, self.s["indicators"])
         row = self.ctxs.get(coin, {})
         if self.mode == "paper":
             try:
@@ -222,11 +235,13 @@ class Cycle:
                     self.close_position(coin, pos, px, "stop", bt or self.now)
                 return
         h4 = ctx.get("h4") or {}
-        if no_reading(ctx.get("weekly_dir")) or no_reading(ctx.get("daily_dir")) or no_reading(h4.get("dir")):
+        if no_reading(ctx.get("weekly_dir")) or no_reading(ctx.get("daily_dir")) or no_reading(h4.get("dir")) or ("gate4h" in ctx and no_reading(ctx["gate4h"])):
             self.say(f"{coin}: no reading on one timeframe (data gap); position and stop kept as they are")
             return
-        if bearish(ctx["weekly_dir"]) or bearish(ctx["daily_dir"]) or bearish(h4["dir"]):
-            reason = "weekly flip" if bearish(ctx["weekly_dir"]) else "daily flip" if bearish(ctx["daily_dir"]) else "4h flip"
+        g4 = ctx.get("gate4h")
+        if bearish(ctx["weekly_dir"]) or bearish(ctx["daily_dir"]) or bearish(g4) or bearish(h4["dir"]):
+            reason = ("weekly flip" if bearish(ctx["weekly_dir"]) else "daily flip" if bearish(ctx["daily_dir"])
+                      else "4h flip" if (bearish(g4) or self.bars.tf == "4h") else f"{self.bars.tf} flip")
             mark = self.marks.get(coin)
             if not mark:
                 self.say(f"{coin}: {reason} but no mark price; position kept until the next cycle")
@@ -321,7 +336,7 @@ class Cycle:
         context = {"btc_weekly": R.label(self.btc["weekly_dir"]), "pair_weekly": R.label(ctx["weekly_dir"]),
                    "pair_daily": R.label(ctx["daily_dir"]), "h4_range": cand.get("range"),
                    "funding_annual_pct": H.funding_annual_pct(self.ctxs.get(coin, {})), "hours_mode": self.hours_mode}
-        rules = [f"LOGIC v{self.s.get('version', '?')}", f"trigger:{cand['kind']}", f"tier:{cand['tier']}", "stop:4h-line", "long-only", f"book:{cand.get('book')}"]
+        rules = [f"LOGIC v{self.s.get('version', '?')}", f"agent:{C.AGENT}", f"trigger:{cand['kind']}", f"tier:{cand['tier']}", f"stop:{self.bars.tf}-line", "long-only", f"book:{cand.get('book')}"]
         if self.mode == "paper":
             pos = PA.open_position(cand, sizing, mark, self.s, self.now, "paper", context, rules)
             self.pot["cash"] -= pos["entry_fee"]
@@ -377,8 +392,8 @@ class Cycle:
         except Exception as e:  # noqa: BLE001
             self.say(f"{coin}: candles unavailable ({str(e)[:80]})")
             return
-        ctx = R.context(d, h, self.now, self.s["indicators"])
-        cand, why = S.evaluate(coin, ctx, self.btc_bull)
+        ctx = self.bars.context(coin, self.now, self.s["indicators"])
+        cand, why = S.evaluate(coin, ctx, self.btc_bull, self.s.get("btc_gate", True))
         self.counts["evaluated"] += 1
         if cand:
             cand.update({"book": book_name, "benchmark": book["benchmark"], "bench_mark": self.marks.get(book["benchmark"])})
@@ -441,7 +456,7 @@ class Cycle:
         else:
             why_wait = ("dry run" if self.dry else "online hours: approval required" if self.hours_mode == "approval"
                         else f"tier {cand['tier']} always needs approval")
-            exp = HR.next_bar_close(self.now, C.BAR_SECONDS)
+            exp = HR.next_bar_close(self.now, C.bar_seconds(self.s))
             if self.dry:
                 self.say(f"{coin}: would PROPOSE {P.new_id(coin, cand['kind'], self.now)} ({why_wait}) · {describe(cand, sizing)}")
                 return
@@ -497,7 +512,7 @@ class Cycle:
             self.persist()
             if self.equity is not None:
                 L.equity_point(self.now, self.equity, self.cash if self.mode == "live" else self.pot["cash"], self.unreal or 0.0, self.mode)
-        self.run_doc = {"t": C.iso(self.now), "mode": self.mode, "hours": self.hours_mode, "dry": self.dry, "fresh": self.fresh,
+        self.run_doc = {"t": C.iso(self.now), "agent": C.AGENT, "tf": self.bars.tf, "mode": self.mode, "hours": self.hours_mode, "dry": self.dry, "fresh": self.fresh,
                         "failed": self.failed, "btc_weekly": R.label(self.btc.get("weekly_dir")), "btc_daily": R.label(self.btc.get("daily_dir")),
                         "positions": sorted(self.positions), "open_proposals": [p["id"] for p in P.open_proposals()],
                         "throttle": self.thr, "halt": self.halt, "counts": self.counts, "summary": self.summary,

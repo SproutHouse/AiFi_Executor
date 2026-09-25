@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "note": "Wide universe: the 30 most liquid Hyperliquid perps with long histories, grouped by ecosystem. Backtested 2020-2026 (docs/backtests/variants.md). Every name still has to pass this agent's universe filters on the day.",
+  "books": [
+    {
+      "book": "bitcoin",
+      "enabled": true,
+      "benchmark": "BTC",
+      "pot_share_pct": 15,
+      "open_risk_cap_pct": 1.5,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "BTC",
+          "note": "backtested"
+        },
+        {
+          "coin": "LTC",
+          "note": "backtested"
+        },
+        {
+          "coin": "BCH",
+          "note": "backtested"
+        }
+      ]
+    },
+    {
+      "book": "eth-defi",
+      "enabled": true,
+      "benchmark": "ETH",
+      "pot_share_pct": 25,
+      "open_risk_cap_pct": 2.0,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "ETH",
+          "note": "backtested"
+        },
+        {
+          "coin": "UNI",
+          "note": "backtested"
+        },
+        {
+          "coin": "AAVE",
+          "note": "backtested"
+        },
+        {
+          "coin": "LINK",
+          "note": "backtested"
+        },
+        {
+          "coin": "CRV",
+          "note": "backtested"
+        },
+        {
+          "coin": "ENA",
+          "note": "backtested"
+        },
+        {
+          "coin": "ONDO",
+          "note": "backtested"
+        },
+        {
+          "coin": "LDO",
+          "note": "backtested"
+        },
+        {
+          "coin": "ARB",
+          "note": "backtested"
+        },
+        {
+          "coin": "ZRO",
+          "note": "backtested"
+        }
+      ]
+    },
+    {
+      "book": "solana",
+      "enabled": true,
+      "benchmark": "SOL",
+      "pot_share_pct": 15,
+      "open_risk_cap_pct": 1.5,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "SOL",
+          "note": "backtested"
+        },
+        {
+          "coin": "JUP",
+          "note": "backtested"
+        },
+        {
+          "coin": "PENGU",
+          "note": "backtested"
+        }
+      ]
+    },
+    {
+      "book": "l1s",
+      "enabled": true,
+      "benchmark": "BTC",
+      "pot_share_pct": 20,
+      "open_risk_cap_pct": 2.0,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "XRP",
+          "note": "backtested"
+        },
+        {
+          "coin": "NEAR",
+          "note": "backtested"
+        },
+        {
+          "coin": "SUI",
+          "note": "backtested"
+        },
+        {
+          "coin": "ADA",
+          "note": "backtested"
+        },
+        {
+          "coin": "AVAX",
+          "note": "backtested"
+        },
+        {
+          "coin": "DOGE",
+          "note": "backtested"
+        },
+        {
+          "coin": "XLM",
+          "note": "backtested"
+        },
+        {
+          "coin": "TRX",
+          "note": "backtested"
+        },
+        {
+          "coin": "DOT",
+          "note": "backtested"
+        },
+        {
+          "coin": "INJ",
+          "note": "backtested"
+        }
+      ]
+    },
+    {
+      "book": "ai",
+      "enabled": true,
+      "benchmark": "BTC",
+      "pot_share_pct": 10,
+      "open_risk_cap_pct": 1.5,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "TAO",
+          "note": "backtested"
+        },
+        {
+          "coin": "FET",
+          "note": "backtested"
+        },
+        {
+          "coin": "WLD",
+          "note": "backtested"
+        }
+      ]
+    },
+    {
+      "book": "privacy",
+      "enabled": true,
+      "benchmark": "BTC",
+      "pot_share_pct": 5,
+      "open_risk_cap_pct": 1.0,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "ZEC",
+          "note": "backtested"
+        }
+      ]
+    },
+    {
+      "book": "hype",
+      "enabled": true,
+      "benchmark": "HYPE",
+      "pot_share_pct": 10,
+      "open_risk_cap_pct": 1.0,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "HYPE",
+          "note": "untested"
+        }
+      ]
+    }
+  ]
+}

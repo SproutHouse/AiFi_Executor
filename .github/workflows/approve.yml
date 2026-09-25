@@ -3,6 +3,11 @@ name: approve
 on:
   workflow_dispatch:
     inputs:
+      agent:
+        description: "Which agent (core, or an id from agents/index.json)"
+        required: true
+        type: string
+        default: "core"
       proposal_id:
         description: "Proposal id from the alert"
         required: true
@@ -26,7 +31,7 @@ jobs:
       - name: Python (a venv with the exchange SDK only when live mode is configured)
         id: py
         run: |
-          if [ "$(python3 -c 'import json;print(json.load(open("config/settings.json"))["mode"])')" = "live" ]; then
+          if grep -lq '"mode": *"live"' config/settings.json agents/*/settings.json 2>/dev/null; then
             python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
             echo "bin=.venv/bin/python" >> "$GITHUB_OUTPUT"
           else
@@ -37,17 +42,16 @@ jobs:
           PROPOSAL_ID: ${{ inputs.proposal_id }}
           CONFIRM: ${{ inputs.confirm }}
           ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
-          HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
-          HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
-        run: ${{ steps.py.outputs.bin }} scripts/approve.py --id "$PROPOSAL_ID" --confirm "$CONFIRM"
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          EXECUTOR_AGENT: ${{ inputs.agent }}
+        run: ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/approve.py --id "$PROPOSAL_ID" --confirm "$CONFIRM"
       - name: Push the dashboard bundle
         if: always()
         continue-on-error: true
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then python3 scripts/dashboard_push.py; fi
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          AGENT: ${{ inputs.agent }}
+        run: python3 scripts/run_agents.py --push-only --only "$AGENT"
       - name: Commit state
         if: always()
         run: |

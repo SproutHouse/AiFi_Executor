@@ -3,6 +3,11 @@ name: control
 on:
   workflow_dispatch:
     inputs:
+      agent:
+        description: "Which agent (core, or an id from agents/index.json)"
+        required: true
+        type: string
+        default: "core"
       action:
         description: "flatten closes every position and halts; halt stops new entries; resume clears the halt"
         required: true
@@ -27,7 +32,7 @@ jobs:
       - name: Python (a venv with the exchange SDK only when live mode is configured)
         id: py
         run: |
-          if [ "$(python3 -c 'import json;print(json.load(open("config/settings.json"))["mode"])')" = "live" ]; then
+          if grep -lq '"mode": *"live"' config/settings.json agents/*/settings.json 2>/dev/null; then
             python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
             echo "bin=.venv/bin/python" >> "$GITHUB_OUTPUT"
           else
@@ -38,22 +43,21 @@ jobs:
           ACTION: ${{ inputs.action }}
           REASON: ${{ inputs.reason }}
           ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
-          HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
-          HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          EXECUTOR_AGENT: ${{ inputs.agent }}
         run: |
           case "$ACTION" in
-            flatten) ${{ steps.py.outputs.bin }} scripts/control.py --flatten ;;
-            halt)    ${{ steps.py.outputs.bin }} scripts/control.py --halt "$REASON" ;;
-            resume)  ${{ steps.py.outputs.bin }} scripts/control.py --resume ;;
+            flatten) ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/control.py --flatten ;;
+            halt)    ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/control.py --halt "$REASON" ;;
+            resume)  ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/control.py --resume ;;
           esac
       - name: Push the dashboard bundle
         if: always()
         continue-on-error: true
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then python3 scripts/dashboard_push.py; fi
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          AGENT: ${{ inputs.agent }}
+        run: python3 scripts/run_agents.py --push-only --only "$AGENT"
       - name: Commit state
         if: always()
         run: |

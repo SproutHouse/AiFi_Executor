@@ -26,7 +26,7 @@ V = 2
 NAMESPACE_TITLE = "aifi-executor"
 DOCS = {"how_it_works": "HOW_IT_WORKS.md", "logic": "LOGIC.md", "risk": "RISK.md", "universe": "UNIVERSE.md", "execution": "EXECUTION.md",
         "security": "SECURITY.md", "ledger": "LEDGER.md", "operations": "OPERATIONS.md", "decisions": "DECISIONS.md"}
-BAR, DAY = 4 * 3600, 86400
+BAR, DAY = 4 * 3600, 86400        # BAR is reset per agent in main() from settings.trigger_tf
 WEEK = 7 * DAY
 SCHED_MIN = 5                      # cycle.yml cron "5 0,4,8,12,16,20 * * *"
 LAG_FALLBACK_MIN = 20
@@ -1144,7 +1144,7 @@ class Bundle:
         for R in self.eff_runs:
             by_slot[R.slot].append(R)
         first = self.eff_runs[0].slot if self.eff_runs else self.now + 1          # slots before the first check are not "missed"
-        slots = [S for S in (top - k * BAR for k in range(6))
+        slots = [S for S in (top - k * BAR for k in range(DAY // BAR))
                  if first <= S and S > self.now - DAY and (S + lim <= self.now or by_slot.get(S))]
         out = {"slots": len(slots), "on_time": 0, "late": 0, "missed": 0, "failed": 0, "signals": 0, "bought": 0, "sold": 0}
         for S in slots:
@@ -1409,10 +1409,43 @@ def doc_texts(docs_dir):
     return {slug: (Path(docs_dir) / fn).read_text() for slug, fn in DOCS.items() if (Path(docs_dir) / fn).exists()}
 
 
+def key(name, agent=None):
+    """KV key for this agent's payload: core keeps exec:<name>; any other agent uses exec:<agent>:<name>."""
+    agent = agent or C.AGENT
+    return f"exec:{name}" if agent == "core" else f"exec:{agent}:{name}"
+
+
+def agent_summary(b):
+    """One agent's row in exec:agents — the switcher and the Compare view read only this. Ratios and R only."""
+    L = b["latest"]
+    roster = {a["id"]: a for a in C.agents()}
+    me = roster.get(C.AGENT, {"id": C.AGENT})
+    g = lambda d, *k: (lambda v: v)(__import__("functools").reduce(lambda x, y: (x or {}).get(y) if isinstance(x, dict) else None, k, d))
+    return {"id": C.AGENT, "name": me.get("name", C.AGENT), "desc": me.get("desc", ""), "tf": C.trigger_tf(C.settings()),
+            "mode": g(L, "mode", "eff"), "gen": L.get("gen"), "last_t": g(L, "clock", "last_t"),
+            "rec": {k: g(L, "rec", k) for k in ("n", "tot_R", "avg_R", "rel_R_avg", "open_R")},
+            "pot_chg_pct": g(L, "pot", "chg_pct"), "n_open": g(L, "risk", "n_open"), "used_pct": g(L, "risk", "used_pct"),
+            "halt": bool(g(L, "state", "halt", "set")), "thr": g(L, "state", "thr", "state"), "failed": bool(g(L, "state", "last", "failed")),
+            "signals": g(L, "funnel", "all") if isinstance(g(L, "funnel", "all"), (list, dict)) else None,
+            "alerts": len(L.get("alerts") or [])}
+
+
+def agents_index(prev_raw, b):
+    try:
+        prev = json.loads(prev_raw) if prev_raw else {}
+    except ValueError:
+        prev = {}
+    rows = {r["id"]: r for r in prev.get("agents", []) if isinstance(r, dict) and r.get("id")}
+    rows[C.AGENT] = agent_summary(b)
+    order = [a["id"] for a in C.agents() if a.get("enabled", True)]
+    out = [rows[i] for i in order if i in rows] + [r for i, r in rows.items() if i not in order and i == C.AGENT]
+    return {"v": 1, "gen": b["latest"].get("gen"), "agents": out}
+
+
 def kv_pairs(b, docs, remote_index):
-    """The pairs one push writes, in order: exec:latest, exec:ledger, exec:stamp; then each doc:<slug> whose sha256
+    """The pairs one push writes, in order: this agent's latest, ledger, stamp; then each doc:<slug> whose sha256
     differs from doc:index; then doc:index only when something changed. remote_index None → every doc is written."""
-    pairs = {"exec:latest": dumps(b["latest"]), "exec:ledger": dumps(b["ledger"]), "exec:stamp": dumps(b["stamp"])}
+    pairs = {key("latest"): dumps(b["latest"]), key("ledger"): dumps(b["ledger"]), key("stamp"): dumps(b["stamp"])}
     index = {slug: hashlib.sha256(t.encode()).hexdigest() for slug, t in docs.items()}
     old = remote_index if isinstance(remote_index, dict) else {}
     changed = [slug for slug in docs if old.get(slug) != index[slug]]
@@ -1475,7 +1508,9 @@ def write_kv_json(path, b, docs):
     except ValueError:
         prev_index = None
     pairs, index = kv_pairs(b, docs, prev_index)
-    full = {"exec:latest": pairs["exec:latest"], "exec:ledger": pairs["exec:ledger"], "exec:stamp": pairs["exec:stamp"], "doc:index": dumps(index)}
+    full = {k: v for k, v in prev.items() if k.startswith("exec:")}          # keep the other agents' payloads
+    full.update({key("latest"): pairs[key("latest")], key("ledger"): pairs[key("ledger")], key("stamp"): pairs[key("stamp")], "doc:index": dumps(index)})
+    full["exec:agents"] = dumps(agents_index(prev.get("exec:agents"), b))
     full.update({f"doc:{slug}": t for slug, t in docs.items()})
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text(json.dumps(full, indent=1, ensure_ascii=False) + "\n")
@@ -1491,6 +1526,8 @@ def main(argv=None):
     ap.add_argument("--docs", help="docs dir (default: docs/)")
     ap.add_argument("--now", type=float, help="pin the clock (unix seconds)")
     a = ap.parse_args(argv)
+    global BAR
+    BAR = C.TF_SECONDS.get((C.load_json(Path(a.config or C.CONFIG) / "settings.json") or {}).get("trigger_tf", "4h"), 4 * 3600)
     b = build(a.state, a.config, a.now)
     for line in b["unparsed"]:               # the Action log is the only place the raw lines appear
         print(f"unparsed summary line: {line}")
@@ -1502,7 +1539,7 @@ def main(argv=None):
     if a.kv_json:
         pairs = write_kv_json(a.kv_json, b, docs)
         print(f"kv → {a.kv_json}: a push would write {len(pairs)} keys ({', '.join(pairs)}); "
-              f"latest {len(pairs['exec:latest'])} B, ledger {len(pairs['exec:ledger'])} B, unparsed {len(b['unparsed'])}")
+              f"latest {len(pairs[key('latest')])} B, ledger {len(pairs[key('ledger')])} B, unparsed {len(b['unparsed'])}")
         return
     ns = namespace_id()
     raw = kv_get(ns, "doc:index")
@@ -1511,10 +1548,11 @@ def main(argv=None):
     except ValueError:
         remote_index = None
     pairs, _ = kv_pairs(b, docs, remote_index)
+    pairs["exec:agents"] = dumps(agents_index(kv_get(ns, "exec:agents"), b))
     res = api(f"/storage/kv/namespaces/{ns}/bulk", [{"key": k, "value": v} for k, v in pairs.items()])
     if not res.get("success"):
         raise RuntimeError(f"bulk write failed: {res.get('errors')}")
-    print(f"pushed {len(pairs)} keys to KV ({', '.join(pairs)}); latest {len(pairs['exec:latest'])} B, ledger {len(pairs['exec:ledger'])} B")
+    print(f"pushed {len(pairs)} keys to KV ({', '.join(pairs)}); latest {len(pairs[key('latest')])} B, ledger {len(pairs[key('ledger')])} B")
 
 
 if __name__ == "__main__":

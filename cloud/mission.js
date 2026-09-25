@@ -5,6 +5,9 @@
 // ui/<module>.css under its prefix (nw- gr- dl- ac- ps- rs- ru- ar-), see ui/README.md.
 // Tokens only (var(--…)); the few literal colours are the spec's contrast tokens.
 export const MISSION_CSS = `
+.agentbtn{cursor:pointer;max-width:42vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet tr.on td{background:var(--accent-soft)}
+
 /* ================= tokens ================= */
 :root{--dur-1:180ms;--dur-2:350ms;--dur-3:600ms;--muted:#8d95a2;
   --hatch:repeating-linear-gradient(45deg,var(--line-2) 0 1.5px,transparent 1.5px 5px)}

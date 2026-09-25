@@ -106,8 +106,11 @@ if (MQ_RM.addEventListener) MQ_RM.addEventListener('change', onMotion);
 else if (MQ_RM.addListener) MQ_RM.addListener(onMotion);
 function report(e, where) { try { console.error('[executor] ' + (where || 'error'), e); } catch (_) {} }
 function call(fn, ...a) { if (typeof fn !== 'function') return; try { return fn(...a); } catch (e) { report(e, fn.name || 'hook'); } }
-function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
-function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+// "seen" markers are per agent: ex.seen for core, ex.seen@<agent> for the others. ex.agent itself is global.
+var AGENT_NS = '';
+function lsKey(k) { return (k === 'ex.agent' || !AGENT_NS) ? k : k + '@' + AGENT_NS; }
+function lsGet(k, d) { try { const v = localStorage.getItem(lsKey(k)); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(lsKey(k), JSON.stringify(v)); } catch (e) {} }
 function isoS(v) { if (v == null || v === '') return null; if (typeof v === 'number') return isFinite(v) ? Math.floor(v) : null; const ms = Date.parse(v); return isFinite(ms) ? Math.floor(ms / 1000) : null; }
 function tok(n) { return getComputedStyle(HTML).getPropertyValue(n).trim(); }
 function isDark() { const t = HTML.dataset.theme; return t === 'dark' || (t !== 'light' && !matchMedia('(prefers-color-scheme: light)').matches); }
@@ -576,6 +579,51 @@ function status(b, now) {
 }
 
 // ================================================================================= fetch + ledger ==
+// ---- agents: one dashboard, several strategy agents. ?a=<id> in the page URL (or the last one picked) selects whose
+// payloads every /api call reads. Switching reloads the page so no state from one agent can bleed into another.
+const AGENT = (function () {
+  let a = null;
+  try { a = new URLSearchParams(location.search).get('a'); } catch (e) {}
+  if (!a) a = lsGet('ex.agent', 'core');
+  return /^[a-z][a-z0-9-]{1,23}$/.test(a || '') ? a : 'core';
+})();
+AGENT_NS = AGENT === 'core' ? '' : AGENT;
+function api(path) { return AGENT === 'core' ? path : path + (path.indexOf('?') < 0 ? '?' : '&') + 'a=' + encodeURIComponent(AGENT); }
+function switchAgent(id) {
+  lsSet('ex.agent', id);
+  const u = new URL(location.href);
+  if (id === 'core') u.searchParams.delete('a'); else u.searchParams.set('a', id);
+  location.href = u.toString();
+}
+let AGENTS = null;
+async function loadAgents() {
+  try { const r = await getJSON('/api/agents', 8000); AGENTS = (r && Array.isArray(r.agents)) ? r.agents : []; } catch (e) { AGENTS = []; }
+  const btn = $('#agentbtn');
+  if (btn) {
+    const me = AGENTS.find(x => x.id === AGENT);
+    btn.textContent = (me && me.name) || AGENT;
+    btn.hidden = AGENTS.length < 2 && AGENT === 'core';
+    btn.title = 'Agent: ' + btn.textContent + ' · tap to switch or compare';
+  }
+  return AGENTS;
+}
+SHEETS.agents = function () {
+  const rows = AGENTS || [];
+  const R = v => v == null ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(2) + ' R';
+  const P = v => v == null ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+  const ago = t => t ? fmt.when(t) : '—';
+  const status = a => a.failed ? '<span class="pill bad">failed</span>' : a.halt ? '<span class="pill bad">halted</span>'
+    : a.thr === 'halved' ? '<span class="pill warn">risk halved</span>' : a.alerts ? '<span class="pill warn">' + a.alerts + ' alert' + (a.alerts > 1 ? 's' : '') + '</span>' : '<span class="pill good">ok</span>';
+  const body = rows.length ? rows.map(a => '<tr class="' + (a.id === AGENT ? 'on' : '') + '"><td class="l"><button class="btn small' + (a.id === AGENT ? ' primary' : '') + '" type="button" data-agent-go="' + esc(a.id) + '">' + esc(a.name || a.id) + '</button><div class="sub">' + esc(a.desc || '') + '</div></td>'
+    + '<td class="l">' + (a.mode === 'live' ? '<span class="pill accent">Live</span>' : '<span class="pill pt">Paper</span>') + ' <span class="sub">' + esc(a.tf || '') + '</span></td>'
+    + '<td class="num">' + (a.rec && a.rec.n != null ? a.rec.n : '—') + '</td><td class="num">' + R(a.rec && a.rec.avg_R) + '</td><td class="num">' + R(a.rec && a.rec.tot_R) + '</td>'
+    + '<td class="num">' + R(a.rec && a.rec.rel_R_avg) + '</td><td class="num">' + P(a.pot_chg_pct) + '</td><td class="num">' + (a.n_open != null ? a.n_open : '—') + '</td>'
+    + '<td class="l">' + status(a) + '</td><td class="l sub">' + ago(a.last_t) + '</td></tr>').join('')
+    : '<tr><td colspan="10" class="empty">No agent has pushed yet. Each agent appears here after its first check.</td></tr>';
+  return { html: '<div class="doc"><h2>Agents</h2><p class="sub">Each agent runs its own rules with its own key and its own pot. Tap one to switch the whole dashboard to it. Results are in R and % of each agent\'s own pot, so they compare fairly across pot sizes; judge nothing under 30 closed trades.</p></div>'
+    + '<div class="tbl"><table><thead><tr><th class="l">Agent</th><th class="l">Mode</th><th>Trades</th><th>Avg</th><th>Total</th><th>vs hold</th><th>Pot</th><th>Open</th><th class="l">Status</th><th class="l">Last check</th></tr></thead><tbody>' + body + '</tbody></table></div>',
+    after(el) { $$('[data-agent-go]', el).forEach(b => b.onclick = () => switchAgent(b.dataset.agentGo)); } };
+};
 async function getJSON(url, ms) {
   const ctl = typeof AbortController === 'function' ? new AbortController() : null;
   const tm = ctl ? setTimeout(() => ctl.abort(), ms || 10000) : 0;
@@ -596,7 +644,7 @@ function loadLedger(force) {
   if (ledgerP && ledgerP.gen === gen && !force) return ledgerP;
   // A v1 bundle predates exec:ledger: say so without a request that can only 404.
   if (S.b && S.b.v == null) { S.ledger = null; S.ledgerGen = gen; S.ledgerErr = 'missing'; return Promise.resolve(null); }
-  const p = getJSON('/api/ledger', 15000).then(L => {
+  const p = getJSON(api('/api/ledger'), 15000).then(L => {
     if (!L || typeof L !== 'object') throw { kind: 'parse' };
     S.ledger = L; S.ledgerGen = gen; S.ledgerErr = null; return L;
   }).catch(e => {
@@ -1008,7 +1056,7 @@ async function poll(user) {
   P.busy = true; clearTimeout(P.t); P.t = 0;
   if (user) { S.net = 'checking'; paintCapsule(); }
   try {
-    const st = await getJSON('/api/stamp', 10000);
+    const st = await getJSON(api('/api/stamp'), 10000);
     P.err = 0; S.net = 'ok'; S.seenAt = nowS();
     if (st && st.gen && (!S.b || st.gen !== S.b.gen) && P.gaveUp !== st.gen) await pull(st.gen, 0);
   } catch (e) {
@@ -1025,7 +1073,7 @@ function newer(nb) { return !S.b || (!!nb.gen && nb.gen !== S.b.gen && (!S.b.gen
 async function pull(gen, tries) {
   const tk = ++P.tok; clearTimeout(P.pull); P.pull = 0;
   let nb;
-  try { nb = await getJSON('/api/latest', 10000); }
+  try { nb = await getJSON(api('/api/latest'), 10000); }
   catch (e) { if (e && e.kind === 'auth') S.net = 'signedout'; else if (e && e.kind === 'net') S.net = 'offline'; return; }
   if (tk !== P.tok || !nb || typeof nb !== 'object' || Array.isArray(nb)) return;
   if (newer(nb)) land(nb);
@@ -1098,10 +1146,11 @@ function bootCard(title, text, btn) {
     + '<p style="margin:0 0 12px">' + esc(text) + '</p>' + (btn || '') + '</div></div>';
 }
 async function boot() {
+  loadAgents();
   if (S.booting) return;
   S.booting = true; S.net = 'checking'; paintCapsule();
   let b = null, err = null;
-  try { b = await getJSON('/api/latest', 10000); if (!b || typeof b !== 'object' || Array.isArray(b)) err = { kind: 'parse' }; }
+  try { b = await getJSON(api('/api/latest'), 10000); if (!b || typeof b !== 'object' || Array.isArray(b)) err = { kind: 'parse' }; }
   catch (e) { err = e && e.kind ? e : { kind: 'net' }; }
   S.booting = false;
   if (err) return bootFail(err);
@@ -1124,7 +1173,7 @@ async function bootFail(e) {
   else {
     S.net = 'ok';
     let when = '';
-    try { const st = await getJSON('/api/stamp', 5000); const g = isoS(st && st.gen); if (g != null) when = ' (pushed ' + fmt.when(g) + ')'; } catch (_) {}
+    try { const st = await getJSON(api('/api/stamp'), 5000); const g = isoS(st && st.gen); if (g != null) when = ' (pushed ' + fmt.when(g) + ')'; } catch (_) {}
     h = bootCard('The latest data couldn’t be read' + when, 'The next check pushes a fresh copy.', retry);
   }
   if (v) { v.innerHTML = h; stagger(v); }

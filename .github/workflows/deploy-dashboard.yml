@@ -36,5 +36,7 @@ jobs:
         run: |
           [ -n "$DASHBOARD_PASSWORD" ] || { echo "DASHBOARD_PASSWORD secret missing; the page will show 'Not configured' until it is set"; exit 0; }
           printf '%s' "$DASHBOARD_PASSWORD" | npx --yes wrangler@4 secret put DASHBOARD_PASSWORD
-      - name: Push the first bundle
-        run: python3 scripts/dashboard_push.py
+      - name: Push every agent's bundle
+        env:
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: python3 scripts/run_agents.py --push-only

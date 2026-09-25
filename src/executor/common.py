@@ -4,14 +4,19 @@ Every module imports from here so there is one place for I/O behaviour. Paths
 resolve from $EXECUTOR_HOME, else the repository root two levels above this file,
 so the same code runs from a checkout, a worktree or a GitHub runner.
 """
-import json, os, sys, time, urllib.request, urllib.error
+import json, os, re, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(os.environ.get("EXECUTOR_HOME") or Path(__file__).resolve().parents[2])
-CONFIG = ROOT / "config"
-STATE = Path(os.environ.get("EXECUTOR_STATE") or ROOT / "state")
+# One engine, several agents. EXECUTOR_AGENT picks whose config, state, ledger and kill switch this process uses.
+# "core" keeps the original locations (config/, state/); any other agent lives in agents/<id>/ and state/agents/<id>/.
+AGENT = (os.environ.get("EXECUTOR_AGENT") or "core").strip()
+if not re.fullmatch(r"[a-z][a-z0-9-]{1,23}", AGENT):
+    raise RuntimeError(f"invalid EXECUTOR_AGENT {AGENT!r}")
+CONFIG = ROOT / "config" if AGENT == "core" else ROOT / "agents" / AGENT
+STATE = Path(os.environ.get("EXECUTOR_STATE") or (ROOT / "state" if AGENT == "core" else ROOT / "state" / "agents" / AGENT))
 DOCS = ROOT / "docs"
 BAR_SECONDS = 4 * 3600
 
@@ -71,8 +76,31 @@ def read_jsonl(path):
 def settings():
     s = load_json(CONFIG / "settings.json")
     if not s:
-        raise RuntimeError("config/settings.json missing or invalid")
+        raise RuntimeError(f"{CONFIG}/settings.json missing or invalid")
     return s
+
+
+TF_SECONDS = {"1h": 3600, "4h": 4 * 3600}
+
+
+def trigger_tf(s):
+    tf = s.get("trigger_tf", "4h")
+    if tf not in TF_SECONDS:
+        raise RuntimeError(f"trigger_tf {tf!r} not supported")
+    return tf
+
+
+def bar_seconds(s):
+    return TF_SECONDS[trigger_tf(s)]
+
+
+def agents():
+    """The agent roster (agents/index.json). "core" is always present, config in config/."""
+    idx = load_json(ROOT / "agents" / "index.json") or {}
+    out = [a for a in idx.get("agents", []) if re.fullmatch(r"[a-z][a-z0-9-]{1,23}", a.get("id", ""))]
+    if not any(a["id"] == "core" for a in out):
+        out.insert(0, {"id": "core", "name": "Core", "enabled": True})
+    return out
 
 
 def books():
@@ -113,21 +141,32 @@ def http_json(url, body=None, headers=None, tries=3, timeout=30):
     hdr.update(headers or {})
     data = json.dumps(body).encode() if body is not None else None
     last = None
-    for attempt in range(tries):
+    attempt = 0
+    while attempt < tries:
         try:
             req = urllib.request.Request(url, data=data, headers=hdr, method="POST" if data is not None else "GET")
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode())
-        except (urllib.error.URLError, urllib.error.HTTPError, ValueError, TimeoutError, OSError) as e:
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code == 429:                       # rate limited: back off hard, and allow a few extra tries
+                tries = max(tries, 6)
+                time.sleep(min(30, 4 * 2 ** min(attempt, 3)))
+            elif attempt < tries - 1:
+                time.sleep(1.5 * (attempt + 1))
+        except (urllib.error.URLError, ValueError, TimeoutError, OSError) as e:
             last = e
             if attempt < tries - 1:
                 time.sleep(1.5 * (attempt + 1))
+        attempt += 1
     raise RuntimeError(f"{url.split('?')[0]}: {str(last)[:160]}")
 
 
 def notify(title, text):
     """Best-effort alert to ALERT_WEBHOOK (ntfy.sh, Slack or Discord). Returns True only
     when a channel accepted it. Callers never put dollar amounts in `text`."""
+    if AGENT != "core":
+        title = f"[{AGENT}] {title}"
     url = (os.environ.get("ALERT_WEBHOOK") or "").strip()
     if not url.startswith("https://"):
         log(f"  alert (no channel): {title}: {text}")

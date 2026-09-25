@@ -72,9 +72,14 @@ export default {
     }
     let m;
     if (p === "/") return html(appPage());
-    if (p === "/api/latest") return kvRaw(env, "exec:latest");
-    if (p === "/api/ledger") return ledger(env);
-    if (p === "/api/stamp") return kvRaw(env, "exec:stamp", "{}");
+    // Several agents share this dashboard: ?a=<agent id> picks whose payload; "core" (the default) keeps exec:<name>.
+    const ag = url.searchParams.get("a") || "core";
+    if (!/^[a-z][a-z0-9-]{1,23}$/.test(ag)) return json({ error: "bad agent id" }, 400);
+    const k = (name) => ag === "core" ? "exec:" + name : "exec:" + ag + ":" + name;
+    if (p === "/api/agents") return kvRaw(env, "exec:agents", '{"v":1,"agents":[]}');
+    if (p === "/api/latest") return kvRaw(env, k("latest"));
+    if (p === "/api/ledger") return ledger(env, k("ledger"));
+    if (p === "/api/stamp") return kvRaw(env, k("stamp"), "{}");
     if ((m = p.match(/^\/api\/doc\/([a-z_]{3,20})$/)) && DOCS.includes(m[1])) {
       const raw = await env.EXEC.get("doc:" + m[1]);
       return json({ slug: m[1], title: DOC_TITLES[m[1]], html: md(raw || "_This document has not been pushed yet._") });
@@ -137,8 +142,8 @@ async function kvRaw(env, key, fallback) {
   return new Response(v === null ? fallback : v, { headers: { "content-type": "application/json", ...NOSTORE } });
 }
 // The ledger carries the newest Sunday review as markdown; it travels to the client once, as html.
-async function ledger(env) {
-  const v = await env.EXEC.get("exec:ledger");
+async function ledger(env, key) {
+  const v = await env.EXEC.get(key || "exec:ledger");
   if (v === null) return json({ error: "no data yet" }, 404);
   let L;
   try { L = JSON.parse(v); } catch (e) { return json({ error: "the ledger could not be read" }, 500); }
@@ -235,7 +240,7 @@ function appPage() {
       <a class="brand tmark" href="#now" aria-label="${APP}, back to Now"><span class="mark" aria-hidden="true">Ex</span></a>
       <h1 id="ttl" class="vh-sm">Now</h1>
       <button class="capsule" type="button" id="capsule" data-health aria-live="polite"><span class="dot"></span><span class="cw">Checking…</span></button>
-      <div class="ctl"><span class="pill mute" id="modepill">…</span>${THEME_BTN}</div>
+      <div class="ctl"><button class="pill accent agentbtn" type="button" id="agentbtn" data-sheet="agents" aria-label="switch agent" hidden>…</button><span class="pill mute" id="modepill">…</span>${THEME_BTN}</div>
     </div></header>
     <main class="app" id="app"><div class="alerts" id="alerts"></div><div id="view"><div class="card"><div class="empty">Loading the executor…<noscript> This dashboard needs JavaScript.</noscript></div></div></div></main>
     ${FOOT}

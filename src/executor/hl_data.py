@@ -12,7 +12,16 @@ API = "https://api.hyperliquid.xyz/info"
 INTERVAL_SECONDS = {"4h": 4 * 3600, "1d": 86400}
 
 
+_last_call = [0.0]
+MIN_GAP = 0.35          # seconds between info calls: ~170/min keeps far under Hyperliquid's weight limit
+
+
 def info(body):
+    import time as _t
+    gap = _t.time() - _last_call[0]
+    if gap < MIN_GAP:
+        _t.sleep(MIN_GAP - gap)
+    _last_call[0] = _t.time()
     return C.http_json(API, body)
 
 

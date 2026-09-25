@@ -9,7 +9,8 @@ from . import indicators as I
 WEEK = 7 * 86400
 
 
-def context(daily, h4, now_ts, ind):
+def context(daily, h4, now_ts, ind, gate=None):
+    """h4 = the TRIGGER bars (4-hour, or 1-hour for fast agents). gate = 4-hour bars when the trigger is 1-hour."""
     factor, atr = ind["supertrend_factor"], ind["supertrend_atr"]
     weeks = [w for w in I.weekly_from_daily(daily) if w["t"] + WEEK <= now_ts]
     st_w, dir_w = I.supertrend(weeks, factor, atr) if len(weeks) >= 2 else ([], [])
@@ -26,6 +27,9 @@ def context(daily, h4, now_ts, ind):
                      "prev_close": h4[k - 1]["c"], "upper": b["upper"][k], "lower": b["lower"][k],
                      "prev_upper": b["upper"][k - 1], "trend": b["trend"][k], "t": h4[k]["t"], "T": h4[k].get("T"),
                      "range": I.range_state(h4[k]["c"], b["upper"][k], b["lower"][k])}
+    if gate is not None:
+        _st_g, dir_g = I.supertrend(gate, factor, atr) if len(gate) >= 2 else ([], [])
+        out["gate4h"] = dir_g[-1] if dir_g else None
     return out
 
 

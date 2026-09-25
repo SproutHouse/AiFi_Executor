@@ -18,15 +18,16 @@ jobs:
       - name: Render the review
         env:
           ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
-        run: python3 scripts/review.py
+        run: |
+          for a in $(python3 -c 'import sys;sys.path.insert(0,"src");from executor import common as C;print(" ".join(x["id"] for x in C.agents() if x.get("enabled",True)))'); do
+            EXECUTOR_AGENT=$a python3 scripts/review.py || echo "review failed for $a"
+          done
       - name: Push the dashboard bundle
         if: always()
         continue-on-error: true
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then python3 scripts/dashboard_push.py; fi
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: python3 scripts/run_agents.py --push-only
       - name: Commit state
         if: always()
         run: |

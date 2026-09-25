@@ -221,7 +221,11 @@ class Synthetic(unittest.TestCase):
             DP.main(["--kv-json", str(out), "--state", str(self.st), "--config", str(self.cfg), "--now", str(S.NOW)])
         kv = json.loads(out.read_text())
         self.assertTrue({"exec:latest", "exec:ledger", "exec:stamp", "doc:index"} <= set(kv))
-        self.assertTrue(all(k in ("exec:latest", "exec:ledger", "exec:stamp", "doc:index") or k.startswith("doc:") for k in kv))
+        self.assertTrue(all(k in ("exec:latest", "exec:ledger", "exec:stamp", "exec:agents", "doc:index") or k.startswith("doc:") for k in kv))
+        idx = json.loads(kv["exec:agents"])
+        self.assertEqual(idx["agents"][0]["id"], "core")
+        bad = {"equity", "cash", "notional", "pnl", "risk_amt", "start", "peak"}
+        self.assertFalse(bad & set(json.dumps(idx).replace('"', ' ').split()), "agents index carries a money field")
         self.assertEqual(json.loads(kv["exec:latest"])["v"], 2)
         self.assertEqual(set(json.loads(kv["doc:index"])), {k[4:] for k in kv if k.startswith("doc:") and k != "doc:index"})
 
@@ -240,9 +244,9 @@ class Synthetic(unittest.TestCase):
         with mock.patch.object(DP, "api", fake_api), mock.patch.object(DP, "kv_get", return_value=json.dumps(index)) as get, \
                 mock.patch.dict("os.environ", env), contextlib.redirect_stdout(io.StringIO()):
             DP.main(["--state", str(self.st), "--config", str(self.cfg), "--now", str(S.NOW)])
-        get.assert_called_once_with("ns1", "doc:index")
+        self.assertEqual([c.args for c in get.call_args_list], [("ns1", "doc:index"), ("ns1", "exec:agents")])
         self.assertEqual(calls[1][0], "/storage/kv/namespaces/ns1/bulk")
-        self.assertEqual([x["key"] for x in calls[1][1]], ["exec:latest", "exec:ledger", "exec:stamp"])
+        self.assertEqual([x["key"] for x in calls[1][1]], ["exec:latest", "exec:ledger", "exec:stamp", "exec:agents"])
         self.assertEqual(len(calls), 2)
 
     def test_scrubber_refuses_a_leak(self):

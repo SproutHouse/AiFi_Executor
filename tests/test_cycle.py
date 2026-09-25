@@ -50,8 +50,17 @@ class FakeEx:
 
 
 class FakeBars:
+    tf = "4h"
+
     def __init__(self, table):
         self.table = table
+
+    def gate(self, coin):
+        return None
+
+    def context(self, coin, now, ind):
+        d, h = self.get(coin)
+        return fake_context(d, h, now, ind)
 
     def get(self, coin):
         v = self.table.get(coin, [])

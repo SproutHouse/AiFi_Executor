@@ -37,6 +37,7 @@ exchange. There is no language model anywhere in the loop.
 | [docs/LEDGER.md](docs/LEDGER.md) | The record: files, fields, what R means |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Runbook: setup, approving, halting, going live |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Why it is built this way, with the evidence |
+| [docs/AGENTS.md](docs/AGENTS.md) | Several strategy agents: roster, isolation, adding one |
 | [docs/DASHBOARD.md](docs/DASHBOARD.md) | The private dashboard: tabs, deployment |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phases, gates |
 | [docs/backtests/](docs/backtests/) | The backtests and their summary |

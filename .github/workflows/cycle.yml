@@ -1,9 +1,22 @@
-# One pass of the loop, five minutes after every 4-hour close (UTC). State is committed back to main.
+# Every hour at :05 UTC. scripts/run_agents.py runs each agent whose trigger bar just closed (4-hour agents at
+# 00/04/08/12/16/20, 1-hour agents every hour), each in its own process holding only its own exchange key, then
+# pushes that agent's dashboard. State for every agent is committed back to main in one commit.
 name: cycle
 on:
   schedule:
-    - cron: "5 0,4,8,12,16,20 * * *"
-  workflow_dispatch: {}
+    - cron: "5 * * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Run only these agents (comma-separated ids); empty = every due agent"
+        required: false
+        type: string
+        default: ""
+      force:
+        description: "Run even if the agent's bar did not just close"
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -12,32 +25,29 @@ concurrency:
 jobs:
   run:
     runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Python (a venv with the exchange SDK only when live mode is configured)
+      - name: Python (a venv with the exchange SDK only when some agent is live)
         id: py
         run: |
-          if [ "$(python3 -c 'import json;print(json.load(open("config/settings.json"))["mode"])')" = "live" ]; then
+          if grep -lq '"mode": *"live"' config/settings.json agents/*/settings.json 2>/dev/null; then
             python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
             echo "bin=.venv/bin/python" >> "$GITHUB_OUTPUT"
           else
-            echo "paper mode: system python3, standard library only"; echo "bin=python3" >> "$GITHUB_OUTPUT"
+            echo "every agent is in paper mode: system python3, standard library only"; echo "bin=python3" >> "$GITHUB_OUTPUT"
           fi
-      - name: Run the cycle
+      - name: Run due agents
         env:
-          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
-          HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
-          HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
-        run: ${{ steps.py.outputs.bin }} scripts/run_cycle.py
-      - name: Push the dashboard bundle
-        if: always()
-        continue-on-error: true
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          EXECUTOR_PY: ${{ steps.py.outputs.bin }}
+          ONLY: ${{ inputs.only }}
+          FORCE: ${{ inputs.force }}
         run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then python3 scripts/dashboard_push.py; else echo "no Cloudflare secrets: dashboard not pushed"; fi
+          ARGS=""
+          [ -n "$ONLY" ] && ARGS="$ARGS --only $ONLY"
+          [ "$FORCE" = "true" ] && ARGS="$ARGS --force"
+          ${{ steps.py.outputs.bin }} scripts/run_agents.py $ARGS
       - name: Commit state
         if: always()
         run: |
@@ -46,7 +56,7 @@ jobs:
           git add -A state || true
           if git diff --cached --quiet; then echo "no state change"; exit 0; fi
           git commit -q -m "Cycle $(date -u +%FT%H:%MZ)"
-          for i in 1 2 3; do
+          for i in 1 2 3 4 5; do
             git pull -q --rebase --autostash || true
             git push -q && exit 0
             sleep 10

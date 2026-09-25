@@ -7,12 +7,14 @@ Tier B: a pullback — price re-enters the 4-hour Noodle band from above while t
 """
 
 
-def evaluate(coin, ctx, btc_weekly_bullish):
+def evaluate(coin, ctx, btc_weekly_bullish, btc_gate=True):
     """Returns (candidate or None, reasons)."""
     if ctx.get("weekly_dir") != -1:
         return None, ["weekly Momentum Cloud not bullish"]
     if ctx.get("daily_dir") != -1:
         return None, ["daily Momentum Cloud not bullish"]
+    if "gate4h" in ctx and ctx["gate4h"] != -1:
+        return None, ["4-hour Momentum Cloud not bullish"]
     h = ctx.get("h4")
     if not h or h.get("line") is None or h.get("prev_dir") is None:
         return None, ["4-hour reading not ready"]
@@ -21,7 +23,7 @@ def evaluate(coin, ctx, btc_weekly_bullish):
     pullback = (h["dir"] == -1 and h["prev_dir"] == -1 and in_band
                 and h["prev_upper"] is not None and h["prev_close"] > h["prev_upper"])
     if flip:
-        kind, tier = "flip", ("A" if btc_weekly_bullish else "B")
+        kind, tier = "flip", ("A" if (btc_weekly_bullish or not btc_gate) else "B")
     elif pullback:
         kind, tier = "pullback", "B"
     else:

@@ -1,0 +1,24 @@
+{
+  "v": 1,
+  "note": "The agent roster. Each agent: its own config (agents/<id>/, core in config/), its own state (state/agents/<id>/, core in state/), its own keys (HL_AGENT_KEY_<ID> secrets; core uses HL_AGENT_KEY), its own pot and kill switch. The dashboard lists them in this order.",
+  "agents": [
+    {
+      "id": "core",
+      "name": "Core",
+      "enabled": true,
+      "desc": "12-14 names, 4h flips, Bitcoin gate. The original rules; best backtested edge, fewest trades."
+    },
+    {
+      "id": "wide-4h",
+      "name": "Wide",
+      "enabled": true,
+      "desc": "31 liquid names, 4h flips, no Bitcoin gate. About 1.7x the trades, smaller edge."
+    },
+    {
+      "id": "fast-1h",
+      "name": "Fast",
+      "enabled": true,
+      "desc": "31 names, 1h flips inside 4h/daily/weekly. Most trades; no edge proven in backtest. Paper experiment."
+    }
+  ]
+}
