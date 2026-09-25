@@ -29,8 +29,9 @@ carry percentages of the pot, never dollar amounts, because the ntfy topic is on
 - Private, under the same account as AiFi but a separate repository: secrets are repository-scoped, so the
   agent key never sits beside the desk's tokens or its auto-commit tooling.
 - Branch protection on `main`; only the owner pushes; the runner commits `state/` with its own identity.
-- Actions pinned to commit hashes (`actions/checkout` v7.0.1, `actions/setup-python` v7.0.0). No third-party
-  actions.
+- The one GitHub action used, `actions/checkout`, is pinned to a commit hash (v7.0.1). No third-party
+  actions; Python is the runner's system interpreter. The dashboard deploy runs `wrangler` through npx by
+  major version; pin it to an exact version before relying on it routinely.
 - The account is the trust root: passkey or hardware key for GitHub. Tokens: prefer a fine-grained token
   limited to this repository (Contents write, Workflows write) over a classic token with broad scopes; the
   `workflow` scope is required to push workflow files at all. Never store a token in this repository.
@@ -48,7 +49,7 @@ touches the exchange and it is what tells you the server went quiet.
 ## Supply chain
 
 - Paper mode imports nothing outside the Python standard library.
-- Live mode installs `hyperliquid-python-sdk` pinned to 0.24.0 with its wheel hash. **Before the first live
+- Live mode installs `hyperliquid-python-sdk` pinned to version 0.24.0, without hashes yet. **Before the first live
   order**, replace `requirements-live.txt` with a fully hash-locked set of the SDK and every transitive
   dependency (`pip download` the pinned set, `pip hash` each wheel, install with `--require-hashes`), and
   review each dependency's release before every version bump.
@@ -58,6 +59,14 @@ touches the exchange and it is what tells you the server went quiet.
 Isolated margin per position; leverage at most 3x with the liquidation price at least twice the stop
 distance away; every stop resident on the exchange, reduce-only, on the mark price; every close reduce-only;
 client order ids on every order; caps on open risk, gross exposure and position count.
+
+## Kill switches
+
+`control → halt` writes `state/HALT`, which is tracked by git and committed by the run, so it survives a
+fresh checkout; `control → resume` deletes it. `control → flatten` closes everything and sets it. The
+executor also sets it by itself in one case: a live fill whose stop could not be placed and whose close
+then failed, so you are paged to intervene. Revoking the agent key from the master wallet remains the hard
+stop that needs no code at all.
 
 ## Operational controls
 

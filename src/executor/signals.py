@@ -1,9 +1,9 @@
 """signals.py — the entry triggers. Long-only in v1.0 (shorts had negative expectancy in every test).
 
 Tier A: 4-hour Momentum Cloud flips bullish while the pair's daily and weekly are bullish AND BTC's weekly
-        is bullish. Eligible for automatic execution during offline hours.
+        is bullish. Executes on its own (settings.approval.auto_tiers).
 Tier B: a pullback — price re-enters the 4-hour Noodle band from above while the 4-hour cloud stays bullish —
-        or a flip without BTC alignment. Always needs approval.
+        or a flip without BTC alignment. Recorded, not traded, unless the owner adds "B" to auto_tiers.
 """
 
 

@@ -70,8 +70,20 @@ def cancel(ex, coin, cloid):
     return ex.cancel_by_cloid(coin, cloid)
 
 
-def close_market(ex, coin, sz, cloid):
+def close_market(ex, coin, sz=None, cloid=None):
+    """Reduce-only market close. sz=None closes whatever size the exchange actually holds."""
     return ex.market_close(coin, sz=sz, cloid=cloid)
+
+
+def order_ok(resp):
+    """True when the exchange accepted the order (resting or filled); (False, detail) on an error status."""
+    try:
+        st = resp["response"]["data"]["statuses"][0]
+        if "resting" in st or "filled" in st:
+            return True, ""
+        return False, str(st)[:200]
+    except (KeyError, IndexError, TypeError):
+        return False, str(resp)[:200]
 
 
 def fill_from_response(resp):
@@ -106,7 +118,8 @@ def reconcile(local, addr):
     orders = H.frontend_open_orders(addr)
     stops = {}
     for o in orders:
-        if o.get("reduceOnly") and o.get("orderType", "").lower().startswith("stop"):
+        kind = str(o.get("orderType", "")).lower()
+        if o.get("reduceOnly") and (o.get("isTrigger") or "stop" in kind or "trigger" in kind or o.get("triggerPx")):
             stops.setdefault(o["coin"], []).append(o)
     problems = []
     for coin, pos in local.items():

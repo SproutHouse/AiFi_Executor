@@ -1,4 +1,4 @@
-# Decision logic — version 1.2
+# Decision logic — version 1.3
 
 _Every rule here is implemented in the file named beside it, and only there. Change the rule in the code,
 bump the version, add a changelog line. Never let this page and the code disagree._
@@ -29,7 +29,7 @@ Parameters: `config/settings.json → indicators`. They are frozen in v1.0.
 
 **Setting A, bull bias:** weekly bullish AND daily bullish → the pair may be entered long.
 **Setting B, flat:** anything else → no new entries in the pair; open positions exit (section 5).
-There is no short setting in v1.0.
+There is no short setting in v1.
 
 ## 3. Triggers, on the last completed 4-hour bar
 
@@ -39,7 +39,7 @@ There is no short setting in v1.0.
 | Pullback | 4-hour direction bullish on this bar and the previous one; this close inside the band (lower ≤ close ≤ upper); previous close above the previous upper band | **B** | `signals.evaluate` |
 | Guard | close must be above the 4-hour line | — | `signals.evaluate` |
 
-Tier A may execute automatically during offline hours. Tier B always needs approval.
+Tier A executes on its own. Tier B is recorded and not traded (section 6).
 
 ## 4. Entry
 
@@ -61,7 +61,11 @@ Tier A may execute automatically during offline hours. Tier B always needs appro
 | 4-hour flip | 4-hour direction bearish → close at mark | `cycle.manage_exits` |
 | Daily flip | daily direction not bullish → close at mark | `cycle.manage_exits` |
 | Weekly flip | weekly direction not bullish → close at mark | `cycle.manage_exits` |
-| Manual | `control flatten` closes everything reduce-only and sets HALT | `scripts/control.py` |
+| Manual | `control flatten` closes everything reduce-only and sets HALT (a tracked file, so it survives the run) | `scripts/control.py` |
+| No reading | if the weekly, daily or 4-hour reading is missing (a data gap), the position and its stop are kept exactly as they are and the gap is reported; only an explicit bearish reading closes | `cycle.manage_exit` |
+| Live close order | the reduce-only market close is sent first for the whole exchange size; the resident stop is cancelled only after the fill is confirmed. A failed close keeps both the position and its stop | `cycle.close_position` |
+| Live fill order | a fresh fill is written to the positions file before the stop is placed; the stop gets one retry, then the position is closed rather than held unprotected; if that close also fails, HALT is set and you are paged | `cycle.execute_entry`, `cycle.protect` |
+| Recovery | an exception during an entry is followed by a read of the exchange: a long that exists is recorded and protected, never assumed absent | `cycle.recover_entry` |
 
 ## 6. Approval policy
 
@@ -102,6 +106,12 @@ Never automatic: any change to this page. See [DECISIONS.md](DECISIONS.md) for t
 
 ## Changelog
 
+- **v1.3 — 2026-09-25.** Execution safety from the first full review, no rule changes: write-through
+  persistence after every open, close and trail; data gaps keep positions instead of closing them; live
+  closes happen before their stop is cancelled; fresh fills are recorded before the stop is placed, with a
+  retry and a fail-closed close; entry exceptions trigger a recovery read; stops the exchange fired are
+  absorbed before exits are managed; one position's failure cannot stop the others; HALT is tracked by git;
+  zero equity refuses instead of crashing.
 - **v1.2 — 2026-09-24.** Approval mode `never`: tier A executes on its own around the clock; tier B is
   recorded, not traded. The owner's reason: execution should follow the rules, not a human mood. Everything
   else unchanged.

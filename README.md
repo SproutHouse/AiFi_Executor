@@ -14,7 +14,8 @@ exchange. There is no language model anywhere in the loop.
   nothing else; withdrawals and transfers need the master key, which never touches this repository.
 - Risk per trade is 1% of the pot; open risk is capped at 4%; leverage at 3x; positions at 6.
 - Every stop is an exchange-resident, reduce-only trigger order on the mark price. If this bot is down,
-  the exchange still exits.
+  the exchange still exits. A fill is recorded before its stop is placed, and a fill that cannot get a stop
+  is closed rather than held.
 - No human approval: tier A signals execute on their own at any hour; tier B signals are recorded and not
   traded. Exits never wait for anyone. The online-hours approval model remains available as a setting.
 - Names are grouped into books per ecosystem, each scored against its blue chip; a book that does not beat

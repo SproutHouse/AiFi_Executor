@@ -93,6 +93,17 @@ turns an Oracle Always Free VM in Frankfurt, Amsterdam or Zurich into a self-hos
 watchdog that never touches the exchange reports when the server goes quiet. The Python setup action was
 dropped at the same time: the code is standard library, and live mode builds its own venv.
 
+## 2026-09-25 · First full review
+
+A line-by-line review against LOGIC.md found the rules implemented as written and the paper loop sound, and
+found five live-path defects that could have left a real position unprotected or counted a trade twice:
+stop cancelled before the close, no failure handling around a live entry, state persisted only at the end
+of the run, data gaps treated as bearish, and exits managed before stops the exchange had fired were
+absorbed. Also: the HALT file was ignored by git, so the kill switch did not survive a GitHub run, and a
+zero-equity pot crashed the pre-trade check. All were fixed as v1.3 with tests that drive the cycle against
+a fake exchange. Deferred to after 30 live trades: enabling tier B, retiring or re-scoping the bnb book and
+the names the volume filter keeps refusing, and stripping pot-unit amounts from the dashboard API.
+
 ## Open questions
 
 - Pot size and maximum acceptable loss in the owner's own numbers, before live.

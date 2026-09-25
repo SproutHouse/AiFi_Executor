@@ -16,7 +16,8 @@ Worked example, pot 1,000 units, entry 100, stop 96: distance 4%, risk 10, notio
 leverage 3, margin 83. A 20% stop gives distance 20%, notional 50, and leverage drops to 2 so the liquidation
 price stays beyond twice the stop distance.
 
-If the notional wanted exceeds 3 × equity, the notional is capped and the risk taken is **less** than 1%,
+When no leverage from 3x down to 1x satisfies the buffer rule (a stop more than 45% away), 1x is used
+anyway: at 1x an isolated position cannot be liquidated before the stop. If the notional wanted exceeds 3 × equity, the notional is capped and the risk taken is **less** than 1%,
 never more. Notionals below Hyperliquid's minimum of 10 USDC are refused. Stops closer than 0.2% are refused
 as noise.
 

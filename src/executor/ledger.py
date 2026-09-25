@@ -1,4 +1,4 @@
-"""ledger.py — the record. Open positions in state/positions.json; closed trades appended to
+"""ledger.py — the record. Open positions in state/positions_<mode>.json; closed trades appended to
 state/ledger/trades.jsonl with the result in R; refused signals in refused.jsonl; equity points in equity.jsonl.
 LEDGER.md is a rendering of these files, regenerated every cycle, never edited by hand."""
 from . import common as C
@@ -27,7 +27,8 @@ def save_positions(pos, mode):
     C.write_json(pos_path(mode), {"updated": C.iso(), "mode": mode, "positions": pos})
 
 
-def record_close(pos, exit_px, reason, ts, exit_fee, funding_paid, bench_exit=None):
+def build_close(pos, exit_px, reason, ts, exit_fee, funding_paid, bench_exit=None):
+    """The closed-trade record, computed without writing anything."""
     gross = (exit_px - pos["entry"]) / pos["entry"] * pos["notional"]
     pnl = gross - pos.get("entry_fee", 0.0) - exit_fee - funding_paid
     bench_ret = rel_R = None
@@ -42,7 +43,17 @@ def record_close(pos, exit_px, reason, ts, exit_fee, funding_paid, bench_exit=No
            "reason": reason, "hours": max(1, (ts - pos["opened_ts"]) / 3600), "rules": pos.get("rules", []),
            "context_at_entry": pos.get("context", {}), "book": pos.get("book"), "benchmark": pos.get("benchmark"),
            "bench_ret": bench_ret, "rel_R": rel_R}
+    return rec
+
+
+def append_trade(rec):
     C.append_jsonl(TRADES, rec)
+
+
+def record_close(pos, exit_px, reason, ts, exit_fee, funding_paid, bench_exit=None):
+    """Build and append in one step (used by scripts and tests; the cycle persists positions in between)."""
+    rec = build_close(pos, exit_px, reason, ts, exit_fee, funding_paid, bench_exit)
+    append_trade(rec)
     return rec
 
 

@@ -109,7 +109,10 @@ version: it must beat the incumbent on the last twelve months out of sample in t
 |---|---|---|
 | "run started N min after the bar close" | GitHub's cron was late; entries skipped for that bar | nothing; exits still ran |
 | "reconciliation mismatch" | ledger and exchange disagree | look at the exchange UI; fix the ledger by hand or flatten; `resume` |
-| "close NOT filled" | a market close failed | it retries next cycle; if it persists, close from the exchange UI |
+| "close NOT filled" | a market close failed; the position and its resident stop are kept | it retries next cycle; if it persists, close from the exchange UI |
+| "stop placement failed, closing" | a fresh fill could not get its stop; the executor closed it | check the fill and the close on the exchange; nothing to do if both show |
+| "HALT: open without a stop" | the close after a failed stop also failed | open the exchange UI now, set a stop or close by hand, then `resume` |
+| "CYCLE ABORTED" | an unexpected error; state and the run record were still written | read the run log; exits ran up to the failure, stops are on the exchange |
 | "running paper instead of live" | secrets or SDK missing | add the secrets; check the install step |
 | No alerts at all | `ALERT_WEBHOOK` unset or wrong | set it; the log shows `alert (no channel)` |
 

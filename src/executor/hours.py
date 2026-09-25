@@ -1,6 +1,5 @@
-"""hours.py — approval mode by the owner's clock.
-Online hours: every entry becomes a proposal that waits for a tap. Offline hours: Tier A entries execute on
-their own; Tier B still waits. Exits never wait for anyone."""
+"""hours.py — the owner's clock. Used for the daily summary hour and, only when settings.approval.mode is
+"online_hours", for the proposal-versus-execute decision. With mode "never" (current) it is informational."""
 from datetime import datetime
 from zoneinfo import ZoneInfo
 

@@ -61,18 +61,22 @@ def pre_trade(cand, sizing, positions, equity, s, flags):
     add("sizing accepted", "refused" not in sizing, sizing.get("refused", ""))
     add("no open position in this coin", cand["coin"] not in positions)
     add("below max positions", len(positions) < s["max_positions"], f"{len(positions)} open of {s['max_positions']}")
+    eq_ok = equity is not None and equity > 0
+    add("equity positive", eq_ok, "" if eq_ok else f"equity {equity}")
+    pct = (lambda x: f"{x / equity * 100:.2f}%") if eq_ok else (lambda x: "n/a")
+    mult = (lambda x: f"{x / equity:.2f}x") if eq_ok else (lambda x: "n/a")
     open_risk = sum(p.get("risk_amt", 0) for p in positions.values())
     gross = sum(p.get("notional", 0) for p in positions.values())
     ra, no = sizing.get("risk_amt", 0), sizing.get("notional", 0)
-    add("open-risk cap", open_risk + ra <= s["open_risk_cap_pct"] / 100 * equity + 1e-9,
-        f"{(open_risk + ra) / equity * 100:.2f}% of equity after entry, cap {s['open_risk_cap_pct']}%")
-    add("gross exposure cap", gross + no <= s["gross_exposure_cap_x"] * equity + 1e-9,
-        f"{(gross + no) / equity:.2f}x after entry, cap {s['gross_exposure_cap_x']}x")
+    add("open-risk cap", eq_ok and open_risk + ra <= s["open_risk_cap_pct"] / 100 * equity + 1e-9,
+        f"{pct(open_risk + ra)} of equity after entry, cap {s['open_risk_cap_pct']}%")
+    add("gross exposure cap", eq_ok and gross + no <= s["gross_exposure_cap_x"] * equity + 1e-9,
+        f"{mult(gross + no)} after entry, cap {s['gross_exposure_cap_x']}x")
     cap_b = flags.get("book_cap_pct")
     if cap_b is not None and cand.get("book"):
         book_risk = sum(p.get("risk_amt", 0) for p in positions.values() if p.get("book") == cand["book"])
-        add("book open-risk cap", book_risk + ra <= cap_b / 100 * equity + 1e-9,
-            f"book {cand['book']}: {(book_risk + ra) / equity * 100:.2f}% after entry, cap {cap_b}%")
+        add("book open-risk cap", eq_ok and book_risk + ra <= cap_b / 100 * equity + 1e-9,
+            f"book {cand['book']}: {pct(book_risk + ra)} after entry, cap {cap_b}%")
     add("price sanity band", flags.get("sanity_ok", True), flags.get("sanity_detail", ""))
     add("universe filters", flags.get("universe_ok", True), "; ".join(flags.get("universe_reasons", [])))
     return all(c["ok"] for c in checks), checks

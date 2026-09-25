@@ -24,12 +24,20 @@ exchange.
    and says so.
 2. Load market context and Bitcoin's regime; judge data freshness.
 3. Load positions and equity; compute the throttle.
-4. Expire proposals past the last bar close.
-5. Manage exits: stop check (paper), regime and 4-hour flips, trailing.
-6. Live: reconcile the ledger against the exchange (below).
-7. Look for entries book by book, name by name; run the pre-trade checklist including the book's own risk
-   cap; execute or propose by the hour. Every candidate carries its book and the benchmark's mark at entry.
-8. Write state, equity point, run summary, `LEDGER.md`; send the daily line at 08:00 local.
+4. Live: absorb positions the exchange already closed (a resident stop fired), recording each from the
+   account's fills, so nothing below acts on a ghost position.
+5. Expire proposals past the last bar close.
+6. Manage exits, one position at a time inside its own error boundary: stop check (paper), then any
+   missing reading keeps the position untouched, then regime and 4-hour flips, then trailing.
+7. Live: reconcile the ledger against the exchange (below); a mismatch halts entries.
+8. Look for entries book by book, name by name; run the pre-trade checklist including the book's own risk
+   cap; execute by tier. Every candidate carries its book and the benchmark's mark at entry.
+9. Always, even after an error: write state, the equity point, the run record with every name's reading,
+   `LEDGER.md`; send the daily line at 08:00 local. An aborted cycle still records itself and exits non-zero.
+
+State is written through after every open, close and trail. A close removes the position and persists
+before the trade line is appended, so a crash between the two loses one ledger line rather than closing
+the same position twice.
 
 ## Orders in live mode, `src/executor/live.py`
 
@@ -39,7 +47,9 @@ exchange.
 | Entry | limit, IOC, price mark × 1.003, unique client id | fills up to the cap or not at all; never rests |
 | Stop | reduce-only trigger, `tpsl: sl`, market on trigger, trigger on **mark price**, worst price stop × 0.97 | placed immediately after the fill; the exchange enforces it |
 | Trail | place the new stop, then cancel the old by client id | never lowered |
-| Close | `market_close`, reduce-only by construction | a failed close keeps the position and alerts; retried next cycle |
+| Close | `market_close` for the whole exchange size, reduce-only by construction, sent BEFORE the stop is cancelled | a failed close keeps the position and its stop and alerts; retried next cycle |
+| Fresh fill | recorded to the positions file first, then the stop is placed with one retry; if the stop cannot be placed the position is closed; if that fails too, HALT and a page | never a filled position the ledger does not know |
+| Entry exception | followed by a read of the account: a long that exists is recorded and protected | a timeout is not assumed to mean "no fill" |
 | Rounding | size to `szDecimals`; price to 5 significant figures and at most 6 − szDecimals decimals | Hyperliquid's rules |
 
 Every order carries a client order id (a random 128-bit hex), so a retried request cannot place a
