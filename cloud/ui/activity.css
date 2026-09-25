@@ -1,0 +1,218 @@
+/* cloud/ui/activity.css — the Activity tab (spec §6) and the Health sheet's punctuality strip (§9.5). Prefix ac-.
+   Tokens only. Solid magenta only where the bot acted (bought/sold cells) and the clock (the next-check ring); the tape
+   cursor is a 1px-ish accent outline; watch-only stays neutral ink-2. Motion: transform and opacity only. */
+.ac{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4)}
+.ac>*{min-width:0}
+.ac .card .head .sub{line-height:1.45}
+.ac-h3{display:flex;align-items:center;gap:2px;margin:var(--s5) 0 var(--s2);font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ac-more{margin-top:var(--s3)}
+.ac-off{color:var(--ink-2)}
+
+/* ---------------- legends (heartbeat, tape, punctuality strip) ---------------- */
+.ac-leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin:var(--s3) 0 0;padding:0;list-style:none;font-size:var(--fs-xs);color:var(--ink-2)}
+.ac-leg li{display:inline-flex;align-items:center;gap:6px}
+.ac-sw{display:inline-block;flex:none;width:16px;height:12px;border-radius:3px;border:1px solid transparent}
+.ac-tsw{border:0;background:var(--st-cell);outline:1px var(--st-ls) var(--st-ring);outline-offset:-1px}
+
+/* ---------------- heartbeat (§6.1) ---------------- */
+.ac-hbw{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4)}
+@media(min-width:900px){.ac-hbw{grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:var(--s6);align-items:start}}
+/* 36px cells 8px apart vertically: each cell's 44px hit area is its own */
+.ac-hb{display:grid;grid-template-columns:44px repeat(6,minmax(0,1fr));gap:8px 4px;align-items:center}
+/* on a 375px phone the grid bleeds 4px into the card padding each side, so six cells still sit 44px apart */
+@media(max-width:400px){.ac-hb{margin-inline:-4px}}
+.ac-hcol{padding-bottom:2px;text-align:center;font:500 10.5px/1 var(--mono);color:var(--muted)}
+.ac-hrow{font-size:var(--fs-xs);font-weight:500;color:var(--ink-2);white-space:nowrap}
+.ac-hc{position:relative;display:grid;place-items:center;min-width:0;height:36px;border-radius:8px;border:1px solid transparent;
+  font:600 11.5px/1 var(--mono);color:var(--ink-2);font-variant-numeric:tabular-nums}
+button.ac-hc{cursor:pointer;transition:transform var(--dur-1) var(--ease)}
+button.ac-hc:hover{transform:translateY(-1px)}
+.ac-h-ok{background:var(--good-soft);color:var(--good);font-size:17px}
+.ac-h-sig{border-color:var(--ink-2);color:var(--ink)}
+.ac-h-act{background:var(--accent);color:var(--accent-ink)}
+.ac-h-late{border-color:var(--warn);color:var(--warn);font:600 10.5px/1 var(--font)}
+.ac-h-fail{background:var(--bad);color:var(--bg);font-size:15px}
+.ac-h-halt{border-color:var(--bad);color:var(--bad);font-size:14px}
+.ac-h-miss{border:1px dashed var(--line-2);color:var(--muted)}
+.ac-h-next{box-shadow:inset 0 0 0 2px var(--accent)}
+.ac-sw.ac-h-next{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.ac-hc.ac-sel{outline:2px solid var(--ink);outline-offset:1px}
+/* the count badge pokes out of its cell; it takes no taps, so it never covers a neighbouring cell's hit area */
+.ac-hn{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;border:1px solid var(--line-2);pointer-events:none;
+  background:var(--glass-3);color:var(--ink);font:600 9.5px/14px var(--mono);text-align:center}
+.ac-hbs{min-width:0}
+.ac-punct{margin:0;font-size:var(--fs-sm);line-height:1.5;color:var(--ink)}
+.ac-hbs .cap{margin:var(--s3) 0 0}
+
+/* ---------------- punctuality strip in the Health sheet (§9.5) ---------------- */
+.ac-ps{margin:var(--s2) 0;padding-top:16px}
+.ac-psg{position:relative;display:grid;grid-template-columns:repeat(42,minmax(0,1fr));gap:2px;align-items:end;height:68px;
+  border-bottom:1px solid var(--line-2)}
+.ac-psb{align-self:end;height:calc(var(--h,0) * 100%);min-height:2px;border-radius:2px 2px 0 0;background:color-mix(in srgb,var(--good) 62%,transparent)}
+.ac-p-late{background:var(--warn)}
+.ac-p-fail{background:var(--bad)}
+.ac-p-over{box-shadow:inset 0 2px 0 var(--ink)}
+.ac-psb.ac-p-miss{height:100%;background:transparent;border:1px dashed var(--line-2);border-bottom:0}
+.ac-psb.ac-p-next{height:4px;min-height:4px;border-radius:2px;background:var(--accent)}
+.ac-psb.ac-p-pre{min-height:0;height:0;background:transparent}
+.ac-sw.ac-p-ok{background:color-mix(in srgb,var(--good) 62%,transparent)}
+.ac-sw.ac-p-miss{border:1px dashed var(--line-2)}
+.ac-psl{position:absolute;left:0;right:0;bottom:calc(var(--y) * 100%);border-top:1px dashed var(--warn);pointer-events:none}
+.ac-psll,.ac-psy{position:absolute;right:0;padding:0 3px;border-radius:3px;background:color-mix(in srgb,var(--bg) 70%,transparent);
+  font:500 10px/1.3 var(--mono);pointer-events:none}
+.ac-psll{bottom:calc(var(--y) * 100% + 2px);color:var(--warn)}
+.ac-psy{top:-16px;left:0;right:auto;color:var(--muted)}
+.ac-psx{display:flex;justify-content:space-between;margin-top:4px;font:500 10px/1.2 var(--mono);color:var(--muted)}
+
+/* ---------------- timeline (§6.2) ---------------- */
+.ac-tlf{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:var(--s2)}
+.ac-coinf{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.ac-dayh{margin:var(--s4) 0 var(--s1);font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ac-tlb>.ac-dayh:first-child{margin-top:var(--s2)}
+.ac-chk{position:relative;margin-left:5px;padding-left:13px;border-left:1px solid var(--line)}
+/* a check header is itself 44px tall (text centred), so headers stacked with no events between keep their own hit areas */
+.ac-chkh{display:flex;align-items:baseline;align-content:center;flex-wrap:wrap;gap:2px 8px;width:calc(100% + 8px);min-height:44px;margin-left:-8px;padding:7px 8px;
+  border-radius:10px;text-align:left;font-size:var(--fs-sm);color:var(--ink-2);transition:background-color var(--dur-1)}
+button.ac-chkh{position:relative;cursor:pointer}
+button.ac-chkh::before{content:"";position:absolute;left:0;right:0;top:50%;height:max(100%,44px);transform:translateY(-50%)}
+button.ac-chkh:hover{background:var(--glass-2)}
+.ac-ct{font-family:var(--mono);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.ac-cs{min-width:0;flex:1 1 12em;overflow-wrap:anywhere}
+.ac-go{color:var(--muted);align-self:center}
+.ac-q .ac-chkh{padding-top:5px;padding-bottom:5px}
+.ac-q .ac-ct{color:var(--ink-2);font-weight:500}
+/* the Latest row form: each event's first line is centred in a 44px band (padding 22px minus half a line, at the
+   event's own font size), so a coin chip's 44px hit area stays inside its event and never meets the next event's chip
+   or the check header's own hit area */
+.ac-evs{display:grid;gap:1px;margin:1px 0 6px;padding:0;list-style:none}
+.ac-ev{display:flex;align-items:flex-start;gap:8px;padding:calc(22px - .725em) 0;font-size:13.5px;line-height:1.45;color:var(--ink)}
+.ac-evi{flex:none;width:16px;height:16px;margin-top:2px;color:var(--muted)}
+.ac-evi svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ac-evt{min-width:0;overflow-wrap:anywhere}
+.ac-lv1{color:var(--ink-2)}
+.ac-lv0{font-size:var(--fs-sm);color:var(--muted)}
+.ac-act .ac-evi{color:var(--accent)}
+.ac-wrn .ac-evi{color:var(--warn)}
+.ac-bad .ac-evi{color:var(--bad)}
+.ac-ev .tk{font-size:.9em}
+.ac-ev .newdot{margin-left:2px}
+.ac-fold{margin-left:5px;padding-left:13px;border-left:1px dashed var(--line)}
+.ac-foldb{position:relative;display:flex;align-items:center;gap:6px;width:calc(100% + 8px);min-height:44px;margin-left:-8px;padding:5px 8px;
+  border-radius:10px;text-align:left;font-size:var(--fs-sm);color:var(--muted);cursor:pointer}
+.ac-foldb::before{content:"";position:absolute;left:0;right:0;top:50%;height:max(100%,44px);transform:translateY(-50%)}
+.ac-foldb:hover{background:var(--glass-2);color:var(--ink-2)}
+.ac-foldb svg{width:14px;height:14px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform var(--dur-1) var(--ease)}
+.ac-foldb[aria-expanded=true] svg{transform:rotate(90deg)}
+.ac-foldx .ac-chk{margin-left:0;padding-left:8px;border-left:0}
+.ac-new{display:flex;align-items:center;gap:10px;margin:10px 0 6px}
+.ac-new::before,.ac-new::after{content:"";flex:1 1 auto;height:1px;background:var(--accent-line)}
+.ac-newp{flex:none;padding:2px 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent);font-size:var(--fs-xs);font-weight:600}
+
+/* ---------------- Signals (§6.3) ---------------- */
+.ac-fun,.ac-why{gap:9px}
+@media(min-width:1100px){#ac-fun{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:var(--s6);align-items:start}#ac-fun .ac-whyw>.ac-h3:first-child{margin-top:0}}
+.ac-sig .bar{grid-template-columns:minmax(0,240px) minmax(0,1fr) 64px}
+.ac-sig .bar .name{display:flex;align-items:baseline;gap:6px;min-width:0;color:var(--ink);font-size:var(--fs-sm);line-height:1.35}
+.ac-sig .bar .name .sub{font-size:var(--fs-xs)}
+.ac-sig .bar .num{text-align:right;font-family:var(--mono);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.ac-side .name{padding-left:6px;color:var(--ink-2)}
+/* a row whose label carries a '?' tip is 36px tall: two such rows sit 45px apart, so their 44px hit areas never meet */
+.ac-sig .bar.ac-fbt{min-height:36px}
+.ac-el{flex:none;color:var(--muted);font-family:var(--mono)}
+.ac-subh{margin:var(--s2) 0 0;font-size:var(--fs-xs);color:var(--muted);font-weight:600}
+@media(max-width:640px){.ac-sig .bar{grid-template-columns:minmax(0,1fr) 58px}.ac-side .track{margin-left:18px}}
+.ac-pins{margin:-2px 0 var(--s2)}
+.ac-pinl{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.ac-pinr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);
+  background:var(--glass-2);box-shadow:inset 3px 0 0 var(--warn);font-size:var(--fs-sm);color:var(--ink-2)}
+.ac-pw{flex:1 1 100%;min-width:0;color:var(--ink)}
+.ac-tbtn{position:relative;font-family:var(--mono);font-size:var(--fs-sm);font-weight:500;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+button.ac-tbtn{cursor:pointer;text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
+button.ac-tbtn::before{content:"";position:absolute;left:50%;top:50%;width:max(100%,44px);height:44px;transform:translate(-50%,-50%)}
+button.ac-tbtn:hover{color:var(--accent);text-decoration-color:currentColor}
+.ac-slc .fchips{margin-bottom:var(--s3)}
+.ac-ln{margin:0 0 var(--s3)}
+.ac-ln .btn{margin-left:6px}
+.ac-sgs{gap:8px}
+.ac-sg{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--glass-2);font-size:var(--fs-sm)}
+.ac-sgh{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.ac-sgo{margin-left:auto}
+.ac-sgw{margin-top:6px;line-height:1.6;color:var(--ink-2)}
+.ac-sgw .pill{margin-right:4px;vertical-align:1px}
+.pill.ac-buy{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+/* table rows holding a coin chip are 45px tall (border-box, chip centred), so stacked chips keep their own 44px hit areas */
+.ac-slc .tbl td,.ac-rdx .tbl td{height:45px}
+.ac-slc .tbl td{vertical-align:middle}
+.ac-wcell{white-space:normal;min-width:260px;color:var(--ink-2)}
+.ac-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:var(--s3)}
+
+/* ---------------- the board over time (§6.4) ---------------- */
+.ac-tctl{display:flex;align-items:center;gap:12px;margin-bottom:var(--s2)}
+.ac-play svg{width:13px;height:13px;flex:none;fill:currentColor;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+.ac-play[aria-pressed=true]{color:var(--accent);border-color:var(--accent-line)}
+.ac-scrub{flex:1 1 auto;min-width:0;height:32px;margin:0;accent-color:var(--ink-2);cursor:pointer}
+.ac-tnow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-height:30px;margin-bottom:var(--s3)}
+.ac-tt{font:500 18px/1.3 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.ac-ts{flex:1 1 12em;min-width:0}
+.ac-back{align-self:center}
+.ac-back[hidden]{display:none}
+.ac-tsc{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.ac-tg{position:relative;width:max-content;min-width:100%;cursor:pointer}
+.ac-tr{display:flex;align-items:stretch;height:14px;margin-bottom:1px}
+.ac-tlab{flex:none;width:48px;padding-right:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;
+  font:600 10px/14px var(--mono);color:var(--ink-2)}
+button.ac-tlab{cursor:pointer}
+button.ac-tlab:hover{color:var(--accent)}
+.ac-tcs{display:grid;grid-template-columns:repeat(var(--n),var(--cw,6px));column-gap:1px;flex:none}
+.ac-tcs>i{display:block;min-width:0;border-radius:2px;background:var(--st-cell);outline:1px var(--st-ls) var(--st-ring);outline-offset:-1px}
+.ac-tbk{position:sticky;left:0;width:max-content;margin:8px 0 3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ac-thd{height:14px;margin-bottom:2px;cursor:default}
+.ac-tday{overflow:visible;white-space:nowrap;font:500 10px/14px var(--font);color:var(--muted)}
+.ac-tnrs{height:12px}
+.ac-tnr{position:relative;align-self:center;height:10px;overflow:hidden;border-radius:2px;background-image:var(--hatch);text-align:center;white-space:nowrap;
+  font:600 9px/10px var(--font);color:var(--muted)}
+.ac-tnr em{display:none;padding:0 4px;border-radius:2px;background:var(--glass-3);font-style:normal}
+.ac-tnr.ac-fit em{display:inline}
+.ac-tnr.ac-tfl{background:var(--bad-soft);color:var(--bad)}
+.ac-tov{position:absolute;top:0;bottom:0;left:48px;right:0;overflow:hidden;pointer-events:none}
+.ac-tveil,.ac-tcur{position:absolute;top:0;bottom:0;left:0;opacity:0;transition:transform var(--dur-1) var(--ease),opacity var(--dur-1) var(--ease)}
+.ac-tveil{width:100%;background:color-mix(in srgb,var(--bg) 62%,transparent)}
+.ac-tcur{width:var(--cw,6px);border-radius:2px;box-shadow:0 0 0 1.5px var(--accent)}
+.ac-tg.ac-on .ac-tveil,.ac-tg.ac-on .ac-tcur{opacity:1}
+.ac-mini{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:var(--s3);padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--glass-2)}
+.ac-mini:empty{display:none}
+.ac-mh{display:inline-flex;align-items:center;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ac-mt{flex:1 1 auto;font-size:var(--fs-sm);color:var(--ink-2)}
+.ac-mfl{display:flex;flex:1 1 auto;flex-wrap:wrap;align-items:flex-start;gap:4px 0;min-width:0;margin:0;padding:0;list-style:none}
+.ac-mfl li{position:relative;display:flex;flex-direction:column;align-items:center;min-width:38px;padding:0 3px}
+.ac-mfl li+li{padding-left:17px}
+.ac-mfl li+li::before{content:"→";position:absolute;left:1px;top:1px;color:var(--muted);font-size:13px}
+.ac-mfl b{font:600 16px/1.25 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.ac-mfl span{font-size:10px;color:var(--muted)}
+.ac-mfl li:last-child b{color:var(--ink)}
+
+/* ---------------- All readings (§6.5) ---------------- */
+.ac-rdx summary{flex-wrap:wrap}
+details.disc.ac-rdx summary::after{margin-left:10px}
+.ac-rdas{margin-left:auto;font-weight:400}
+.ac-rdi{margin:0 0 var(--s3)}
+.ac-rdl{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.ac-rd{padding:10px 12px 6px 14px;border-radius:12px;border:1px solid var(--line);background:var(--glass);box-shadow:inset 3px 0 0 var(--st,var(--line-2))}
+.ac-rdh{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:var(--fs-sm)}
+.ac-rdh .sub{margin-left:auto}
+.ac-rdn{margin:6px 0 0;font-size:var(--fs-sm);color:var(--muted)}
+.ac-dl{color:var(--muted)}
+.ac-d{display:inline-block;width:8px;height:8px;margin:0 5px 0 2px;border-radius:50%;vertical-align:0}
+.ac-d1{background:var(--ink-2)}
+.ac-d0{border:1.5px solid var(--muted)}
+.ac-dn{border:1.5px dashed var(--muted)}
+.ac-rdf{display:flex;flex-wrap:wrap;gap:3px 14px;margin:6px 0 2px;padding:0;list-style:none;font-size:var(--fs-sm);line-height:1.5;color:var(--ink);font-variant-numeric:tabular-nums}
+.ac-rdf li{min-width:0}
+.ac-ok{color:var(--good);font-weight:700}
+.ac-x{color:var(--warn);font-weight:700}
+.ac-rdx .tbl td{vertical-align:middle}
+.ac-rdx .tbl tr[class^="st-"] td:first-child,.ac-rdx .tbl tr[class*=" st-"] td:first-child{box-shadow:inset 3px 0 0 var(--st)}
+
+@media(prefers-reduced-motion:reduce){
+  button.ac-hc,.ac-tveil,.ac-tcur,.ac-foldb svg{transition:none!important}
+  button.ac-hc:hover{transform:none}}

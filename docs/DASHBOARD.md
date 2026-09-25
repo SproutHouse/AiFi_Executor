@@ -1,5 +1,11 @@
 # The dashboard
 
+> **v2 (2026-09-25):** the dashboard was rebuilt as "Mission control". The build spec, including tabs, status states,
+> data contract, KV keys and acceptance criteria, is [DASHBOARD_SPEC.md](DASHBOARD_SPEC.md). The front end is split into
+> modules under `cloud/ui/` (contract in `cloud/ui/README.md`) that the Worker joins into one script. Tabs are now Now,
+> Activity, Positions, Results and Rules; old links redirect. Preview locally with `node cloud/dev/preview.mjs`.
+> Known cosmetic follow-ups: a few tap targets under 44 px, light-theme pill contrast, two extra uses of solid magenta.
+
 A private page, modelled on the AiFi dashboard and built from the same design tokens, with one difference
 you can see from across the room: the accent is **magenta** where AiFi's is cyan, and the brand mark reads
 "Ex". Everything else, the glass panels, the rail, the tabs, the light and dark themes, is shared, so the

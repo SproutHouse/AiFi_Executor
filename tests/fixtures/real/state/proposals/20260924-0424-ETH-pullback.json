@@ -1,0 +1,100 @@
+{
+  "id": "20260924-0424-ETH-pullback",
+  "status": "expired",
+  "created": "2026-09-24T04:24:57Z",
+  "expires": "2026-09-24T08:00:00Z",
+  "expires_ts": 1790236800,
+  "why_waiting": "tier B always needs approval",
+  "mode": "paper",
+  "candidate": {
+    "coin": "ETH",
+    "side": "long",
+    "kind": "pullback",
+    "tier": "B",
+    "stop": 2649.3941021027176,
+    "signal_close": 2676.2,
+    "bar_t": 1790208000,
+    "bar_T": 1790222399,
+    "range": "In Range",
+    "btc_weekly_bullish": true,
+    "book": "eth-defi",
+    "benchmark": "ETH",
+    "bench_mark": 2673.2
+  },
+  "sizing": {
+    "entry": 2681.2195999999994,
+    "stop": 2649.3941021027176,
+    "dist_pct": 1.1869784144977094,
+    "risk_amt": 10.0,
+    "risk_pct": 1.0,
+    "notional": 842.4753034983938,
+    "leverage": 3,
+    "margin": 280.8251011661313,
+    "notional_pct_equity": 84.24753034983938,
+    "liq_buffer_pct": 30.0
+  },
+  "checks": [
+    {
+      "check": "not halted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "throttle allows entries",
+      "ok": true,
+      "detail": "drawdown 0.0%"
+    },
+    {
+      "check": "data fresh and run on time",
+      "ok": true,
+      "detail": "25 min after the bar close"
+    },
+    {
+      "check": "no reconciliation mismatch",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "sizing accepted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "no open position in this coin",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "below max positions",
+      "ok": true,
+      "detail": "0 open of 6"
+    },
+    {
+      "check": "open-risk cap",
+      "ok": true,
+      "detail": "1.00% of equity after entry, cap 4.0%"
+    },
+    {
+      "check": "gross exposure cap",
+      "ok": true,
+      "detail": "0.84x after entry, cap 3.0x"
+    },
+    {
+      "check": "book open-risk cap",
+      "ok": true,
+      "detail": "book eth-defi: 1.00% after entry, cap 2.5%"
+    },
+    {
+      "check": "price sanity band",
+      "ok": true,
+      "detail": "mark vs Binance 0.01%"
+    },
+    {
+      "check": "universe filters",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "mark_at_signal": 2673.2,
+  "closed": "2026-09-24T08:21:16Z"
+}

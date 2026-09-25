@@ -1,0 +1,75 @@
+/* cloud/ui/rules.css — the Rules tab (spec §10): the doc nav, In force, books, glossary and the docs. Every class carries
+   the ru- prefix; design tokens only. Nothing here is accent-filled: Rules is words. */
+
+/* ---- the nav: one row that scrolls inside itself (.seg.quiet, core's setSeg centres the active item) ---- */
+.ru-nav{min-width:0;display:flex}
+.ru-seg{max-width:100%}
+.ru-seg.ru-still .ind{transition:none}
+.ru-sep{flex:none;align-self:center;width:1px;height:16px;margin:0 5px;background:var(--line-2)}
+.ru-pane{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4);min-width:0}
+/* a wide screen puts Books beside In force instead of under it */
+@container (min-width:1040px){.ru-pane[data-p=inforce]{grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);align-items:start}}
+
+/* ---- In force: a label and a sentence per rule; label above on phones, beside it once there is room ---- */
+.ru-rules{list-style:none;margin:0;padding:0}
+.ru-r{display:grid;grid-template-columns:minmax(0,1fr);gap:3px 18px;padding:13px 0;border-top:1px solid var(--line)}
+.ru-r:first-child{border-top:0;padding-top:2px}
+.ru-r:last-child{padding-bottom:0}
+.ru-k{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;line-height:1.4;padding-top:3px}
+.ru-s{min-width:0;max-width:72ch;font-size:15px;line-height:1.55;color:var(--ink-2);overflow-wrap:anywhere}
+.ru-s b,.ru-bh b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.ru-x{display:block;margin-top:5px;font-size:var(--fs-sm);line-height:1.5;color:var(--muted)}
+.ru-none{margin:0 0 var(--s2);color:var(--ink-2);font-size:var(--fs-md);line-height:1.5}
+@container (min-width:560px){.ru-r{grid-template-columns:104px minmax(0,1fr)}}
+
+/* the check list folds under the Buys sentence; the summary is a full 44px row */
+.ru-more{margin-top:4px}
+.ru-more summary{display:inline-flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none;color:var(--ink-2);font-size:var(--fs-md)}
+.ru-more summary::-webkit-details-marker{display:none}
+.ru-more summary::before,.ru-g summary::after{content:"";flex:none;width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(-45deg);transition:transform var(--dur-2) var(--ease)}
+.ru-more[open] summary::before,.ru-g[open] summary::after{transform:rotate(45deg)}
+.ru-more summary:hover{color:var(--ink)}
+.ru-ck{margin:0 0 4px;padding-left:24px;color:var(--ink-2);font-size:var(--fs-md);line-height:1.6}
+.ru-ck li::marker{color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ---- books ---- */
+.ru-bl{list-style:none;margin:0;padding:0}
+.ru-b{padding:11px 0;border-top:1px solid var(--line)}
+.ru-b:first-child{border-top:0;padding-top:2px}
+.ru-bh{font-size:15px;line-height:1.5;color:var(--ink-2)}
+.ru-bn{color:var(--ink);font-weight:600}
+.ru-bs{margin-top:2px;font-size:var(--fs-sm);line-height:1.5;color:var(--muted)}
+.ru-cn{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.ru-off .ru-bn,.ru-off .ru-bh{color:var(--muted)}
+.ru-cap{margin:var(--s3) 0 0}
+
+/* ---- glossary: one 44px row per word, the definition folds open beneath ---- */
+.ru-gl{display:grid;grid-template-columns:minmax(0,1fr)}
+.ru-g{border-top:1px solid var(--line);scroll-margin-top:72px}
+.ru-g:first-child{border-top:0}
+.ru-g summary{display:flex;align-items:center;gap:10px;min-height:44px;padding:2px 2px;cursor:pointer;list-style:none;color:var(--ink);font-size:15px;font-weight:600;border-radius:8px}
+.ru-g summary::-webkit-details-marker{display:none}
+.ru-g summary::after{margin-left:auto;margin-right:4px}
+.ru-g summary:hover{color:var(--accent)}
+.ru-g summary:focus-visible,.ru-more summary:focus-visible{outline:2px solid var(--accent-line);outline-offset:2px}
+.ru-g p{margin:0 0 14px;padding:0 2px;max-width:70ch;color:var(--ink-2);font-size:var(--fs-md);line-height:1.6}
+@container (min-width:760px){
+  .ru-gl{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(var(--ru-rows,15),auto);grid-auto-flow:column;column-gap:32px;align-items:start}
+  .ru-g.ru-c2{border-top:0}}
+
+/* ---- docs: md() output inside .doc; the first heading sits at the top of the card ---- */
+.ru-doc>h2:first-child,.ru-doc>h3:first-child{margin-top:0}
+.ru-doc ol>li::marker{color:var(--ink-2);font-weight:600;font-variant-numeric:tabular-nums}
+.ru-doc .empty{padding:var(--s6) var(--s4)}
+/* a doc naming another doc ("LOGIC.md") links to that pane; never split the name */
+.ru-doc a[data-v]{color:inherit;word-break:normal;white-space:nowrap;text-decoration:underline;text-decoration-color:var(--accent-line);text-underline-offset:3px}
+.ru-doc a[data-v]:hover{color:var(--accent)}
+.ru-retry{margin-top:var(--s3)}
+.ru-pn{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:var(--s5);padding-top:var(--s3);border-top:1px solid var(--line)}
+.ru-pn .btn{min-width:0;max-width:44%;overflow:hidden;text-overflow:ellipsis}
+.ru-pn .sub{flex:none}
+
+/* ---- Log out, phones only (the rail has it on wider screens) ---- */
+.ru-out{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px}
+
+@media(prefers-reduced-motion:reduce){.ru-seg .ind,.ru-more summary::before,.ru-g summary::after{transition:none}}

@@ -1,0 +1,176 @@
+/* cloud/ui/positions.css — the Positions tab (spec §7) and the position sheet (§9.3). Every class carries the ps- prefix;
+   design tokens only. Motion is transform/opacity: meters scaleX(--k), the ladder bead translateX(--dx). */
+
+/* tracks read in both themes: a faint ink tint over glass-2 (glass alone vanishes on light glass) */
+.ps-trk,.ps-rt,.ps-gtr,.meter.ps-m{background:color-mix(in srgb,var(--ink) 7%,var(--glass-2))}
+
+/* ---- section head and the card grid (two columns once the content is wide) ---- */
+.ps-sh{display:flex;align-items:baseline;justify-content:space-between;gap:2px 12px;flex-wrap:wrap;margin:2px 2px -6px}
+.ps-sh h2.eyebrow{margin:0}
+.ps-cards{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4)}
+@container (min-width:860px){.ps-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---- position card ---- */
+.ps-card{min-width:0;cursor:pointer}
+.ps-card.card:hover{border-color:var(--line-2)}
+.ps-hd{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;min-width:0}
+.ps-hd .tk{font-size:14px}
+.ps-bk{color:var(--ink-2);font-size:var(--fs-sm)}
+.ps-more{margin-left:auto}
+.ps-meta{margin-top:4px;color:var(--muted);font-size:var(--fs-sm)}
+.ps-hl{display:flex;align-items:baseline;justify-content:space-between;gap:2px 16px;flex-wrap:wrap;margin-top:12px}
+.ps-o{display:flex;align-items:baseline;flex-wrap:wrap;min-width:0}
+.ps-big{font-size:26px;font-weight:650;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ps-w{margin-left:6px;color:var(--muted);font-size:var(--fs-sm);font-weight:500}
+.ps-p{display:flex;align-items:baseline;white-space:nowrap}
+.ps-pv{font-size:var(--fs-lg);font-weight:600;font-variant-numeric:tabular-nums}
+.ps-stop{margin:4px 0 0;color:var(--ink-2);font-size:var(--fs-md);line-height:1.45}
+.ps-stop .pos,.ps-stop .neg{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ps-thru{color:var(--warn);font-weight:600}
+.ps-nw{white-space:nowrap}
+
+/* ---- R-ladder: 8px track · first-stop, entry and stop ticks · 14px mark bead · locked (hatched) and at-risk bands ---- */
+.ps-lad{position:relative;margin:8px 0 2px;padding:calc(var(--rt,1)*16px + 4px) 0 calc(var(--rb,1)*16px + 4px)}
+.ps-trk{position:relative;height:8px;border-radius:4px;box-shadow:inset 0 0 0 1px var(--line)}
+.ps-band{position:absolute;top:0;bottom:0;border-radius:4px}
+.ps-lock{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--good) 30%,transparent) 0 4px,transparent 4px 8px);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--good) 45%,transparent)}
+.ps-atrisk{background:color-mix(in srgb,var(--ink) 16%,var(--glass-3));box-shadow:inset 0 0 0 1px var(--line-2)}
+.ps-tick,.ps-stopm{position:absolute;top:50%;height:12px;border-radius:1px;transform:translate(-50%,-50%)}
+.ps-tick{width:2px}
+.ps-t1{background:var(--bad)}
+.ps-t0{background:var(--ink-2)}
+.ps-stopm{width:4px;background:var(--accent)}
+.ps-bead{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px var(--bg);transform:translate(calc(-50% + var(--dx,0px)),-50%);transition:transform var(--dur-3) var(--ease)}
+.ps-bead.ps-nt{transition:none}
+.ps-lb{position:absolute;white-space:nowrap;font-size:11px;line-height:14px;color:var(--muted);font-variant-numeric:tabular-nums;pointer-events:none}
+.ps-lb[data-row=t0]{top:calc((var(--rt,1) - 1)*16px)}
+.ps-lb[data-row=t1]{top:0}
+.ps-lb[data-row=b0]{bottom:calc((var(--rb,1) - 1)*16px)}
+.ps-lb[data-row=b1]{bottom:0}
+.ps-ln{color:var(--ink);font-weight:600}
+.ps-ls{color:var(--ink-2)}
+.ps-mini{margin:0;padding:3px 0}
+
+/* ---- stop trail: a step line in R, raises as accent dots (the bot acted); an unknown-timing segment is dashed ---- */
+.ps-tr{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 12px;margin-top:8px}
+.ps-tk{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;white-space:nowrap}
+.ps-sp{position:relative;min-width:0}
+.ps-sp svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ps-z{fill:none;stroke:var(--line-2);stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+.ps-l1{fill:none;stroke:var(--ink-2);stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ps-l1.ps-gap{stroke:var(--muted);stroke-dasharray:4 3}
+.ps-dt{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%)}
+.ps-tn{font-size:var(--fs-sm);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ps-tc{grid-column:2}
+.ps-tr.ps-bare{grid-template-columns:minmax(0,1fr)}
+.ps-bare .ps-tc{grid-column:1}
+
+/* ---- exits and the secondary exposure line ---- */
+.ps-ex{margin:10px 0 0;font-size:var(--fs-sm);line-height:1.5;color:var(--ink-2)}
+.ps-na{color:var(--muted)}
+.ps-nt1{display:block;margin-top:4px;color:var(--muted)}
+.ps-sec{margin:10px 0 0;padding-top:9px;border-top:1px solid var(--line);font-size:var(--fs-sm);line-height:1.5;color:var(--muted)}
+
+/* ---- flat ---- */
+.ps-flat p{margin:0;line-height:1.5}
+.ps-flat p+p{margin-top:8px}
+.ps-cl{color:var(--ink-2)}
+.ps-deck{font-weight:600;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px;white-space:nowrap}
+.ps-deck:hover{text-decoration-color:currentColor}
+
+/* ---- risk budget: label · meter · value rows; one column of label/value over the meter on narrow cards ---- */
+.ps-lead{margin:0 0 var(--s4);color:var(--ink-2);line-height:1.45}
+.ps-rows{display:grid;gap:18px}
+.ps-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:6px 12px;min-width:0}
+.ps-rl{font-size:var(--fs-sm);font-weight:600;color:var(--ink-2);white-space:nowrap}
+.ps-rv{min-width:0;font-size:var(--fs-sm);color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+.ps-rv b{font-size:var(--fs-md);font-weight:600;color:var(--ink)}
+.ps-rv b.pos{color:var(--good)}
+.ps-rv b.neg{color:var(--bad)}
+.ps-viz{grid-column:1/-1;min-width:0}
+.ps-rc{grid-column:1/-1;margin-top:-2px}
+@container (min-width:700px){
+  .ps-row{grid-template-columns:170px minmax(0,1fr) minmax(150px,auto);align-items:center}
+  .ps-viz{grid-column:2;grid-row:1}
+  .ps-rv{grid-column:3;grid-row:1}
+  .ps-rc{grid-column:2/-1}}
+.ps-wd{font-weight:600}
+.ps-wn{color:var(--warn)}
+.ps-mu{color:var(--muted)}
+
+/* open risk: stacked book segments (solid accent at stepped opacity), a tick at each book's cap */
+.ps-rt{position:relative;height:12px;margin:6px 0 2px;border-radius:6px;box-shadow:inset 0 0 0 1px var(--line)}
+.ps-rs{position:absolute;inset:0;overflow:hidden;border-radius:6px;transform-origin:left;transform:scaleX(var(--k,0));transition:transform var(--dur-3) var(--ease)}
+.ps-seg{position:absolute;top:0;bottom:0;background:var(--accent);box-shadow:inset -1px 0 0 var(--bg)}
+.ps-cap{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink-2)}
+.ps-lgs{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-size:var(--fs-xs);color:var(--muted)}
+.ps-lg{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.ps-lg b{color:var(--ink-2);font-weight:600;font-variant-numeric:tabular-nums}
+.ps-sw{flex:none;width:10px;height:10px;border-radius:3px;background:var(--accent)}
+.ps-sw.ps-off{background:transparent;box-shadow:inset 0 0 0 1px var(--line-2)}
+
+/* slots and gross */
+.ps-pips{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0}
+.ps-pip{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--line-2)}
+.ps-pip.ps-on{background:var(--ink-2);box-shadow:none}
+.meter.ps-m{margin-top:4px}
+
+/* drawdown gauge, 0–25%: ticks at the halve and halt limits, each with its word */
+.ps-g{position:relative;margin-top:6px;padding-bottom:18px}
+.ps-gtr{position:relative;height:8px;overflow:hidden;border-radius:4px;box-shadow:inset 0 0 0 1px var(--line)}
+.ps-gf{position:absolute;inset:0;border-radius:4px;background:var(--muted);transform-origin:left;transform:scaleX(var(--k,0));transition:transform var(--dur-3) var(--ease)}
+.ps-gf.ps-ok{background:var(--good)}
+.ps-gf.ps-wrn{background:var(--warn)}
+.ps-gf.ps-bad{background:var(--bad)}
+.ps-gt{position:absolute;top:-4px;width:2px;height:16px;margin-left:-1px;border-radius:1px;background:var(--ink)}
+.ps-gl{position:absolute;top:14px;transform:translateX(-50%);font-size:11px;line-height:14px;color:var(--muted);white-space:nowrap}
+
+/* ---- books ---- */
+.ps-bl{gap:10px}
+@container (min-width:860px){.ps-bl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ps-b{min-width:0;padding:12px 14px;border-radius:var(--r-md);background:var(--glass-2);border:1px solid var(--line)}
+.ps-bh{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px}
+.ps-bn{font-weight:600;color:var(--ink)}
+.ps-vs{color:var(--muted);font-size:var(--fs-sm)}
+.ps-bt{margin-left:auto;font-size:var(--fs-sm);color:var(--ink-2)}
+.ps-bt b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ps-bt.ps-wn,.ps-bt.ps-wn b{color:var(--warn)}
+.ps-bs{margin-top:2px;font-size:var(--fs-sm);color:var(--ink-2)}
+.ps-bm{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:8px}
+.ps-bm .meter{flex:0 1 140px;min-width:60px;margin-top:0}
+.ps-bu{font-size:var(--fs-xs);color:var(--muted);font-variant-numeric:tabular-nums}
+.ps-bw{margin-top:6px;font-size:var(--fs-xs);color:var(--muted)}
+/* coin chips: each wrapped row is a 44px line (2px apart) with the 20px chip centred, so every chip's 44×44 hit area stays
+   inside its own row and inside the list (no neighbour, summary or tip below can cover it) */
+.ps-nms{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;margin-top:-4px}
+.ps-nm{display:inline-flex;align-items:center;gap:4px;min-height:44px}
+.ps-nm .tk{font-size:12px}
+.ps-ut{font-size:10.5px;color:var(--muted)}
+.ps-mn{margin-top:0}
+.ps-mn>summary{position:relative;display:inline-flex;align-items:center;min-height:44px;cursor:pointer;list-style:none;font-size:var(--fs-xs);font-weight:600;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
+.ps-mn>summary::-webkit-details-marker{display:none}
+.ps-mn>summary::before{content:"";position:absolute;left:50%;top:50%;width:max(100%,44px);height:44px;transform:translate(-50%,-50%)}
+.ps-mn .ps-mc,.ps-mn[open] .ps-mo{display:none}
+.ps-mn[open] .ps-mc{display:inline}
+.ps-mn>.ps-nms{margin-top:0}
+.ps-bx{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:var(--fs-sm);color:var(--ink-2)}
+.ps-bx[hidden]{display:none}
+.ps-foot{margin:var(--s3) 0 0}
+
+/* ---- position sheet ---- */
+.ps-h2{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.ps-coin{font-family:var(--mono);font-size:var(--fs-2xl);font-weight:700;letter-spacing:-.02em}
+.ps-h2s{font-size:var(--fs-md);font-weight:500;color:var(--muted);letter-spacing:0}
+.ps-card.ps-sc{margin-top:var(--s2);padding:var(--s4);border-radius:var(--r-md);background:var(--glass-2);border:1px solid var(--line);cursor:auto}
+.ps-sc .ps-big{font-size:32px}
+.ps-steps{display:grid;gap:6px;margin:12px 0 0;padding:0;list-style:none;font-size:var(--fs-sm)}
+.ps-steps li{display:flex;justify-content:space-between;gap:12px}
+.ps-steps li>span:last-child{text-align:right}
+.ps-stt{color:var(--muted)}
+.ps-evs{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.ps-evs li{display:grid;grid-template-columns:18px auto minmax(0,1fr);align-items:baseline;gap:8px;font-size:var(--fs-sm);line-height:1.45}
+.ps-eic svg{width:15px;height:15px;vertical-align:-3px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ps-evt{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ps-evx{min-width:0;overflow-wrap:anywhere}
+
+@media(prefers-reduced-motion:reduce){.ps-bead,.ps-rs,.ps-gf{transition:none!important}}

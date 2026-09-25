@@ -1,0 +1,55 @@
+{
+  "version": "1.3",
+  "mode": "paper",
+  "timezone": "America/Toronto",
+  "online_hours": {
+    "start": 10,
+    "end": 22
+  },
+  "offline_auto_tiers": [
+    "A"
+  ],
+  "daily_summary_local_hour": 8,
+  "pot_usd_paper": 1000,
+  "risk_per_trade_pct": 1.0,
+  "open_risk_cap_pct": 4.0,
+  "gross_exposure_cap_x": 3.0,
+  "leverage_cap_x": 3,
+  "max_positions": 6,
+  "min_notional_usd": 10,
+  "min_stop_distance_pct": 0.2,
+  "entry_slippage_cap_pct": 0.3,
+  "approval_max_drift_pct": 1.0,
+  "paper_slippage_pct": 0.05,
+  "fee_taker_pct": 0.045,
+  "throttle": {
+    "halve_at_drawdown_pct": 10,
+    "halt_at_drawdown_pct": 20
+  },
+  "universe": {
+    "min_day_volume_usd": 30000000,
+    "min_open_interest_usd": 10000000,
+    "min_daily_bars": 280,
+    "max_funding_annual_pct": 30,
+    "min_max_leverage": 3
+  },
+  "indicators": {
+    "supertrend_factor": 3.0,
+    "supertrend_atr": 10,
+    "band_ema": 36,
+    "trend_ema": 200
+  },
+  "data": {
+    "late_run_minutes": 45,
+    "sanity_band_pct": 2.0,
+    "candle_days_daily": 1500,
+    "candle_days_4h": 120
+  },
+  "approval": {
+    "mode": "never",
+    "auto_tiers": [
+      "A"
+    ],
+    "_doc": "mode never: no human approval anywhere; tiers in auto_tiers execute on their own at any hour, other tiers are recorded as refused and not traded. mode online_hours: the earlier model (proposals 10-22 local, offline_auto_tiers overnight)."
+  }
+}

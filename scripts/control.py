@@ -15,10 +15,11 @@ def main():
     if a.resume:
         if HALT.exists():
             HALT.unlink()
+        HALT.with_name("HALT.since").unlink(missing_ok=True)   # dashboard: "halted since"
         C.notify("Executor: resumed", "HALT cleared; entries allowed again from the next cycle")
         print("resumed"); return
     if a.halt is not None:
-        HALT.write_text(a.halt or "manual halt"); C.notify("Executor: halted", a.halt or "manual halt"); print("halted"); return
+        HALT.write_text(a.halt or "manual halt"); HALT.with_name("HALT.since").write_text(C.iso()); C.notify("Executor: halted", a.halt or "manual halt"); print("halted"); return
     if a.flatten:
         cy = Cycle(dry=False); cy.load_market(); cy.load_account()
         for coin, pos in list(cy.positions.items()):
@@ -30,6 +31,7 @@ def main():
         L.save_positions(cy.positions, cy.mode)
         L.render_markdown(cy.positions, cy.summary, cy.mode)
         HALT.write_text(f"manual flatten {C.iso()}")
+        HALT.with_name("HALT.since").write_text(C.iso())
         C.notify("Executor: flattened", f"{len(cy.summary)} actions; HALT set")
         print("\n".join(cy.summary) or "nothing to close"); return
     ap.print_help()

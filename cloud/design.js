@@ -2,7 +2,7 @@
 // Every page the Worker renders pulls its CSS from here; DESIGN.md explains
 // the tokens and the rules in plain words. Liquid glass on a deep, faintly
 // tinted ground: translucent panels that blur what drifts behind them, one
-// cyan accent, semantic colour that always travels with a word.
+// magenta accent, semantic colour that always travels with a word.
 
 export const TOKENS = `
 :root{

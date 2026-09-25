@@ -1,0 +1,156 @@
+/* cloud/ui/gaterun.css — the Gate Run (spec §4.5), its cycle bar, and the cycle and name sheets (§9.1, §9.2).
+   Prefix gr-. Tokens only. Stage colours come from mission.js's .st-<code> variables (--st, --st-ink, --st-cell).
+   Motion is transform and opacity only; chips and cells carry no backdrop-filter. */
+
+/* ---------- head ---------- */
+.gr .gr-head .sub{line-height:1.45}
+.gr-play svg{width:11px;height:11px;fill:currentColor;stroke:none;flex:none}
+.gr-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:var(--s2) 0 var(--s3)}
+.gr-acts .sub{flex:1 1 auto;min-width:0}
+.gr-same{margin:-4px 0 var(--s2)}
+
+/* ---------- cycle bar: 32px round buttons, 12px gaps, 44px hit areas (.hit), newest on the right ---------- */
+/* scroll-padding matches the 8px padding, so a snap never leaves a button flush with the edge (its 44px hit area and
+   its 4px pressed ring stay whole at every resting position) */
+.gr-cycbar{display:flex;gap:12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:8px;margin:0 -8px var(--s3)}
+.gr-cycbar::-webkit-scrollbar{display:none}
+.gr-cb{flex:none;scroll-snap-align:end;position:relative;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--glass-2);border:2px solid var(--good);color:var(--ink);font:600 10.5px/1 var(--mono);letter-spacing:-.02em;transition:background-color var(--dur-1),box-shadow var(--dur-1)}
+.gr-cb:hover{background:var(--glass-3)}
+.gr-cb.late{border-color:var(--warn)}
+.gr-cb.fail{border-color:var(--bad)}
+.gr-cb.miss{border-style:dashed;border-color:var(--muted);background:transparent;color:var(--muted)}
+.gr-cb.sig{padding-bottom:7px}
+.gr-cb.sig::after{content:"";position:absolute;left:50%;bottom:4px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--ink-2)}
+.gr-cb.act{background:var(--accent);color:var(--accent-ink)}
+.gr-cb.act.sig::after{background:var(--accent-ink)}
+.gr-cb[aria-pressed=true]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
+
+/* ---------- gate rows: count · spine · content ---------- */
+.gr-gates{position:relative;list-style:none;margin:0;padding:0}
+.gr-row{display:grid;grid-template-columns:34px 14px minmax(0,1fr);column-gap:10px;position:relative;transition:opacity var(--dur-1) var(--ease)}
+.gr-n{text-align:right;min-width:0}
+.gr-n b{display:block;font:650 18px/22px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);transition:opacity var(--dur-1) var(--ease)}
+.gr-sp{position:relative}
+.gr-sp::before{content:"";position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--line-2)}
+.gr-row:first-child .gr-sp::before{top:11px}
+.gr-row:last-of-type .gr-sp::before{bottom:auto;height:11px}
+.gr-node{position:absolute;left:2px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--ink-2);box-sizing:border-box}
+.gr-acted .gr-node{background:var(--accent);border-color:var(--accent)}
+/* 20px between rows: a tray chip's hit area (6px below it) and the next row's "?" tip hit area (11px above its label)
+   never meet */
+.gr-c{min-width:0;padding-bottom:20px}
+.gr-row:last-of-type .gr-c{padding-bottom:4px}
+.gr-l{display:flex;align-items:center;gap:2px;font-size:14px;font-weight:600;line-height:22px;color:var(--ink)}
+.gr-l .tip{margin-left:6px}
+.gr-ctx{font-size:12.5px;line-height:1.45;color:var(--ink-2)}
+.gr-cap{font-size:12.5px;line-height:1.45;color:var(--muted);overflow-wrap:anywhere}
+.gr-ctx,.gr-cap,.gr-fl,.gr-tray{transition:opacity var(--dur-1) var(--ease)}
+/* the funnel bar: one 0..N scale for every row, so the funnel reads down the card */
+.gr-fl{height:6px;margin-top:6px;border-radius:3px;background:var(--glass-3);overflow:hidden}
+.gr-fl i{display:block;width:100%;height:100%;transform-origin:left;transform:scaleX(var(--k,0));background:color-mix(in srgb,var(--ink-2) 55%,transparent)}
+.gr-row.g8 .gr-fl i{background:color-mix(in srgb,var(--accent) 50%,transparent)}
+/* dimmed (below the deepest gate reached), hatched (counts-only weekly/daily), grey (a failed check) */
+.gr-dim{opacity:.45}
+.gr-dim .gr-node,.gr-grey .gr-node{border-color:var(--line-2)}
+.gr-dim .gr-n b,.gr-grey .gr-n b,.gr-hatch .gr-n b{color:var(--muted)}
+.gr-hatch .gr-fl{background:var(--hatch)}
+.gr-grey{opacity:.55}
+.gr-grey .gr-l{color:var(--muted)}
+
+/* ---------- trays and chips (32px visual, 44px hit, 12px gaps) ---------- */
+.gr-tray{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+.gr-hid{display:contents}
+.gr-hid[hidden]{display:none}
+.gr-nm,.gr-more{position:relative;display:inline-flex;align-items:center;gap:6px;height:32px;max-width:100%;padding:0 10px 0 12px;border-radius:9px;border:1px solid var(--line);background:var(--glass-2);color:var(--ink);white-space:nowrap;cursor:pointer;transition:background-color var(--dur-1),border-color var(--dur-1)}
+.gr-nm::before,.gr-more::before{content:"";position:absolute;inset:-7px}      /* from the padding box: 30 + 14 = 44 */
+.gr-nm b{font:600 12.5px/1 var(--mono);letter-spacing:-.01em}
+.gr-nm .s{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:500;color:var(--st-ink,var(--ink-2))}
+.gr-nm:hover,.gr-more:hover{background:var(--glass-3);border-color:var(--line-2)}
+.gr-nm.st-m{border-style:dashed}
+.gr-nm.st-h .s{color:var(--ink-2)}                               /* an exit action is a fact, not a health colour */
+.gr-nm.st-E{background:var(--accent);border-color:transparent;color:var(--accent-ink);box-shadow:none}
+.gr-nm.st-E .s{color:var(--accent-ink)}
+.gr-more{padding:0 12px;font-size:12px;font-weight:600;color:var(--ink-2)}
+
+/* ---------- the replay: pending rows and the flow cluster ---------- */
+.gr-pend{opacity:.45}
+.gr-pend .gr-n b,.gr-pend .gr-ctx,.gr-pend .gr-cap,.gr-pend .gr-fl,.gr-pend .gr-tray{opacity:0}
+.gr-clu{position:absolute;left:0;top:0;z-index:2;display:grid;grid-template-columns:6px 6px;gap:3px;padding:5px;border-radius:9px;background:color-mix(in srgb,var(--ink) 16%,var(--bg));border:1px solid var(--line-2);opacity:0;pointer-events:none}
+.gr-clu.on{opacity:1}
+.gr-clu i{width:6px;height:6px;border-radius:50%;background:var(--ink-2)}
+.gr-clu.num{grid-template-columns:auto;place-items:center;min-width:28px;height:24px;padding:0 7px;border-radius:12px}
+.gr-clu.num b{font:650 12px/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ---------- quiet line and foot ---------- */
+.gr-quiet{margin:var(--s2) 0 0;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+.gr-link{font-weight:600;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
+.gr-link:hover{color:var(--accent);text-decoration-color:currentColor}
+.gr-foot{margin:var(--s3) 0 0}
+.gr .banner{margin-bottom:var(--s3)}
+.gr .empty{margin-top:var(--s2)}
+
+/* ---------- cycle sheet ---------- */
+.gr-h2s{display:block;margin-top:3px;font-size:var(--fs-md);font-weight:500;letter-spacing:0;color:var(--ink-2)}
+.gr-slot{margin:var(--s2) 0 var(--s3)}
+.gr-slot .cap{margin:0 0 6px}
+.gr-insheet{margin-top:var(--s2)}
+.gr-evs{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.gr-ev{display:grid;grid-template-columns:auto 22px minmax(0,1fr);gap:8px;align-items:start;font-size:13.5px;line-height:1.45;color:var(--ink)}
+.gr-ev.lv0{color:var(--muted)}
+.gr-et{font:500 12px/20px var(--mono);color:var(--muted);white-space:nowrap}
+.gr-ei{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--glass-2);border:1px solid var(--line)}
+.gr-ei svg{width:13px;height:13px;stroke:var(--ink-2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.gr-es{min-width:0;overflow-wrap:anywhere}
+
+/* ---------- name sheet ---------- */
+.gr-nh{margin-bottom:6px}
+.gr-coin{font:600 28px/1.1 var(--mono);letter-spacing:-.02em}
+.gr-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:var(--s2)}
+.gr-meta .pill .stg-dot,.gr-stage .stg-dot{width:7px;height:7px}
+.gr-sh .sec p{margin:0 0 6px;line-height:1.5}
+.gr-dirs{display:flex;flex-wrap:wrap;gap:6px}
+.gr-stage{display:block}
+.gr-stage .stg-dot{margin-right:8px;vertical-align:.05em}
+.gr-stage .tip{margin-left:4px;vertical-align:middle}
+.gr-filt{list-style:none;margin:0;padding:0}
+.gr-filt li{padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.gr-filt li:last-child{border-bottom:0}
+.gr-ok,.gr-no{font-weight:700;margin-left:2px}
+.gr-ok{color:var(--good)}.gr-no{color:var(--bad)}
+.gr-px{font-family:var(--mono);font-size:13px}
+.gr-px .cap{font-family:var(--font)}
+/* the name's tape, 7 local days × 6 closes; every cell is a 44px-tall button */
+.gr-tape{display:grid;grid-template-columns:26px repeat(6,minmax(0,1fr));column-gap:2px;align-items:center}
+.gr-th,.gr-td{font:500 10.5px/1 var(--mono);color:var(--muted)}
+.gr-th{text-align:center;padding-bottom:2px}
+.gr-tc{position:relative;display:block;height:44px;padding:7px 2px;min-width:0}
+.gr-tc i{display:block;height:100%;border-radius:6px;box-sizing:border-box}
+button.gr-tc{cursor:pointer}
+button.gr-tc::before{content:"";position:absolute;left:50%;top:0;width:max(100%,44px);height:44px;transform:translateX(-50%)}
+button.gr-tc i{border:1px solid var(--line)}
+button.gr-tc:hover i{border-color:var(--line-2)}
+.gr-tc.on i{box-shadow:0 0 0 2px var(--ink)}
+.gr-tc.gr-fail i{box-shadow:inset 0 0 0 2px var(--bad)}
+.gr-tc.gr-miss i{border:1.5px dashed var(--muted)}
+.gr-tc.gr-blank i{background:var(--glass);border:1px solid transparent;opacity:.5}
+.gr-lg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:8px 0 4px;font-size:11px;color:var(--muted)}
+.gr-lg span{display:inline-flex;align-items:center;gap:5px}
+.gr-lg i{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line)}
+.gr-lg .gr-lgmiss{border:1.5px dashed var(--muted)}
+/* check lights: AiFi .step chips with an 11px word; the failing check expands in bad; dashed = not recorded */
+.gr-lcap{font-size:13px}
+.gr-lights{list-style:none;margin:6px 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:8px 14px}
+.gr-lt{display:inline-flex;align-items:center;gap:6px;font-size:11px;line-height:1.3;color:var(--muted)}
+.gr-lt .step{flex:none;width:14px;height:14px;border-radius:5px}
+.gr-lt .step:hover{transform:none}
+.gr-lt.nr .step,.gr-lkey .gr-lnr{border-style:dashed;border-color:var(--muted);background:transparent}
+.gr-lkey{display:flex;align-items:flex-start;gap:6px;margin-top:4px}
+.gr-lkey .gr-lnr{flex:none;width:12px;height:12px;border-radius:4px;margin-top:2px}
+.gr-lkey .gr-lnr:hover{transform:none}
+.gr-lt.on{color:var(--ink-2)}
+.gr-lt.on .step{border-color:var(--ink-2);background:var(--glass-3)}
+.gr-lt.bad{flex-basis:100%;font-size:12.5px;font-weight:600;color:var(--bad)}
+.gr-other{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+
+@media(prefers-reduced-motion:reduce){
+  .gr-row,.gr-n b,.gr-ctx,.gr-cap,.gr-fl,.gr-tray,.gr-cb,.gr-nm,.gr-more{transition:none!important}}

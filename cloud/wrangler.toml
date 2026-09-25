@@ -9,7 +9,9 @@ workers_dev = true
 binding = "EXEC"
 id = "KV_NAMESPACE_ID"
 
+# The front end: worker.js imports every ui/ module and stylesheet as text and joins them into one page
+# script and one <style> (see ui/README.md). worker.js, design.js and mission.js stay ES modules.
 [[rules]]
 type = "Text"
-globs = ["**/client.js"]
+globs = ["**/ui/*.js", "**/ui/*.css"]
 fallthrough = false

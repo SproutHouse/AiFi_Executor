@@ -1,0 +1,65 @@
+/* cloud/ui/dial.css — the cycle clock dial (spec §4.2 d, §13). Prefix dl-. Tokens only.
+   --sz is the face size: 220px, or min(168px, 46vw) on phones. --hr places each 44px bead button: on the bead,
+   but never closer to the centre than 74px, so no hit area reaches the centre text (kept inside 52px on phones). */
+.dl{--sz:220px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;max-width:100%}
+.dl-face{--hr:max(calc(var(--sz) * .41667), 74px);--lr:calc(var(--sz) * .35);position:relative;flex:none;width:var(--sz);height:var(--sz)}
+.dl-svg{display:block;width:100%;height:100%;overflow:visible}
+.dl-track{fill:none;stroke:var(--glass-3);stroke-width:12}
+.dl-tick{fill:none;stroke:var(--line-2);stroke-width:1}
+.dl-prog{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round}
+.dl-rest{fill:none;stroke:var(--line-2);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:.1 6}
+.dl-b.ok{fill:var(--good)}
+.dl-b.late{fill:var(--warn)}
+.dl-b.fail{fill:var(--bad)}
+.dl-b.miss{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:3 2.6}
+.dl-b.plan{fill:none;stroke:var(--muted);stroke-width:1.6}
+.dl-b.next{fill:none;stroke:var(--accent);stroke-width:2}
+.dl-ring{fill:none;stroke:var(--accent);stroke-width:2}
+.dl-sel{fill:none;stroke:var(--ink);stroke-width:1.5;opacity:0}
+.dl-g.sel .dl-sel{opacity:1}
+.dl-hand{transform-origin:120px 120px;transition:transform var(--dur-2) var(--ease)}
+.dl-hand.dl-jump{transition:none}
+.dl-hand line{stroke:var(--accent);stroke-width:2;stroke-linecap:round}
+.dl-hand circle{fill:var(--accent)}
+/* the next bead's ping: every 2 s in the due phase (the real clock), once for a newly landed check */
+.dl-ping{fill:none;stroke:var(--accent);stroke-width:2;opacity:0;transform-box:fill-box;transform-origin:center;animation:dl-ping 2s var(--ease) infinite}
+.dl-ping.dl-once{animation-iteration-count:1;animation-delay:var(--dur-2)}
+@keyframes dl-ping{0%{opacity:.75;transform:scale(1)}70%,100%{opacity:0;transform:scale(2.1)}}
+.dl-new .dl-b,.dl-new .dl-ring{transform-box:fill-box;transform-origin:center;animation:grow var(--dur-2) var(--ease) 1}
+html.hid .dl-ping{animation-play-state:paused}
+/* hour labels and the centre: HTML over the SVG, fixed px sizes */
+.dl-lab{position:absolute;left:calc(50% + var(--x) * var(--lr));top:calc(50% + var(--y) * var(--lr));transform:translate(-50%,-50%);font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;pointer-events:none;transition:opacity var(--dur-2) var(--ease)}
+.dl-lab.dim{opacity:.2}
+.dl-ctr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.dl-in{display:flex;flex-direction:column;align-items:center;max-width:130px;text-align:center}
+.dl-eb{font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);line-height:1.25}
+.dl-main{font-family:var(--mono);font-size:28px;font-weight:500;line-height:1.15;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+.dl-main.due{color:var(--accent)}
+.dl-main.warn{color:var(--warn)}
+.dl-main.bad{color:var(--bad)}
+.dl-sub{font-size:11px;line-height:1.25;color:var(--muted)}
+/* 44px circular bead buttons: transparent, clipped to the circle; the focus ring is drawn inside the clip */
+.dl-hit{position:absolute;left:calc(50% + var(--x) * var(--hr));top:calc(50% + var(--y) * var(--hr));width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;clip-path:circle(50%);transform:translate(-50%,-50%);cursor:pointer;-webkit-tap-highlight-color:transparent}
+@media(hover:hover){.dl-hit:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}}
+.dl-hit:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--accent)}
+/* legend: words beside each mark (spec: one line; it wraps on narrow cards rather than drop a word) */
+.dl-lg{display:flex;flex-wrap:wrap;justify-content:center;gap:3px 10px;margin:0;max-width:100%;font-size:11px;line-height:1.35;color:var(--muted)}
+.dl-lg span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.dl-k{display:inline-block;flex:none;width:7px;height:7px;border-radius:50%}
+.dl-k.ok{background:var(--good)}
+.dl-k.late{background:var(--warn)}
+.dl-k.fail{background:var(--bad)}
+.dl-k.miss{border:1.3px dashed var(--muted)}
+.dl-k.act{background:var(--ink-2);box-shadow:0 0 0 1px var(--bg),0 0 0 2.5px var(--accent);margin:0 2px}
+.dl-k.hand{width:10px;height:2px;border-radius:1px;background:var(--accent)}
+.dl-tipb{display:flex;flex-wrap:wrap;gap:8px}
+.dl-na{margin:0;font-size:11px;color:var(--muted)}
+.dl-na .na{font-size:inherit}
+@media(max-width:640px){
+  .dl{--sz:min(168px,46vw)}
+  .dl-in{max-width:92px}
+  .dl-main{font-size:22px}}
+@media(prefers-reduced-motion:reduce){
+  .dl-ping{display:none;animation:none}
+  .dl-hand,.dl-lab{transition:none}
+  .dl-new .dl-b,.dl-new .dl-ring{animation:none}}

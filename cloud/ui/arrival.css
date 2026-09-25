@@ -1,0 +1,12 @@
+/* cloud/ui/arrival.css — the arrival toast and the one-shot motion it adds (spec §13 "Arrival"). Prefix ar-. Tokens only.
+   The toast box itself (.toast, .toast.on) is mission.js's; this styles only what arrival.js puts inside it. */
+.toast .ar-dot{flex:none;width:8px;height:8px}
+.toast .ar-dot.ar-act{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}   /* the bot acted: solid accent */
+.ar-tx{min-width:0;color:var(--ink-2)}
+.ar-tx b{color:var(--ink);font-weight:600}
+.toast .ar-see{flex:none;margin-left:2px}
+/* the Activity tab's new-events dot (mission.js a.new::after) pops once when newer events land */
+@keyframes ar-dot{0%{transform:scale(0);opacity:0}55%{transform:scale(1.6);opacity:1}100%{transform:scale(1);opacity:1}}
+.rail nav a.new.ar-pop::after,.tabbar a.new.ar-pop::after{animation:ar-dot var(--dur-3) var(--ease) 1}
+@media(prefers-reduced-motion:reduce){
+  .rail nav a.new.ar-pop::after,.tabbar a.new.ar-pop::after{animation:none}}
