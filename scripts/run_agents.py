@@ -4,8 +4,8 @@
 Called hourly (cycle.yml cron "5 * * * *"). An agent is due when its trigger bar closed less than
 DUE_WINDOW_MIN minutes ago: 4-hour agents at 00/04/08/12/16/20 UTC, 1-hour agents every hour.
 
-Isolation: all repository secrets arrive once as JSON in ALL_SECRETS (GitHub `toJSON(secrets)`), are removed
-from the environment, and each child process receives only what it needs:
+Isolation: the workflow passes each secret by name (never toJSON(secrets), which GitHub flags); this script removes
+them all from its own environment, and each child process receives only what it needs:
   cycle child  → EXECUTOR_AGENT, its own HL_AGENT_KEY / HL_ACCOUNT_ADDRESS, ALERT_WEBHOOK
   push child   → EXECUTOR_AGENT, CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID
 Key names: agent "core" uses HL_AGENT_KEY and HL_ACCOUNT_ADDRESS; agent "wide-4h" uses HL_AGENT_KEY_WIDE_4H and

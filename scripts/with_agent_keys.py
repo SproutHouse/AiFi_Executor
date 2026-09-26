@@ -7,8 +7,11 @@ try:
     S = json.loads(os.environ.pop("ALL_SECRETS", "") or "{}")
 except ValueError:
     S = {}
+for k in list(os.environ):                 # secrets passed individually by the workflow
+    if k.startswith(("HL_AGENT_KEY", "HL_ACCOUNT_ADDRESS", "ALERT_WEBHOOK")):
+        S.setdefault(k, os.environ[k])
 suf = "" if agent == "core" else "_" + agent.upper().replace("-", "_")
-env = {k: v for k, v in os.environ.items() if not k.startswith(("HL_", "CLOUDFLARE_"))}
+env = {k: v for k, v in os.environ.items() if not k.startswith(("HL_", "CLOUDFLARE_", "ALERT_WEBHOOK"))}
 for name in ("HL_AGENT_KEY", "HL_ACCOUNT_ADDRESS"):
     if S.get(name + suf):
         env[name] = S[name + suf]

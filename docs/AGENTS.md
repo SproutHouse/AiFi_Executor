@@ -41,7 +41,10 @@ and trip each other's reconciliation.
    (`trigger_tf` "4h" or "1h", `btc_gate`, `universe` floors, books). Keep `"mode": "paper"`.
 3. Add `{"id", "name", "enabled": true, "desc"}` to `agents/index.json`.
 4. Backtest the idea first (`docs/backtests/variants.py` shows how) and write the result into `desc`.
-5. Commit and push. The next hourly run starts it in paper; the dashboard lists it after its first push.
+5. Before it can go live, add its two secret names (`HL_AGENT_KEY_<ID>`, `HL_ACCOUNT_ADDRESS_<ID>`) to the env blocks of
+   `.github/workflows/cycle.yml`, `control.yml` and `approve.yml`. Secrets are listed by name on purpose: passing all of
+   them at once (`toJSON(secrets)`) makes GitHub hold the workflow as possibly malicious.
+6. Commit and push. The next hourly run starts it in paper; the dashboard lists it after its first push.
 
 Going live is per agent and follows OPERATIONS.md, with that agent's own wallet and its own two secrets.
 

@@ -38,5 +38,6 @@ jobs:
           printf '%s' "$DASHBOARD_PASSWORD" | npx --yes wrangler@4 secret put DASHBOARD_PASSWORD
       - name: Push every agent's bundle
         env:
-          ALL_SECRETS: ${{ toJSON(secrets) }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python3 scripts/run_agents.py --push-only

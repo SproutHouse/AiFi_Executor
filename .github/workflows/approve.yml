@@ -42,14 +42,21 @@ jobs:
           PROPOSAL_ID: ${{ inputs.proposal_id }}
           CONFIRM: ${{ inputs.confirm }}
           ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
+          HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
+          HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
+          HL_AGENT_KEY_WIDE_4H: ${{ secrets.HL_AGENT_KEY_WIDE_4H }}
+          HL_ACCOUNT_ADDRESS_WIDE_4H: ${{ secrets.HL_ACCOUNT_ADDRESS_WIDE_4H }}
+          HL_AGENT_KEY_FAST_1H: ${{ secrets.HL_AGENT_KEY_FAST_1H }}
+          HL_ACCOUNT_ADDRESS_FAST_1H: ${{ secrets.HL_ACCOUNT_ADDRESS_FAST_1H }}
+          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
           EXECUTOR_AGENT: ${{ inputs.agent }}
         run: ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/approve.py --id "$PROPOSAL_ID" --confirm "$CONFIRM"
       - name: Push the dashboard bundle
         if: always()
         continue-on-error: true
         env:
-          ALL_SECRETS: ${{ toJSON(secrets) }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           AGENT: ${{ inputs.agent }}
         run: python3 scripts/run_agents.py --push-only --only "$AGENT"
       - name: Commit state

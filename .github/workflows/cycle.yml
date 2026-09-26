@@ -39,7 +39,15 @@ jobs:
           fi
       - name: Run due agents
         env:
-          ALL_SECRETS: ${{ toJSON(secrets) }}
+          HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
+          HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
+          HL_AGENT_KEY_WIDE_4H: ${{ secrets.HL_AGENT_KEY_WIDE_4H }}
+          HL_ACCOUNT_ADDRESS_WIDE_4H: ${{ secrets.HL_ACCOUNT_ADDRESS_WIDE_4H }}
+          HL_AGENT_KEY_FAST_1H: ${{ secrets.HL_AGENT_KEY_FAST_1H }}
+          HL_ACCOUNT_ADDRESS_FAST_1H: ${{ secrets.HL_ACCOUNT_ADDRESS_FAST_1H }}
+          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           EXECUTOR_PY: ${{ steps.py.outputs.bin }}
           ONLY: ${{ inputs.only }}
           FORCE: ${{ inputs.force }}
