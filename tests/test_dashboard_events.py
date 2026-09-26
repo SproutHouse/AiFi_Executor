@@ -106,6 +106,8 @@ CASES = {
     "throttle: drawdown": [({"self": base_self(thr={"multiplier": 0.5, "drawdown_pct": 11.24, "halt": False, "peak": 1})}, True,
                             ("thr_half", None, None, None, "11.2", None, None), None)],
     "leftover stop cancel failed": [({"coin": "LINK", "e": E_CONN}, True, SKIP, None)],
+    "% of pot, holding": [({"coin": "BTC", "tgt": 330.0, "cur": 0.0, "eq": 1000.0, "action": "open"}, True, SKIP, None)],
+    "resized to": [({"coin": "ETH", "tgt": 280.0, "new_stop": 2311.5, "self": base_self()}, True, SKIP, None)],
     "entry check failed": [({"coin": "HYPE", "e": ValueError("could not convert string to float: ''")}, True,
                             ("entry_failed", "HYPE", None, None, "ValueError", None, None), None)],
 }
@@ -139,7 +141,7 @@ def render(fn, call, overrides):
 class SayTemplates(unittest.TestCase):
     def test_every_say_parses_into_its_event(self):
         sites = say_sites()
-        self.assertEqual(len(sites), 30, "cycle.py gained or lost a say(): add or remove its template case here")
+        self.assertEqual(len(sites), 38, "cycle.py gained or lost a say(): add or remove its template case here")
         used = set()
         for fn, call, src in sites:
             keys = [k for k in CASES if k in src]

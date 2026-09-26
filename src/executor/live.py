@@ -66,6 +66,11 @@ def place_stop(ex, coin, sz, stop_px, worst_px, cloid):
                     reduce_only=True, cloid=cloid)
 
 
+def reduce_ioc(ex, coin, sz, floor_px, cloid):
+    """Reduce-only sell, immediate-or-cancel, no lower than floor_px: trims a long, can never open a short."""
+    return ex.order(coin, False, sz, floor_px, {"limit": {"tif": "Ioc"}}, reduce_only=True, cloid=cloid)
+
+
 def cancel(ex, coin, cloid):
     return ex.cancel_by_cloid(coin, cloid)
 

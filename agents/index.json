@@ -19,6 +19,12 @@
       "name": "Fast",
       "enabled": true,
       "desc": "31 names, 1h flips inside 4h/daily/weekly. Most trades; no edge proven in backtest. Paper experiment."
+    },
+    {
+      "id": "trend-1d",
+      "name": "Trend",
+      "enabled": true,
+      "desc": "Doctrine bot 2: BTC+ETH long while above the 50-day average, vol-targeted, daily. Frozen rule; judged yearly, sized as tuition."
     }
   ]
 }

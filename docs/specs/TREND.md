@@ -44,3 +44,12 @@ _Evidence: `research/phase1/trend_wf.py`, results in `research/phase1/trend_resu
 
 Daily trigger timeframe; a target-weight execution mode (the engine currently sizes by stop distance); the no-trade
 band; the resident 15% stop on a target-weight position; reconciliation of target versus actual weight.
+
+## Phase 2 status (2026-09-26)
+
+- Band and stop re-tested (`research/phase1/trend_band.py`): the 25% band keeps Sharpe at 1.31 and cuts trading from
+  about 400 to 49 trades a year; the 15% stop fired 5 times in nine years and costs about 0.4%/yr. Both kept as frozen.
+- Built: daily timeframe, target-weight mode, paper resizing with realised partial P&L, reduce-only live trims, the
+  resident stop following the size. Tests in `tests/test_target.py`.
+- Agent `trend-1d` runs in paper from the next 00:00 UTC close. Its drawdown throttle is set at 25% (halve) and 45% (halt),
+  above the rule's historical 40% drawdown, so normal drawdowns do not stop it.

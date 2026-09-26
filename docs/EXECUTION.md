@@ -78,3 +78,15 @@ Same position records as live. Entry at mark × 1.0005 with a 0.045% fee. Fundin
 actual hourly rate at each cycle. Stop checked on every completed 4-hour bar since the last check: the first
 bar whose low touches the stop fills at min(open, stop) × 0.9995, so a gap through the stop is charged in
 full. Regime exits fill at mark × 0.9995. The pot starts at `pot_usd_paper` and lives in `state/paper.json`.
+
+## Target-weight mode (`"strategy": "target"`, the Trend agent)
+
+Instead of entering on a signal and trailing a stop, a target-weight agent holds a size and moves toward it once per
+bar (docs/specs/TREND.md). Each cycle, per coin: compute the target from the rule; if the current size is outside the
+band (±25% of target), open, grow, trim or close toward it. Exits and trims never wait on checks; opening or growing
+passes halt, throttle, freshness, reconciliation, equity, gross-exposure, exchange-minimum, price-sanity and universe
+checks. Live: growth is an immediate-or-cancel buy; a trim is a **reduce-only** immediate-or-cancel sell that can never
+open a short; after any change the resident stop (15% below the average entry) is replaced at the new size through the
+same fail-closed path as a fresh entry. Partial trims are realised into the position and counted when it finally closes.
+Daily agents are due for up to their late limit after 00:00 UTC; the cycle is idempotent, so a second run inside the
+window changes nothing.

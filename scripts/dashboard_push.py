@@ -258,6 +258,8 @@ _P = {k: re.compile(v) for k, v in {
     "gap": r"^(\S+): no reading on one timeframe",
     "nomark": r"^(\S+): (?:weekly|daily|4h) flip but no mark price",
     "trail": r"^(\S+): stop trailed to ([\d.e+-]+)$",
+    "target": r"^(\S+): target \d+% of pot, holding \d+% → \w+$",
+    "resized": r"^(\S+): resized to \d+% of pot, stop \S+$",
     "recon": r"^RECONCILIATION MISMATCH",
     "no_stop": r"^(\S+): could not place the resident stop",
     "notfilled": r"^(\S+): entry not filled",
@@ -348,7 +350,7 @@ def parse_line(line, fresh=True):
             return SKIP
         mins = re.search(r"(\d+) min after the bar close", m.group(3))
         return Ev("late", detail=mins.group(1) if mins else None, aux={"min": int(mins.group(1)) if mins else None})
-    for k in ("counts", "stop_cancel", "reading", "would_propose"):
+    for k in ("counts", "stop_cancel", "reading", "would_propose", "target", "resized"):
         if _P[k].match(s):
             return SKIP
     m = _P["not_listed"].match(s)

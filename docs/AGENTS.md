@@ -10,6 +10,7 @@ agents run the same engine code; what differs is their configuration. The dashbo
 |---|---|---|---|
 | **Core** (`core`) | 12–14 names in `config/books.json`, 4-hour flips inside bullish daily and weekly, Bitcoin weekly must be bullish | 2020–26: 0.7 trades/week, +0.28 R, PF 1.45, max DD 23% | paper; the control |
 | **Wide** (`wide-4h`) | 31 liquid names, same 4-hour rule, no Bitcoin gate, volume floor 5M, OI floor 5M | 2020–26: 1.2 trades/week, +0.18 R, PF 1.30, max DD 28%; 2023–26 about break-even | paper |
+| **Trend** (`trend-1d`) | Doctrine bot 2: BTC+ETH held while the daily close is above its 50-day average, sized to 30% volatility (cap 2x), rebalanced only outside a 25% band, 15% resident stop. Target-weight mode, not flips | 2017–26: Sharpe 1.32, t 3.94, deflated Sharpe 0.992; walk-forward 2020–26 Sharpe 0.83 (docs/specs/TREND.md) | paper; judged yearly, sized as tuition |
 | **Fast** (`fast-1h`) | 31 names, 1-hour flips inside a bullish 4-hour, daily and weekly | 2023–26: 3.8 trades/week, +0.01 R, PF 0.99, max DD 45%: **no proven edge** | paper-only experiment |
 
 Evidence: [backtests/variants.md](backtests/variants.md). Trading more often on these signals mostly trades away the

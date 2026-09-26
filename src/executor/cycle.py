@@ -13,7 +13,7 @@ refusal is written down with its reasons. The model is nowhere in this file.
 """
 import time
 from . import common as C, hl_data as H, binance_data as B, regime as R, signals as S, universe as U
-from . import risk as K, hours as HR, proposals as P, ledger as L, paper as PA, live as LV
+from . import risk as K, hours as HR, proposals as P, ledger as L, paper as PA, live as LV, target as TG
 
 HALT = C.STATE / "HALT"
 
@@ -59,7 +59,7 @@ class Bars:
         if coin not in self.cache:
             d = H.candles(coin, "1d", self.s["data"]["candle_days_daily"])
             days = self.s["data"].get("candle_days_trigger", self.s["data"]["candle_days_4h"]) if self.tf != "4h" else self.s["data"]["candle_days_4h"]
-            h = H.candles(coin, self.tf, days)
+            h = d if self.tf == "1d" else H.candles(coin, self.tf, days)
             self.cache[coin] = (d, h)
         return self.cache[coin]
 
@@ -481,6 +481,11 @@ class Cycle:
             for d in expired:
                 L.record_refusal(d["candidate"], "proposal expired unapproved", self.now, "proposal")
                 self.say(f"{d['candidate']['coin']}: proposal {d['id']} expired unapproved")
+            if self.s.get("strategy") == "target":
+                self.manage_target_stops()
+                self.reconcile()
+                self.manage_targets()
+                return self._run_tail()
             self.manage_exits()
             self.reconcile()
             if self.thr["halt"]:
@@ -493,10 +498,166 @@ class Cycle:
             self.say(f"CYCLE ABORTED: {type(e).__name__}: {str(e)[:160]}")
             C.notify("Executor: cycle aborted", f"{type(e).__name__}: {str(e)[:200]}")
         finally:
-            self.finish()
+            if not getattr(self, "_finished", False):
+                self.finish()
         if self.failed:
             raise SystemExit(1)
         return self.run_doc
+
+    def _run_tail(self):
+        self._finished = True
+        self.finish()
+        return self.run_doc
+
+    # ------------------------------------------------------ target mode --
+    def manage_target_stops(self):
+        """Paper only: the resident protective stop, checked on the daily bars since the last check.
+        Live stops sit on the exchange; absorb_exchange_closes records them."""
+        if self.mode != "paper":
+            return
+        for coin, pos in list(self.positions.items()):
+            try:
+                d, h = self.bars.get(coin)
+                row = self.ctxs.get(coin, {})
+                try:
+                    PA.accrue_funding(pos, float(row.get("funding", 0) or 0), self.now)
+                except (TypeError, ValueError):
+                    pass
+                px, bt = PA.check_stop(pos, h, self.s)
+                if px is not None and not self.dry:
+                    self.close_position(coin, pos, px, "protective stop", bt or self.now)
+            except Exception as e:  # noqa: BLE001
+                self.say(f"{coin}: exit management failed ({type(e).__name__}: {str(e)[:100]}); position kept")
+        self.persist()
+
+    def target_checks(self, coin, add_notional, row, stop_pct):
+        """The pre-trade checks that apply to opening or increasing a target position (exits never wait)."""
+        checks = []
+        add = lambda name, ok, detail="": checks.append({"check": name, "ok": bool(ok), "detail": detail})
+        eq = self.equity or 0.0
+        add("not halted", not self.halt, self.halt_reason)
+        add("throttle allows entries", not self.thr["halt"], f"drawdown {self.thr['drawdown_pct']:.1f}%")
+        add("data fresh and run on time", self.fresh, self.fresh_detail)
+        add("no reconciliation mismatch", not self.rec_flags.get("reconcile_mismatch"), self.rec_flags.get("reconcile_detail", ""))
+        add("equity positive", eq > 0, "" if eq > 0 else f"equity {eq}")
+        gross = sum(p["sz"] * (self.marks.get(c) or p["entry"]) for c, p in self.positions.items())
+        add("gross exposure cap", eq > 0 and gross + add_notional <= self.s["gross_exposure_cap_x"] * eq + 1e-9,
+            f"{(gross + add_notional) / eq:.2f}x after, cap {self.s['gross_exposure_cap_x']}x" if eq > 0 else "n/a")
+        add("above the exchange minimum", add_notional >= self.s["min_notional_usd"], "")
+        mark = self.marks.get(coin)
+        second = B.last_price(coin)
+        dev = abs(mark - second) / second * 100 if (mark and second) else 0.0
+        add("price sanity band", dev <= self.s["data"]["sanity_band_pct"], f"mark vs Binance {dev:.2f}%" if second else "no second source")
+        u_ok, u_reasons = U.check(coin, row, self.s["universe"], None)
+        add("universe filters", u_ok, "; ".join(u_reasons))
+        return all(c["ok"] for c in checks), checks
+
+    def manage_targets(self):
+        cfg = self.s["target"]
+        band, stop_pct = float(cfg["band"]), float(cfg["stop_pct"]) / 100
+        eq = self.equity or 0.0
+        for coin, alloc in cfg["weights"].items():
+            try:
+                self.manage_target(coin, float(alloc), eq, band, stop_pct, cfg)
+            except Exception as e:  # noqa: BLE001
+                self.say(f"{coin}: entry check failed ({type(e).__name__}: {str(e)[:100]}); skipped this cycle")
+                C.notify("Executor: target step failed", f"{coin}: {type(e).__name__}: {str(e)[:200]}")
+
+    def manage_target(self, coin, alloc, eq, band, stop_pct, cfg):
+        d, _h = self.bars.get(coin)
+        row = self.ctxs.get(coin) or {}
+        mark = self.marks.get(coin)
+        w, why = TG.weight(d, cfg)
+        self.counts["evaluated"] += 1
+        self.readings.append({"coin": coin, "book": "trend", "weekly": None, "daily": None, "h4": None, "range": None,
+                              "line": None, "close": d[-1]["c"] if d else None, "trigger": None, "why": why,
+                              "vol_m": None, "funding_pct": H.funding_annual_pct(row), "days": len(d), "mark": mark})
+        if w is None or not mark:
+            self.say(f"{coin}: no reading on one timeframe (data gap); position and stop kept as they are")
+            return
+        pos = self.positions.get(coin)
+        cur = pos["sz"] * mark if pos else 0.0
+        mult = self.thr["multiplier"] if self.thr["multiplier"] > 0 else 1.0
+        tgt = w * alloc * eq * mult
+        action = TG.decide(cur, tgt, band)
+        self.say(f"{coin}: target {tgt / eq * 100 if eq else 0:.0f}% of pot, holding {cur / eq * 100 if eq else 0:.0f}% → {action}")
+        if action in ("hold", "none") or self.dry:
+            return
+        if action == "close":
+            self.close_position(coin, pos, mark * (1 - self.s["paper_slippage_pct"] / 100) if self.mode == "paper" else mark, "below its average", self.now)
+            return
+        if action == "decrease":
+            self.target_resize(coin, pos, tgt, mark, stop_pct)
+            return
+        ok, checks = self.target_checks(coin, tgt - cur, row, stop_pct)
+        if not ok:
+            failed = [c for c in checks if not c["ok"]]
+            self.counts["refused"] += 1
+            L.record_refusal({"coin": coin, "kind": action, "tier": "T"}, failed, self.now, "pre-trade")
+            cand = {"kind": action, "tier": "T"}
+            self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} REFUSED: " + "; ".join(f"{c['check']} ({c['detail']})" for c in failed))
+            return
+        if action == "open":
+            self.target_open(coin, tgt, mark, stop_pct, why)
+        else:
+            self.target_resize(coin, pos, tgt, mark, stop_pct)
+
+    def target_open(self, coin, notional, mark, stop_pct, why):
+        eq = self.equity or 0.0
+        stop = mark * (1 - stop_pct)
+        lev = int(self.s["leverage_cap_x"])
+        cand = {"coin": coin, "kind": "target", "tier": "T", "stop": stop, "bar_t": self.bars.get(coin)[0][-1]["t"],
+                "book": "trend", "benchmark": coin, "bench_mark": mark}
+        sizing = {"notional": notional, "risk_amt": notional * stop_pct, "leverage": lev, "risk_pct": stop_pct * notional / eq * 100 if eq else 0,
+                  "notional_pct_equity": notional / eq * 100 if eq else 0, "dist_pct": stop_pct * 100}
+        pos = self.execute_entry(cand, sizing, mark, {"weekly_dir": None, "daily_dir": None})
+        if pos:
+            self.counts["entered"] += 1
+            pos["rules"] = pos.get("rules", []) + ["target:" + why[:60]]
+            if self.mode == "paper":
+                pos["stop"] = pos["initial_stop"] = pos["entry"] * (1 - stop_pct)   # 15% below the fill, per the spec
+            self.persist()
+
+    def target_resize(self, coin, pos, tgt, mark, stop_pct):
+        cur = pos["sz"] * mark
+        if self.mode == "paper":
+            cash = TG.paper_resize(pos, tgt, mark, self.s)
+            self.pot["cash"] += cash
+        else:
+            row = self.ctxs.get(coin, {})
+            szd = int(row.get("szDecimals", 3))
+            if tgt > cur:
+                add_sz = H.round_sz((tgt - cur) / mark, szd)
+                resp = LV.entry_ioc(self.ex, coin, add_sz, H.round_px(mark * (1 + self.s["entry_slippage_cap_pct"] / 100), szd), LV.new_cloid())
+                avg, second = LV.fill_from_response(resp)
+                if avg is None:
+                    self.say(f"{coin}: entry not filled ({second})")
+                    return
+                filled = float(second)
+                pos["entry"] = (pos["entry"] * pos["sz"] + avg * filled) / (pos["sz"] + filled)
+                pos["sz"] += filled
+                pos["entry_fee"] = pos.get("entry_fee", 0.0) + avg * filled * self.s["fee_taker_pct"] / 100
+            else:
+                cut_sz = H.round_sz(min(pos["sz"], (cur - tgt) / mark), szd)
+                resp = LV.reduce_ioc(self.ex, coin, cut_sz, H.round_px(mark * (1 - self.s["entry_slippage_cap_pct"] / 100), szd), LV.new_cloid())
+                avg, second = LV.fill_from_response(resp)
+                if avg is None:
+                    self.say(f"{coin}: close NOT filled ({second}); position and its resident stop kept, retry next cycle")
+                    return
+                filled = float(second)
+                pos["realized"] = pos.get("realized", 0.0) + (avg - pos["entry"]) * filled - avg * filled * self.s["fee_taker_pct"] / 100
+                pos["sz"] -= filled
+            pos["notional"] = pos["sz"] * pos["entry"]
+            self.persist()                                    # the new size exists on the exchange: record it first
+        pos["notional"] = pos["sz"] * pos["entry"]
+        pos["risk_amt"] = max(pos.get("risk_amt", 0.0), pos["notional"] * stop_pct)
+        new_stop = pos["entry"] * (1 - stop_pct)
+        if self.mode == "live":
+            self.protect(coin, pos, new_stop)                 # the resident stop follows the new size; fail closed
+        else:
+            pos["stop"] = new_stop
+        self.persist()
+        self.say(f"{coin}: resized to {tgt / (self.equity or 1) * 100:.0f}% of pot, stop {new_stop:.5g}")
 
     def finish(self):
         """Always runs: marks, write-through, the run record, the ledger page, the daily line."""

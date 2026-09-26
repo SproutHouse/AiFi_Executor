@@ -45,7 +45,13 @@ def agent_settings(agent_id):
 
 
 def due(agent_id, now):
-    return (now % C.bar_seconds(agent_settings(agent_id))) < DUE_WINDOW_MIN * 60
+    """Due inside the window after the agent's bar closes. Daily agents use their own late limit (GitHub's cron can
+    slip for hours), and their cycle is idempotent, so running twice inside the window changes nothing."""
+    s = agent_settings(agent_id)
+    window = DUE_WINDOW_MIN
+    if C.trigger_tf(s) == "1d":
+        window = max(DUE_WINDOW_MIN, int((s.get("data") or {}).get("late_run_minutes", 180)))
+    return (now % C.bar_seconds(s)) < window * 60
 
 
 def base_env():

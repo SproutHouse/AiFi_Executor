@@ -80,7 +80,7 @@ def settings():
     return s
 
 
-TF_SECONDS = {"1h": 3600, "4h": 4 * 3600}
+TF_SECONDS = {"1h": 3600, "4h": 4 * 3600, "1d": 86400}
 
 
 def trigger_tf(s):

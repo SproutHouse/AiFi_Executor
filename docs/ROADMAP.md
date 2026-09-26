@@ -15,4 +15,4 @@ Never on the roadmap: leverage above 3x, sub-4-hour bars, a model placing orders
 
 ## Bot Doctrine build (from 2026-09-26)
 
-Phase 1 (specs from data) done: [specs/PHASE1.md](specs/PHASE1.md). Next: Phase 2, engine capabilities (daily bars and target-weight mode for trend; spot, post-only, two-leg positions, funding income and an always-on hourly runner for carry), each test-first.
+Phase 1 (specs from data) done: [specs/PHASE1.md](specs/PHASE1.md). Phase 2 part 1 (trend) done 2026-09-26: daily bars, target-weight mode, agent `trend-1d` in paper. Next: Phase 2 part 2, engine capabilities (daily bars and target-weight mode for trend; spot, post-only, two-leg positions, funding income and an always-on hourly runner for carry), each test-first.
