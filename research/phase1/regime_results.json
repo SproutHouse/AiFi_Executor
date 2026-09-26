@@ -1,0 +1,44 @@
+{
+ "params": {
+  "band": 0.02,
+  "vol_pct": 90,
+  "euphoria_funding": 0.2,
+  "hold_days": 5
+ },
+ "flips_per_year": 7.666144200626959,
+ "time_share": {
+  "chop": 66,
+  "bull": 1335,
+  "bear": 1333,
+  "crisis": 199,
+  "euphoria": 257
+ },
+ "now": "bull",
+ "by_regime": {
+  "chop": {
+   "days": 66,
+   "btc_ann_pct": -118.73756780569303,
+   "funding_apr_pct": null
+  },
+  "bull": {
+   "days": 1334,
+   "btc_ann_pct": 64.92610221254265,
+   "funding_apr_pct": 9.04474754049584
+  },
+  "bear": {
+   "days": 1333,
+   "btc_ann_pct": 23.152947338114977,
+   "funding_apr_pct": 5.88618583468211
+  },
+  "crisis": {
+   "days": 199,
+   "btc_ann_pct": 68.68578516487962,
+   "funding_apr_pct": 4.258954711057435
+  },
+  "euphoria": {
+   "days": 257,
+   "btc_ann_pct": 41.4674856544142,
+   "funding_apr_pct": 32.78649488745559
+  }
+ }
+}

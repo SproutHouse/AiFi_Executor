@@ -12,3 +12,7 @@
 | later | Second venue (Lighter) for names Hyperliquid lacks; shorts only if the ledger produces bear-regime evidence; a Solana/Base leg via a spend-capped wallet | evidence first |
 
 Never on the roadmap: leverage above 3x, sub-4-hour bars, a model placing orders, the master key on a server.
+
+## Bot Doctrine build (from 2026-09-26)
+
+Phase 1 (specs from data) done: [specs/PHASE1.md](specs/PHASE1.md). Next: Phase 2, engine capabilities (daily bars and target-weight mode for trend; spot, post-only, two-leg positions, funding income and an always-on hourly runner for carry), each test-first.
