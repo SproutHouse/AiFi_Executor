@@ -1,5 +1,51 @@
 {
-  "updated": "2026-09-26T20:14:34.779029Z",
+  "updated": "2026-09-26T21:14:22.198548Z",
   "mode": "paper",
-  "positions": {}
+  "positions": {
+    "ZEC": {
+      "coin": "ZEC",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 1592.8960499999998,
+      "stop": 1523.920149748025,
+      "initial_stop": 1523.920149748025,
+      "notional": 218.88165623936274,
+      "sz": 0.13741113630067872,
+      "risk_amt": 10.0,
+      "leverage": 3,
+      "notional_pct_equity": 21.888165623936274,
+      "entry_fee": 0.09849674530771323,
+      "funding_paid": 0.0,
+      "opened": "2026-09-26T21:13:38Z",
+      "opened_ts": 1790457218,
+      "last_bar_t": 1790452800,
+      "last_funding_ts": 1790457218,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 21.4060236,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:fast-1h",
+        "trigger:flip",
+        "tier:A",
+        "stop:1h-line",
+        "long-only",
+        "book:privacy"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "privacy",
+      "benchmark": "BTC",
+      "bench_entry": 84082.0,
+      "mark": 1592.1,
+      "upnl_pct": -0.04997501249375258
+    }
+  }
 }
