@@ -94,6 +94,22 @@ class Lifecycle(TC.Base):
         self.assertIsNotNone(rec["capture"])
         self.assertTrue(any("carry CLOSED" in x for x in cy4.summary))
 
+    def test_ledger_renders_carry_rows(self):
+        # regression: LEDGER.md rendering crashed on carry rows — open positions carry prices in their legs
+        # (no top-level entry/stop) and a closed carry trade has no single exit price
+        t0 = 1790000000
+        pos = {"HYPE": {"coin": "HYPE", "kind": "carry", "side": "carry", "mode": "paper", "state": "entering",
+                        "target_n": 100.0, "capital": 150.0, "book": "carry", "opened": C.iso(t0), "opened_ts": t0,
+                        "legs": {"spot": {"pair": "@107", "sz": 0.0, "entry": 0.0, "mark": 30.0}, "perp": {"sz": 0.0, "entry": 0.0}},
+                        "orders": {}}}
+        closed = dict(pos["HYPE"], closed_ts=t0 + 7200, funding_income=0.5, fees=0.2, spot_pnl=0.1, perp_pnl=-0.05)
+        L.append_trade(CA.closed_record(closed, C.iso(t0 + 7200)))
+        L.render_markdown(pos, ["test"], "paper")
+        text = L.MD.read_text()
+        self.assertIn("| carry | HYPE | carry |", text)  # the open two-leg position rendered
+        self.assertIn("| — |", text)                     # the missing stop shows as a dash, not a crash
+        self.assertIn("Trades 1", text)                  # the closed carry trade reached the summary
+
     def test_refused_without_spot_liquidity(self):
         cy = self.setup_cycle({}, 0.00002, [], [], 1790000000)
         CY.H.spot_pairs = lambda: {"HYPE": {"pair": "@107", "token": "HYPE", "szd": 2, "vol": 1e5, "mid": 30.0}}

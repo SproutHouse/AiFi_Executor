@@ -94,6 +94,12 @@ def stats(tr):
             "fees_R": sum((x["fees"] + x["funding"]) / x["risk_amt"] for x in tr if x["risk_amt"]) / len(tr)}
 
 
+def _px(v):
+    """Carry positions have no top-level entry/stop (prices live in their legs) and closed carry trades have no
+    single exit price, so every price cell must survive a missing value."""
+    return f"{v:.6g}" if isinstance(v, (int, float)) else "—"
+
+
 def render_markdown(pos, summary_lines=None, mode="paper"):
     tr = trades()
     st = stats(tr)
@@ -102,8 +108,9 @@ def render_markdown(pos, summary_lines=None, mode="paper"):
     if pos:
         lines += ["| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |", "|---|---|---|---|---|---|---|---|---|"]
         for p in pos.values():
-            lines.append(f"| {p.get('book')} | {p['coin']} | {p.get('kind')} | {p.get('tier')} | {p['entry']:.6g} | {p['stop']:.6g} | "
-                         f"{p.get('notional_pct_equity', 0):.1f}% | {p.get('leverage')}x | {p['opened'][:16]} |")
+            entry = p.get("entry") if p.get("entry") is not None else ((p.get("legs") or {}).get("spot") or {}).get("entry")
+            lines.append(f"| {p.get('book')} | {p['coin']} | {p.get('kind')} | {p.get('tier')} | {_px(entry)} | {_px(p.get('stop'))} | "
+                         f"{p.get('notional_pct_equity', 0):.1f}% | {p.get('leverage') or '—'}x | {p['opened'][:16]} |")
     else:
         lines.append("None.")
     lines += ["", "## Closed trades, summary", ""]
@@ -119,7 +126,7 @@ def render_markdown(pos, summary_lines=None, mode="paper"):
         lines += ["| Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |", "|---|---|---|---|---|---|---|---|---|---|---|"]
         for x in tr[-50:][::-1]:
             rr = f"{x['rel_R']:+.2f}" if x.get("rel_R") is not None else "n/a"
-            lines.append(f"| {x['closed'][:16]} | {x.get('book')} | {x['coin']} | {x['kind']} | {x['tier']} | {x['entry']:.6g} | {x['exit']:.6g} | "
+            lines.append(f"| {x['closed'][:16]} | {x.get('book')} | {x['coin']} | {x['kind']} | {x['tier']} | {_px(x.get('entry'))} | {_px(x.get('exit'))} | "
                          f"{x['R']:+.2f} | {rr} | {x['reason']} | {x['hours']:.0f} |")
     else:
         lines.append("None yet.")

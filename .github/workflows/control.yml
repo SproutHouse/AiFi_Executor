@@ -53,7 +53,6 @@ jobs:
           HL_ACCOUNT_ADDRESS_TREND_1D: ${{ secrets.HL_ACCOUNT_ADDRESS_TREND_1D }}
           HL_AGENT_KEY_CARRY_1H: ${{ secrets.HL_AGENT_KEY_CARRY_1H }}
           HL_ACCOUNT_ADDRESS_CARRY_1H: ${{ secrets.HL_ACCOUNT_ADDRESS_CARRY_1H }}
-          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
           EXECUTOR_AGENT: ${{ inputs.agent }}
         run: |
           case "$ACTION" in
