@@ -90,3 +90,12 @@ open a short; after any change the resident stop (15% below the average entry) i
 same fail-closed path as a fresh entry. Partial trims are realised into the position and counted when it finally closes.
 Daily agents are due for up to their late limit after 00:00 UTC; the cycle is idempotent, so a second run inside the
 window changes nothing.
+
+## Carry mode (`"strategy": "carry"`, the Carry agent)
+
+Short perp plus long spot of the same size, collecting hourly funding (docs/specs/CARRY.md). Each hourly cycle: read the
+last 24 hours of funding per coin; enter at ≥ 10%/yr, exit below 0%; resolve resting maker orders against the bars that
+opened since they were placed; accrue funding on the short leg; keep one maker order per leg toward the goal (target size,
+or zero while exiting); complete a lagging leg with a taker order only after 3 hours out of balance (alerted). Entries pass
+halt, throttle, reconciliation, equity, spot-liquidity and spot-perp basis checks. The dashboard's position cards skip
+carry positions until the Phase 6 carry view; their value is in the pot figure and their closes are in the ledger.

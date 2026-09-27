@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "note": "The carry agent's basket (settings.carry.basket). This book exists for the dashboard.",
+  "books": [
+    {
+      "book": "carry",
+      "enabled": true,
+      "benchmark": "BTC",
+      "pot_share_pct": 100,
+      "open_risk_cap_pct": 100,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "HYPE",
+          "note": "backtested"
+        },
+        {
+          "coin": "PUMP",
+          "note": "backtested"
+        },
+        {
+          "coin": "XPL",
+          "note": "backtested"
+        },
+        {
+          "coin": "BTC",
+          "note": "backtested"
+        },
+        {
+          "coin": "ETH",
+          "note": "backtested"
+        },
+        {
+          "coin": "ZEC",
+          "note": "backtested"
+        }
+      ]
+    }
+  ]
+}

@@ -25,6 +25,12 @@
       "name": "Trend",
       "enabled": true,
       "desc": "Doctrine bot 2: BTC+ETH long while above the 50-day average, vol-targeted, daily. Frozen rule; judged yearly, sized as tuition."
+    },
+    {
+      "id": "carry-1h",
+      "name": "Carry",
+      "enabled": true,
+      "desc": "Doctrine bot 1: short perp + long spot on HYPE, PUMP, XPL, BTC, ETH, ZEC; collects funding. Paper until testnet-validated; gate = capture efficiency >= 80%."
     }
   ]
 }

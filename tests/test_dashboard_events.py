@@ -107,6 +107,10 @@ CASES = {
                             ("thr_half", None, None, None, "11.2", None, None), None)],
     "leftover stop cancel failed": [({"coin": "LINK", "e": E_CONN}, True, SKIP, None)],
     "% of pot, holding": [({"coin": "BTC", "tgt": 330.0, "cur": 0.0, "eq": 1000.0, "action": "open"}, True, SKIP, None)],
+    "carry ENTERING": [({"coin": "HYPE", "apr": 0.14, "n": 200.0, "self": base_self()}, True, SKIP, None)],
+    "carry EXITING": [({"coin": "HYPE", "apr": -0.02}, True, SKIP, None)],
+    "carry CLOSED": [({"coin": "HYPE", "rec": {"pnl": 1.2, "capture": 0.86}, "cap": "86%", "self": base_self()}, True, SKIP, None)],
+    "carry safety override": [({"coin": "HYPE", "cfg": {"max_unhedged_hours": 3}}, True, SKIP, None)],
     "resized to": [({"coin": "ETH", "tgt": 280.0, "new_stop": 2311.5, "self": base_self()}, True, SKIP, None)],
     "entry check failed": [({"coin": "HYPE", "e": ValueError("could not convert string to float: ''")}, True,
                             ("entry_failed", "HYPE", None, None, "ValueError", None, None), None)],
@@ -141,7 +145,7 @@ def render(fn, call, overrides):
 class SayTemplates(unittest.TestCase):
     def test_every_say_parses_into_its_event(self):
         sites = say_sites()
-        self.assertEqual(len(sites), 38, "cycle.py gained or lost a say(): add or remove its template case here")
+        self.assertEqual(len(sites), 46, "cycle.py gained or lost a say(): add or remove its template case here")
         used = set()
         for fn, call, src in sites:
             keys = [k for k in CASES if k in src]

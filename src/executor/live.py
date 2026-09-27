@@ -71,6 +71,16 @@ def reduce_ioc(ex, coin, sz, floor_px, cloid):
     return ex.order(coin, False, sz, floor_px, {"limit": {"tif": "Ioc"}}, reduce_only=True, cloid=cloid)
 
 
+def maker(ex, name, is_buy, sz, px, cloid, reduce_only=False):
+    """Post-only (Alo) limit: rests on the book or is rejected; never takes. name = perp coin or spot pair ("@142")."""
+    return ex.order(name, is_buy, sz, px, {"limit": {"tif": "Alo"}}, reduce_only=reduce_only, cloid=cloid)
+
+
+def taker(ex, name, is_buy, sz, cap_px, cloid, reduce_only=False):
+    """Immediate-or-cancel limit, the carry safety override only: fills up to cap_px or not at all."""
+    return ex.order(name, is_buy, sz, cap_px, {"limit": {"tif": "Ioc"}}, reduce_only=reduce_only, cloid=cloid)
+
+
 def cancel(ex, coin, cloid):
     return ex.cancel_by_cloid(coin, cloid)
 

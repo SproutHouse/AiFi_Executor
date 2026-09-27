@@ -60,3 +60,25 @@ Fail: the leak is execution and is findable in the logs.
 
 Spot orders; post-only orders and a paper fill model that fills only when price trades through; two-leg positions
 with delta rebalancing and reconciliation of both legs; funding as income in paper; the always-on hourly runner.
+
+## Phase 2 status (2026-09-27)
+
+Built and tested (`src/executor/carry.py`, carry mode in `cycle.py`, `tests/test_carry.py`):
+
+- Spot pairs resolved from Hyperliquid's own metadata (UBTC `@142`, UETH `@151`, HYPE `@107`, UPUMP `@188`, UXPL `@210`,
+  UZEC `@272`); spot prices rounded to 8 decimals, perps to 6.
+- Two-leg positions: `entering → open → exiting → closed`, one resting maker order per leg, re-quoted only when older
+  than 3 hours (re-quoting every hour would make an honest paper fill impossible).
+- Paper maker fills: an order fills only if price trades strictly through it, in a bar that opened after it was placed.
+- Funding as income on the short leg from the exact hourly rates, never counted twice; theoretical funding kept alongside
+  for the capture-efficiency gate. Capture is only meaningful over the gate's weeks: over a few hours fees dominate.
+- Safety override: legs more than 2% out of balance for 3 hours → the lagging leg completes with a taker order and an
+  alert. This departs from "never chase" deliberately: an unhedged leg is directional risk.
+- Live primitives: post-only (`Alo`) and immediate-or-cancel orders for perp and spot names. **Live carry is refused**
+  (runs paper with a note) until the Phase 4 testnet run sets `carry_live_validated`.
+- Agent `carry-1h` runs hourly in paper on GitHub's scheduler. Live needs the always-on runner (the self-hosted
+  European machine), because GitHub's hourly schedule can slip; paper only loses fill timing, not correctness.
+- Not yet wired: the crisis unwind waits for the regime layer (Phase 5); until then `regime_crisis()` never fires.
+
+First dry run on live data (2026-09-27 01:14 UTC): enters PUMP (36%/yr), XPL (46%), ETH (10.9%), ZEC (11.4%) at 17% of the
+pot per leg; HYPE and BTC below the 10% entry bar.

@@ -13,13 +13,15 @@ refusal is written down with its reasons. The model is nowhere in this file.
 """
 import time
 from . import common as C, hl_data as H, binance_data as B, regime as R, signals as S, universe as U
-from . import risk as K, hours as HR, proposals as P, ledger as L, paper as PA, live as LV, target as TG
+from . import risk as K, hours as HR, proposals as P, ledger as L, paper as PA, live as LV, target as TG, carry as CA
 
 HALT = C.STATE / "HALT"
 
 
 def resolve_mode(s):
     mode = s.get("mode", "paper")
+    if mode == "live" and s.get("strategy") == "carry" and not s.get("carry_live_validated"):
+        return "paper", "live requested but carry live order handling is not validated on testnet yet (Phase 4): running paper"
     if mode == "live":
         key, addr = LV.creds()
         if not key or not addr:
@@ -481,6 +483,10 @@ class Cycle:
             for d in expired:
                 L.record_refusal(d["candidate"], "proposal expired unapproved", self.now, "proposal")
                 self.say(f"{d['candidate']['coin']}: proposal {d['id']} expired unapproved")
+            if self.s.get("strategy") == "carry":
+                self.reconcile()
+                self.manage_carry()
+                return self._run_tail()
             if self.s.get("strategy") == "target":
                 self.manage_target_stops()
                 self.reconcile()
@@ -508,6 +514,156 @@ class Cycle:
         self._finished = True
         self.finish()
         return self.run_doc
+
+    # ------------------------------------------------------- carry mode --
+    def manage_carry(self):
+        cfg = self.s["carry"]
+        now_ms = self.now * 1000
+        pairs = H.spot_pairs()
+        mids = H.all_mids()
+        fund, dec = {}, {}
+        for coin in cfg["basket"]:
+            try:
+                fund[coin] = H.funding_history(coin, now_ms - (cfg["window_hours"] + 30) * 3600 * 1000)
+            except Exception as e:  # noqa: BLE001
+                fund[coin] = None
+                self.say(f"{coin}: candles unavailable ({str(e)[:80]})")
+            apr = CA.mean_apr(fund[coin] or [], now_ms, cfg["window_hours"]) if fund[coin] is not None else None
+            dec[coin] = (CA.decide(apr, coin in self.positions, cfg), apr)
+        if self.btc and self.s.get("carry", {}).get("crisis_unwind") and self.regime_crisis():
+            dec = {c: (("exit" if c in self.positions else "none"), a) for c, (d, a) in dec.items()}
+        n_active = sum(1 for c, (d, a) in dec.items() if d in ("enter", "hold")) or 1
+        for coin in cfg["basket"]:
+            try:
+                self.carry_step(coin, dec[coin][0], dec[coin][1], pairs.get(coin), mids, fund.get(coin) or [], n_active, cfg)
+            except Exception as e:  # noqa: BLE001
+                self.say(f"{coin}: entry check failed ({type(e).__name__}: {str(e)[:100]}); skipped this cycle")
+        self.persist()
+
+    def regime_crisis(self):
+        """Placeholder until the regime layer (Phase 5): never forces an unwind on its own."""
+        return False
+
+    def carry_checks(self, coin, pair, spot_mid, perp_mid, cfg):
+        checks = []
+        add = lambda name, ok, detail="": checks.append({"check": name, "ok": bool(ok), "detail": detail})
+        add("not halted", not self.halt, self.halt_reason)
+        add("throttle allows entries", not self.thr["halt"], f"drawdown {self.thr['drawdown_pct']:.1f}%")
+        add("no reconciliation mismatch", not self.rec_flags.get("reconcile_mismatch"), self.rec_flags.get("reconcile_detail", ""))
+        add("equity positive", (self.equity or 0) > 0, "")
+        vol_m = (pair or {}).get("vol", 0) / 1e6
+        add("universe filters", pair is not None and vol_m >= cfg["min_spot_vol_m"], f"spot 24h volume {vol_m:.1f}M below {cfg['min_spot_vol_m']}M" if pair else "no USDC spot pair")
+        basis = abs(spot_mid / perp_mid - 1) * 100 if (spot_mid and perp_mid) else 99.0
+        add("price sanity band", basis <= cfg["max_basis_pct"], f"spot vs perp {basis:.2f}%")
+        return all(c["ok"] for c in checks), checks
+
+    def carry_step(self, coin, decision, apr, pair, mids, fund_rows, n_active, cfg):
+        perp_mid = self.marks.get(coin)
+        spot_mid = mids.get(pair["pair"]) if pair else None
+        pos = self.positions.get(coin)
+        fees = cfg["fees"]
+        self.counts["evaluated"] += 1
+        self.readings.append({"coin": coin, "book": "carry", "weekly": None, "daily": None, "h4": None, "range": None, "line": None,
+                              "close": None, "trigger": None, "why": f"funding {apr * 100:.1f}%/yr (24h mean)" if apr is not None else "no funding reading",
+                              "vol_m": (pair or {}).get("vol", 0) / 1e6, "funding_pct": apr * 100 if apr is not None else None, "days": None, "mark": perp_mid})
+        if not (perp_mid and spot_mid):
+            if pos:
+                self.say(f"{coin}: no reading on one timeframe (data gap); position and stop kept as they are")
+            return
+        if self.mode != "paper":
+            raise RuntimeError("live carry is not enabled")
+        if pos:
+            pos["legs"]["spot"]["mark"] = spot_mid
+            bars = {"spot": H.candles(pair["pair"], "1h", 3), "perp": H.candles(coin, "1h", 3)}
+            for leg in ("spot", "perp"):
+                o = (pos.get("orders") or {}).get(leg)
+                if o:
+                    px = CA.paper_fill(o, bars[leg])
+                    if px is not None:
+                        CA.apply_fill(pos, leg, o["side"], px, o["sz"], fees[leg + "_maker"])
+                        pos["orders"].pop(leg)
+            CA.accrue(pos, fund_rows, perp_mid, rule_in=pos["state"] != "exiting")
+        if decision == "enter" and not pos:
+            ok, checks = self.carry_checks(coin, pair, spot_mid, perp_mid, cfg)
+            cand = {"kind": "carry", "tier": "C"}
+            if not ok:
+                failed = [c for c in checks if not c["ok"]]
+                self.counts["refused"] += 1
+                if not self.dry:
+                    L.record_refusal({"coin": coin, "kind": "carry", "tier": "C"}, failed, self.now, "pre-trade")
+                self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} REFUSED: " + "; ".join(f"{c['check']} ({c['detail']})" for c in failed))
+                return
+            n = CA.target_notional(self.equity or 0.0, n_active, cfg)
+            pos = {"coin": coin, "kind": "carry", "side": "carry", "mode": self.mode, "state": "entering", "target_n": n,
+                   "capital": n * (1 + 1 / cfg["perp_leverage"]), "book": "carry", "opened": C.iso(self.now), "opened_ts": self.now,
+                   "last_funding_ts": int(self.now * 1000), "legs": {"spot": {"pair": pair["pair"], "sz": 0.0, "entry": 0.0, "mark": spot_mid},
+                   "perp": {"sz": 0.0, "entry": 0.0}}, "orders": {}, "rules": [f"LOGIC v{self.s.get('version', '?')}", f"agent:{C.AGENT}", "carry"]}
+            self.positions[coin] = pos
+            self.counts["entered"] += 1
+            self.say(f"{coin}: carry ENTERING · funding {apr * 100:.1f}%/yr · {n / (self.equity or 1) * 100:.0f}% of pot per leg, maker orders resting")
+        if not pos:
+            return
+        if decision == "exit" and pos["state"] != "exiting":
+            pos["state"], pos["orders"], pos["exit_reason"] = "exiting", {}, "funding below exit"
+            self.say(f"{coin}: carry EXITING · funding {apr * 100 if apr is not None else 0:.1f}%/yr below exit")
+        self.carry_orders(coin, pos, spot_mid, perp_mid, pair, cfg)
+        if pos["state"] == "exiting" and pos["legs"]["spot"]["sz"] <= 1e-12 and pos["legs"]["perp"]["sz"] <= 1e-12:
+            pos["closed_ts"] = self.now
+            rec = CA.closed_record(pos, C.iso(self.now))
+            self.positions.pop(coin, None)
+            if self.mode == "paper" and self.pot is not None:
+                self.pot["cash"] += rec["pnl"]
+            self.persist()
+            if not self.dry:
+                L.append_trade(rec)
+            cap = f"{rec['capture'] * 100:.0f}%" if rec["capture"] is not None else "n/a"
+            self.say(f"{coin}: carry CLOSED · {rec['pnl'] / (self.equity or 1) * 100:+.2f}% of pot · capture {cap}")
+
+    def carry_orders(self, coin, pos, spot_mid, perp_mid, pair, cfg):
+        """Keep one resting maker order per leg toward its goal: the target size while entering or open, zero while exiting.
+        Re-quote only when an order is older than requote_hours. Safety override after max_unhedged_hours out of balance."""
+        szd_perp = int((self.ctxs.get(coin) or {}).get("szDecimals", 3))
+        goal_spot = 0.0 if pos["state"] == "exiting" else pos["target_n"] / spot_mid
+        goal_perp = 0.0 if pos["state"] == "exiting" else pos["target_n"] / perp_mid
+        band = cfg["delta_band"]
+        for leg, goal, mid, szd in (("spot", goal_spot, spot_mid, pair["szd"]), ("perp", goal_perp, perp_mid, szd_perp)):
+            have = pos["legs"][leg]["sz"]
+            gap = goal - have
+            if abs(gap) * mid <= band * max(pos["target_n"], 1e-9) and not (pos["state"] == "exiting" and have > 0):
+                pos["orders"].pop(leg, None)
+                continue
+            if leg == "spot":
+                side = "buy" if gap > 0 else "sell"
+            else:
+                side = "sell" if gap > 0 else "buy"          # the perp leg is short: adding = sell
+            o = pos["orders"].get(leg)
+            if o and o["side"] == side and (self.now - o["t"]) < cfg["requote_hours"] * 3600:
+                continue
+            off = cfg["maker_offset_bps"] / 10000
+            px = mid * (1 - off) if side == "buy" else mid * (1 + off)
+            sz = H.round_sz(abs(gap), szd)
+            if sz <= 0:
+                continue
+            pos["orders"][leg] = {"side": side, "px": px, "sz": sz, "t": self.now}
+        imb = CA.imbalance(pos, spot_mid, perp_mid)
+        if pos["state"] == "entering" and imb <= band and pos["legs"]["spot"]["sz"] > 0:
+            pos["state"] = "open"
+        if imb > band and (pos["legs"]["spot"]["sz"] > 0 or pos["legs"]["perp"]["sz"] > 0):
+            pos.setdefault("stuck_since", self.now)
+            if self.now - pos["stuck_since"] >= cfg["max_unhedged_hours"] * 3600:
+                s_n, p_n = pos["legs"]["spot"]["sz"] * spot_mid, pos["legs"]["perp"]["sz"] * perp_mid
+                slip = self.s["paper_slippage_pct"] / 100
+                if s_n > p_n:     # perp short lags: sell perp now
+                    sz = (s_n - p_n) / perp_mid
+                    CA.apply_fill(pos, "perp", "sell", perp_mid * (1 - slip), sz, cfg["fees"]["perp_taker"])
+                else:             # spot lags: buy spot now
+                    sz = (p_n - s_n) / spot_mid
+                    CA.apply_fill(pos, "spot", "buy", spot_mid * (1 + slip), sz, cfg["fees"]["spot_taker"])
+                pos.pop("stuck_since", None)
+                self.say(f"{coin}: carry safety override · legs out of balance for {cfg['max_unhedged_hours']}h, lagging leg completed at market")
+                C.notify("Executor: carry safety override", f"{coin}: legs were out of balance for {cfg['max_unhedged_hours']}h; the lagging leg was completed with a taker order")
+        else:
+            pos.pop("stuck_since", None)
 
     # ------------------------------------------------------ target mode --
     def manage_target_stops(self):

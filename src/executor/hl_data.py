@@ -104,3 +104,32 @@ def round_px(px, sz_decimals, max_decimals=6):
     dec_sig = max(0, sig - 1 - mag)
     dec = min(dec_sig, max_decimals - int(sz_decimals))
     return round(px, dec)
+
+
+def spot_pairs():
+    """Perp coin → its USDC spot pair: {"BTC": {"pair": "@142", "token": "UBTC", "szd": 5, "vol": 24h notional}}.
+    Unit-bridged tokens carry a U prefix (UBTC); native tokens do not (HYPE)."""
+    sm, ctxs = info({"type": "spotMetaAndAssetCtxs"})
+    tok = {t["index"]: t for t in sm["tokens"]}
+    byname = {c.get("coin"): c for c in ctxs}
+    out = {}
+    for u in sm["universe"]:
+        base, quote = tok[u["tokens"][0]], tok[u["tokens"][1]]
+        if quote["name"] != "USDC":
+            continue
+        name = base["name"]
+        coin = name[1:] if name.startswith("U") and len(name) > 2 else name
+        c = byname.get(u["name"], {})
+        row = {"pair": u["name"], "token": name, "szd": int(base.get("szDecimals", 2)),
+               "vol": float(c.get("dayNtlVlm") or 0), "mid": float(c["midPx"]) if c.get("midPx") else None}
+        if coin not in out or row["vol"] > out[coin]["vol"]:
+            out[coin] = row
+    return out
+
+
+def funding_history(coin, start_ms):
+    return info({"type": "fundingHistory", "coin": coin, "startTime": int(start_ms)})
+
+
+def round_spot_px(px, sz_decimals):
+    return round_px(px, sz_decimals, max_decimals=8)

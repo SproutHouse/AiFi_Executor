@@ -17,11 +17,25 @@ def save_pot(p):
     C.write_json(POT, p)
 
 
+def carry_value(pos, perp_mark):
+    """A carry position's value to the pot: funding received − fees + realised leg P&L + open P&L on both legs."""
+    L = pos["legs"]
+    v = pos.get("funding_income", 0.0) - pos.get("fees", 0.0) + pos.get("spot_pnl", 0.0) + pos.get("perp_pnl", 0.0)
+    sm = L["spot"].get("mark")
+    if sm and L["spot"]["sz"]:
+        v += (sm - L["spot"]["entry"]) * L["spot"]["sz"]
+    if perp_mark and L["perp"]["sz"]:
+        v += (L["perp"]["entry"] - perp_mark) * L["perp"]["sz"]
+    return v
+
+
 def equity(p, positions, marks):
     unreal = 0.0
     for coin, pos in positions.items():
         m = marks.get(coin)
-        if m:
+        if pos.get("kind") == "carry":
+            unreal += carry_value(pos, m)
+        elif m:
             unreal += (m - pos["entry"]) / pos["entry"] * pos["notional"]
     return p["cash"] + unreal, unreal
 

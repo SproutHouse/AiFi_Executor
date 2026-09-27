@@ -1,0 +1,88 @@
+{
+  "version": "1.3",
+  "mode": "paper",
+  "timezone": "America/Toronto",
+  "online_hours": {
+    "start": 10,
+    "end": 22
+  },
+  "offline_auto_tiers": [
+    "A"
+  ],
+  "daily_summary_local_hour": 8,
+  "pot_usd_paper": 1000,
+  "risk_per_trade_pct": 1.0,
+  "open_risk_cap_pct": 4.0,
+  "gross_exposure_cap_x": 3.0,
+  "leverage_cap_x": 3,
+  "max_positions": 6,
+  "min_notional_usd": 10,
+  "min_stop_distance_pct": 0.2,
+  "entry_slippage_cap_pct": 0.3,
+  "approval_max_drift_pct": 1.0,
+  "paper_slippage_pct": 0.05,
+  "fee_taker_pct": 0.045,
+  "throttle": {
+    "halve_at_drawdown_pct": 5,
+    "halt_at_drawdown_pct": 10
+  },
+  "universe": {
+    "min_day_volume_usd": 30000000,
+    "min_open_interest_usd": 10000000,
+    "min_daily_bars": 280,
+    "max_funding_annual_pct": 30,
+    "min_max_leverage": 3
+  },
+  "indicators": {
+    "supertrend_factor": 3.0,
+    "supertrend_atr": 10,
+    "band_ema": 36,
+    "trend_ema": 200
+  },
+  "data": {
+    "late_run_minutes": 50,
+    "sanity_band_pct": 2.0,
+    "candle_days_daily": 1500,
+    "candle_days_4h": 120
+  },
+  "approval": {
+    "mode": "never",
+    "auto_tiers": [
+      "A"
+    ],
+    "_doc": "mode never: no human approval anywhere; tiers in auto_tiers execute on their own at any hour, other tiers are recorded as refused and not traded. mode online_hours: the earlier model (proposals 10-22 local, offline_auto_tiers overnight)."
+  },
+  "strategy": "carry",
+  "trigger_tf": "1h",
+  "btc_gate": false,
+  "carry_live_validated": false,
+  "carry": {
+    "basket": [
+      "HYPE",
+      "PUMP",
+      "XPL",
+      "BTC",
+      "ETH",
+      "ZEC"
+    ],
+    "window_hours": 24,
+    "enter_apr": 0.1,
+    "exit_apr": 0.0,
+    "per_asset_cap": 0.3,
+    "perp_leverage": 2,
+    "maker_offset_bps": 2,
+    "requote_hours": 3,
+    "delta_band": 0.02,
+    "max_unhedged_hours": 3,
+    "min_spot_vol_m": 0.5,
+    "max_basis_pct": 1.0,
+    "crisis_unwind": true,
+    "fees": {
+      "spot_maker": 0.0004,
+      "perp_maker": 0.00015,
+      "spot_taker": 0.0007,
+      "perp_taker": 0.00045
+    }
+  },
+  "_agent_note": "Carry (Doctrine build 1): short perp + long spot, collect funding. Frozen in docs/specs/CARRY.md. Paper only until the Phase 4 testnet run sets carry_live_validated. Throttle is tight because a delta-neutral book should barely draw down; a 5% drawdown means something is broken."
+}
