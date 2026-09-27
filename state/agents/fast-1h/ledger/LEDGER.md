@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-09-27T21:14:08.834145Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-27T22:14:06.932384Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -16,9 +16,10 @@ None.
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 46 recorded (state/ledger/refused.jsonl)
+## Refused signals: 47 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 13 min after the bar close
-- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
+- ARB: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open
