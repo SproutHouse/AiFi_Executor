@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-09-27T13:14:04.394909Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-27T14:13:29.110861Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -21,8 +21,4 @@ None yet.
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 13 min after the bar close
-- ZEC: stop trailed to 1613.1
-- UNI: signal pullback tier B recorded, not traded (tier not automated)
-- AAVE: signal pullback tier B recorded, not traded (tier not automated)
-- LINK: signal pullback tier B recorded, not traded (tier not automated)
-- evaluated 30 names · 3 triggers · 3 refused · 0 proposed · 0 entered · 1 open
+- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
