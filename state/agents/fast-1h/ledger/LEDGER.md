@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-09-27T17:13:13.042429Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-27T18:16:37.482783Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -20,6 +20,5 @@ None.
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 13 min after the bar close
-- AVAX: signal pullback tier B recorded, not traded (tier not automated)
-- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open
+- BTC weekly Bullish · daily Bullish · data 16 min after the bar close
+- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
