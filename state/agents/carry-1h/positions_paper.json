@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-27T02:14:17.487799Z",
+  "updated": "2026-09-27T03:15:14.118277Z",
   "mode": "paper",
   "positions": {
     "PUMP": {
@@ -13,13 +13,13 @@
       "book": "carry",
       "opened": "2026-09-27T02:14:13Z",
       "opened_ts": 1790475253,
-      "last_funding_ts": 1790475253000,
+      "last_funding_ts": 1790478000037,
       "legs": {
         "spot": {
           "pair": "@188",
           "sz": 0.0,
           "entry": 0.0,
-          "mark": 0.00441075
+          "mark": 0.00440305
         },
         "perp": {
           "sz": 0.0,
@@ -44,7 +44,9 @@
         "LOGIC v1.3",
         "agent:carry-1h",
         "carry"
-      ]
+      ],
+      "funding_income": 0.0,
+      "theo_funding": 0.0084438
     },
     "XPL": {
       "coin": "XPL",
@@ -57,13 +59,13 @@
       "book": "carry",
       "opened": "2026-09-27T02:14:13Z",
       "opened_ts": 1790475253,
-      "last_funding_ts": 1790475253000,
+      "last_funding_ts": 1790478000037,
       "legs": {
         "spot": {
           "pair": "@210",
           "sz": 0.0,
           "entry": 0.0,
-          "mark": 0.11098
+          "mark": 0.10978
         },
         "perp": {
           "sz": 0.0,
@@ -88,7 +90,9 @@
         "LOGIC v1.3",
         "agent:carry-1h",
         "carry"
-      ]
+      ],
+      "funding_income": 0.0,
+      "theo_funding": 0.00624105
     },
     "ETH": {
       "coin": "ETH",
@@ -101,13 +105,13 @@
       "book": "carry",
       "opened": "2026-09-27T02:14:13Z",
       "opened_ts": 1790475253,
-      "last_funding_ts": 1790475253000,
+      "last_funding_ts": 1790478000037,
       "legs": {
         "spot": {
           "pair": "@151",
           "sz": 0.0,
           "entry": 0.0,
-          "mark": 2700.35
+          "mark": 2699.3
         },
         "perp": {
           "sz": 0.0,
@@ -132,7 +136,9 @@
         "LOGIC v1.3",
         "agent:carry-1h",
         "carry"
-      ]
+      ],
+      "funding_income": 0.0,
+      "theo_funding": 0.0020833333333333333
     },
     "ZEC": {
       "coin": "ZEC",
@@ -145,13 +151,13 @@
       "book": "carry",
       "opened": "2026-09-27T02:14:13Z",
       "opened_ts": 1790475253,
-      "last_funding_ts": 1790475253000,
+      "last_funding_ts": 1790478000037,
       "legs": {
         "spot": {
           "pair": "@272",
           "sz": 0.0,
           "entry": 0.0,
-          "mark": 1643.05
+          "mark": 1648.05
         },
         "perp": {
           "sz": 0.0,
@@ -176,7 +182,9 @@
         "LOGIC v1.3",
         "agent:carry-1h",
         "carry"
-      ]
+      ],
+      "funding_income": 0.0,
+      "theo_funding": 0.0020833333333333333
     }
   }
 }
