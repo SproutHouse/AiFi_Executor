@@ -1,12 +1,12 @@
 # Ledger
 
-_Rendered 2026-09-28T13:17:09.627301Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-28T14:17:15.560878Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| eth-defi | LINK | flip | A | 14.5693 | 13.6803 | 15.8% | 3x | 2026-09-28T13:15 |
+| eth-defi | LINK | flip | A | 14.5693 | 13.7707 | 15.8% | 3x | 2026-09-28T13:15 |
 
 ## Closed trades, summary
 
@@ -22,7 +22,6 @@ _Rendered 2026-09-28T13:17:09.627301Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 16 min after the bar close
-- LINK: ENTERED LINK long [eth-defi] · flip tier A · stop 13.68 (6.3% away) · size 15.8% of pot at 3x · risk 1.00% of pot
-- XLM: signal flip tier A REFUSED: universe filters (funding 36%/yr against longs above 30%)
-- evaluated 31 names · 2 triggers · 1 refused · 0 proposed · 1 entered · 1 open
+- BTC weekly Bullish · daily Bullish · data 17 min after the bar close
+- LINK: stop trailed to 13.771
+- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
