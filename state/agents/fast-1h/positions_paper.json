@@ -1,5 +1,51 @@
 {
-  "updated": "2026-09-28T12:21:09.305688Z",
+  "updated": "2026-09-28T13:17:09.624871Z",
   "mode": "paper",
-  "positions": {}
+  "positions": {
+    "LINK": {
+      "coin": "LINK",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 14.569280999999998,
+      "stop": 13.68033967442271,
+      "initial_stop": 13.68033967442271,
+      "notional": 158.22158725013082,
+      "sz": 10.859944787263753,
+      "risk_amt": 10.024162123498684,
+      "leverage": 3,
+      "notional_pct_equity": 15.784021178111946,
+      "entry_fee": 0.07119971426255887,
+      "funding_paid": 0.0,
+      "opened": "2026-09-28T13:15:58Z",
+      "opened_ts": 1790601358,
+      "last_bar_t": 1790596800,
+      "last_funding_ts": 1790601358,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:fast-1h",
+        "trigger:flip",
+        "tier:A",
+        "stop:1h-line",
+        "long-only",
+        "book:eth-defi"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "eth-defi",
+      "benchmark": "ETH",
+      "bench_entry": 2685.9,
+      "mark": 14.562,
+      "upnl_pct": -0.04997501249374148
+    }
+  }
 }
