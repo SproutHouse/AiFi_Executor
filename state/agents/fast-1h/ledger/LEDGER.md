@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-09-28T18:18:06.959430Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-28T19:15:11.363231Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | eth-defi | LINK | flip | A | 14.5693 | 14.0778 | 15.8% | 3x | 2026-09-28T13:15 |
-| eth-defi | CRV | flip | A | 0.361701 | 0.319554 | 8.4% | 3x | 2026-09-28T18:17 |
+| eth-defi | CRV | flip | A | 0.361701 | 0.332595 | 8.4% | 3x | 2026-09-28T18:17 |
 
 ## Closed trades, summary
 
@@ -23,7 +23,6 @@ _Rendered 2026-09-28T18:18:06.959430Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 17 min after the bar close
-- LINK: stop trailed to 14.078
-- CRV: ENTERED CRV long [eth-defi] · flip tier A · stop 0.31955 (11.9% away) · size 8.4% of pot at 3x · risk 1.00% of pot
-- evaluated 30 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 2 open
+- BTC weekly Bullish · daily Bullish · data 14 min after the bar close
+- CRV: stop trailed to 0.33259
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
