@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-09-28T07:17:40.325876Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-28T08:19:37.817246Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -11,7 +11,7 @@ _Rendered 2026-09-28T07:17:40.325876Z in paper mode from state/positions_paper.j
 | carry | ETH | carry | None | 2699.81 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | ZEC | carry | None | 1639.2 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | HYPE | carry | None | 93.1004 | — | 0.0% | —x | 2026-09-27T12:19 |
-| carry | BTC | carry | None | 84798.5 | — | 0.0% | —x | 2026-09-27T20:15 |
+| carry | BTC | carry | None | 84773.4 | — | 0.0% | —x | 2026-09-27T20:15 |
 
 ## Closed trades, summary
 
@@ -25,5 +25,5 @@ None yet.
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 18 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 20 min after the bar close
 - evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 6 open
