@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-09-29T11:15:07.967702Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-29T12:21:19.234122Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -8,7 +8,7 @@ _Rendered 2026-09-29T11:15:07.967702Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|
 | eth-defi | LINK | flip | A | 14.5693 | 14.5286 | 15.8% | 3x | 2026-09-28T13:15 |
 | eth-defi | CRV | flip | A | 0.361701 | 0.367829 | 8.4% | 3x | 2026-09-28T18:17 |
-| l1s | AVAX | flip | A | 11.1856 | 10.8293 | 10.5% | 3x | 2026-09-29T07:16 |
+| l1s | AVAX | flip | A | 11.1856 | 10.9131 | 10.5% | 3x | 2026-09-29T07:16 |
 
 ## Closed trades, summary
 
@@ -20,11 +20,11 @@ _Rendered 2026-09-29T11:15:07.967702Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 59 recorded (state/ledger/refused.jsonl)
+## Refused signals: 60 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 14 min after the bar close
-- LINK: stop trailed to 14.529
-- AVAX: stop trailed to 10.829
-- evaluated 28 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
+- BTC weekly Bullish · daily Bullish · data 20 min after the bar close
+- AVAX: stop trailed to 10.913
+- DOT: signal flip tier A REFUSED: universe filters (24h volume 3.6M below 5M)
+- evaluated 28 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 3 open
