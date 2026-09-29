@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-29T06:19:14.863387Z",
+  "updated": "2026-09-29T07:17:13.945872Z",
   "mode": "paper",
   "positions": {
     "LINK": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 15.784021178111946,
       "entry_fee": 0.07119971426255887,
-      "funding_paid": 0.0283834169616517,
+      "funding_paid": 0.030289217955299978,
       "opened": "2026-09-28T13:15:58Z",
       "opened_ts": 1790601358,
-      "last_bar_t": 1790658000,
-      "last_funding_ts": 1790662716,
+      "last_bar_t": 1790661600,
+      "last_funding_ts": 1790666185,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2685.9,
-      "mark": 14.894,
-      "upnl_pct": 2.228792210130348
+      "mark": 15.116,
+      "upnl_pct": 3.752546196342843
     },
     "CRV": {
       "coin": "CRV",
@@ -54,7 +54,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 0.36170076,
-      "stop": 0.3570407201858293,
+      "stop": 0.3613811481672463,
       "initial_stop": 0.31955353734922365,
       "notional": 85.12827329179498,
       "sz": 235.35552784515846,
@@ -62,11 +62,11 @@
       "leverage": 3,
       "notional_pct_equity": 8.422670070845841,
       "entry_fee": 0.03830772298130774,
-      "funding_paid": 0.01378869870727356,
+      "funding_paid": 0.015142416061929263,
       "opened": "2026-09-28T18:17:20Z",
       "opened_ts": 1790619440,
-      "last_bar_t": 1790658000,
-      "last_funding_ts": 1790662716,
+      "last_bar_t": 1790661600,
+      "last_funding_ts": 1790666185,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,53 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2699.2,
-      "mark": 0.39447,
-      "upnl_pct": 9.059765315394962
+      "mark": 0.39724,
+      "upnl_pct": 9.825591740531593
+    },
+    "AVAX": {
+      "coin": "AVAX",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 11.18559,
+      "stop": 10.144348319088884,
+      "initial_stop": 10.144348319088884,
+      "notional": 106.62053546999454,
+      "sz": 9.531954547770349,
+      "risk_amt": 10.166083996561884,
+      "leverage": 3,
+      "notional_pct_equity": 10.487866862604426,
+      "entry_fee": 0.04797924096149754,
+      "funding_paid": 0.0,
+      "opened": "2026-09-29T07:16:25Z",
+      "opened_ts": 1790666185,
+      "last_bar_t": 1790661600,
+      "last_funding_ts": 1790666185,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 14.217217200000002,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:fast-1h",
+        "trigger:flip",
+        "tier:A",
+        "stop:1h-line",
+        "long-only",
+        "book:l1s"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "l1s",
+      "benchmark": "BTC",
+      "bench_entry": 83979.0,
+      "mark": 11.18,
+      "upnl_pct": -0.04997501249375258
     }
   }
 }
