@@ -1,14 +1,14 @@
 # Ledger
 
-_Rendered 2026-09-29T08:19:06.635611Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-29T09:17:06.013101Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | eth-defi | LINK | flip | A | 14.5693 | 14.519 | 15.8% | 3x | 2026-09-28T13:15 |
-| eth-defi | CRV | flip | A | 0.361701 | 0.363683 | 8.4% | 3x | 2026-09-28T18:17 |
-| l1s | AVAX | flip | A | 11.1856 | 10.4795 | 10.5% | 3x | 2026-09-29T07:16 |
+| eth-defi | CRV | flip | A | 0.361701 | 0.364939 | 8.4% | 3x | 2026-09-28T18:17 |
+| l1s | AVAX | flip | A | 11.1856 | 10.5944 | 10.5% | 3x | 2026-09-29T07:16 |
 
 ## Closed trades, summary
 
@@ -24,7 +24,7 @@ _Rendered 2026-09-29T08:19:06.635611Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 18 min after the bar close
-- CRV: stop trailed to 0.36368
-- AVAX: stop trailed to 10.479
+- BTC weekly Bullish · daily Bullish · data 16 min after the bar close
+- CRV: stop trailed to 0.36494
+- AVAX: stop trailed to 10.594
 - evaluated 28 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
