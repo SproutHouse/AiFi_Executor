@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-09-29T05:15:04.097384Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-09-29T06:19:14.864991Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | eth-defi | LINK | flip | A | 14.5693 | 14.519 | 15.8% | 3x | 2026-09-28T13:15 |
-| eth-defi | CRV | flip | A | 0.361701 | 0.353712 | 8.4% | 3x | 2026-09-28T18:17 |
+| eth-defi | CRV | flip | A | 0.361701 | 0.357041 | 8.4% | 3x | 2026-09-28T18:17 |
 
 ## Closed trades, summary
 
@@ -19,10 +19,11 @@ _Rendered 2026-09-29T05:15:04.097384Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 58 recorded (state/ledger/refused.jsonl)
+## Refused signals: 59 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 14 min after the bar close
-- CRV: stop trailed to 0.35371
-- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- BTC weekly Bullish · daily Bullish · data 19 min after the bar close
+- CRV: stop trailed to 0.35704
+- AAVE: signal flip tier A REFUSED: book open-risk cap (book eth-defi: 2.99% after entry, cap 2.0%)
+- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
