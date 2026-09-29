@@ -91,6 +91,14 @@ same fail-closed path as a fresh entry. Partial trims are realised into the posi
 Daily agents are due for up to their late limit after 00:00 UTC; the cycle is idempotent, so a second run inside the
 window changes nothing.
 
+**Recipe agents (strategy families).** A `target` block with `"family"`, `"params"` and `"coins"` (written by the AiFi
+Lab for arena agents) computes each coin's target with `src/executor/families.py` instead of the Trend rule: the same
+functions the lab backtested, run over the agent's recent daily history, last value traded. Families: `sma_trend`,
+`tsmom`, `dual_ma`, `donchian`, `cloud_trend`, `rs_rotation`, `meanrev`. Every family is causal (tests prove the value on
+a day never changes when later data is removed) and can be gated by the market regime (`long_regimes`). The engine is
+long-or-flat: a family's short signal is held at zero. A Trend block without `"family"` keeps `target.weight` exactly
+as before (`tests/test_families.py` proves the two agree to 9 decimals on every day).
+
 ## Carry mode (`"strategy": "carry"`, the Carry agent)
 
 Short perp plus long spot of the same size, collecting hourly funding (docs/specs/CARRY.md). Each hourly cycle: read the

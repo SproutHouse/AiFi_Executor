@@ -82,3 +82,8 @@ Built and tested (`src/executor/carry.py`, carry mode in `cycle.py`, `tests/test
 
 First dry run on live data (2026-09-27 01:14 UTC): enters PUMP (36%/yr), XPL (46%), ETH (10.9%), ZEC (11.4%) at 17% of the
 pot per leg; HYPE and BTC below the 10% entry bar.
+
+**2026-09-29:** the crisis unwind is wired: `cycle.regime_crisis()` reads the regime classifier (`market_regime.py`)
+on BTC's daily bars; a crisis label exits every carry position and blocks entries until another label has held 5 days.
+A missing reading never forces an unwind.
+

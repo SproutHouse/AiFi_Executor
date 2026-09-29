@@ -45,3 +45,12 @@ The classifier's daily state, its three dial values and the weights applied are 
 losing regime change can be traced to the classifier or to the bot.
 
 Regime on 2026-09-25: **bull**.
+
+## Implementation (2026-09-29)
+
+`src/executor/market_regime.py` is this classifier as a pure function over BTC daily bars (funding optional; it only
+splits euphoria out of bull). The engine uses it for the Carry agent's crisis unwind (`cycle.regime_crisis`) and for
+recipe agents gated by regime; the AiFi Lab labels 2018–2026 with the same code for its per-regime scorecards. After
+the 200-day warm-up the trend state never returns to undefined, so **chop does not occur**; scorecards report bull,
+bear and crisis. Labelled 2018-03 → 2026-09: bull 51%, bear 43%, crisis 6%; regime on 2026-09-28: bull (since 2026-08-24).
+

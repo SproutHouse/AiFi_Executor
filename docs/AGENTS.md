@@ -14,6 +14,11 @@ agents run the same engine code; what differs is their configuration. The dashbo
 | **Carry** (`carry-1h`) | Doctrine bot 1: short perp + long spot on HYPE, PUMP, XPL, BTC, ETH, ZEC; in at 24h funding ≥ 10%/yr, out below 0%; maker-only, perp ≤ 2x | full funding history: 14.8%/yr on capital 2023–24, 5.2% on unseen 2025–26 (docs/specs/CARRY.md) | paper; live refused until testnet-validated; gate = capture ≥ 80% |
 | **Fast** (`fast-1h`) | 31 names, 1-hour flips inside a bullish 4-hour, daily and weekly | 2023–26: 3.8 trades/week, +0.01 R, PF 0.99, max DD 45%: **no proven edge** | paper-only experiment |
 
+**Arena agents** (`arena-NN`, from 2026-09-29) are added and retired by the AiFi Lab, not by hand. Each is one recipe
+that survived the lab's frozen gates and a locked holdout. It runs in paper with a $1,000 pot, and it is retired
+automatically if its paper stops matching its backtest (specs/FACTORY.md). Their `desc` carries the recipe id and the
+backtest numbers.
+
 Evidence: [backtests/variants.md](backtests/variants.md). Trading more often on these signals mostly trades away the
 edge; the live paper comparison exists to test that with real fills rather than argue about it.
 

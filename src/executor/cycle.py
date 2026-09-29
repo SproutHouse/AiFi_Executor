@@ -14,6 +14,7 @@ refusal is written down with its reasons. The model is nowhere in this file.
 import time
 from . import common as C, hl_data as H, binance_data as B, regime as R, signals as S, universe as U
 from . import risk as K, hours as HR, proposals as P, ledger as L, paper as PA, live as LV, target as TG, carry as CA
+from . import families as F, market_regime as MR
 
 HALT = C.STATE / "HALT"
 
@@ -541,8 +542,13 @@ class Cycle:
         self.persist()
 
     def regime_crisis(self):
-        """Placeholder until the regime layer (Phase 5): never forces an unwind on its own."""
-        return False
+        """True when BTC's market regime (market_regime.py, the Doctrine's classifier) reads crisis on the last
+        completed day. A missing reading never forces an unwind."""
+        try:
+            d, _h = self.bars.get("BTC")
+            return MR.now(d) == "crisis"
+        except Exception:  # noqa: BLE001 — no reading is not a crisis
+            return False
 
     def carry_checks(self, coin, pair, spot_mid, perp_mid, cfg):
         checks = []
@@ -712,35 +718,67 @@ class Cycle:
         cfg = self.s["target"]
         band, stop_pct = float(cfg["band"]), float(cfg["stop_pct"]) / 100
         eq = self.equity or 0.0
-        for coin, alloc in cfg["weights"].items():
+        for coin, (frac, why, d) in self.target_plan(cfg).items():
             try:
-                self.manage_target(coin, float(alloc), eq, band, stop_pct, cfg)
+                self.manage_target(coin, frac, why, d, eq, band, stop_pct, cfg)
             except Exception as e:  # noqa: BLE001
                 self.say(f"{coin}: entry check failed ({type(e).__name__}: {str(e)[:100]}); skipped this cycle")
                 C.notify("Executor: target step failed", f"{coin}: {type(e).__name__}: {str(e)[:200]}")
 
-    def manage_target(self, coin, alloc, eq, band, stop_pct, cfg):
-        d, _h = self.bars.get(coin)
+    def target_plan(self, cfg):
+        """{coin: (fraction of equity to hold or None, why, daily bars)}. The original Trend block (no "family") keeps
+        target.weight × its allocation, unchanged. A recipe block ("family", "params", "coins") runs the shared
+        family code in families.py, the same functions the lab backtested. The engine is long-or-flat: a negative
+        weight is held at zero."""
+        out, panel = {}, {}
+        if not cfg.get("family"):
+            for coin, alloc in cfg["weights"].items():
+                try:
+                    d, _h = self.bars.get(coin)
+                    w, why = TG.weight(d, cfg)
+                    out[coin] = (None if w is None else w * float(alloc), why, d)
+                except Exception as e:  # noqa: BLE001
+                    out[coin] = (None, f"candles unavailable ({str(e)[:60]})", [])
+            return out
+        fam, params, alloc, coins = F.from_target_cfg(cfg)
+        for coin in coins:
+            try:
+                panel[coin] = self.bars.get(coin)[0]
+            except Exception as e:  # noqa: BLE001 — one coin's outage is a data gap for that coin only
+                out[coin] = (None, f"candles unavailable ({str(e)[:60]})", [])
+        regime = None
+        if F.needs_regime(params):
+            try:
+                regime = MR.by_day(self.bars.get("BTC")[0])
+            except Exception as e:  # noqa: BLE001 — no regime reading: hold everything as it is
+                return {c: (None, f"market regime unavailable ({str(e)[:60]})", panel.get(c, [])) for c in coins}
+        if panel:
+            for coin, (w, why) in F.latest(panel, fam, params, regime, alloc).items():
+                if w is not None and w < 0:
+                    w, why = 0.0, why + " · short signal held flat (the engine is long-or-flat)"
+                out[coin] = (w, why, panel[coin])
+        return out
+
+    def manage_target(self, coin, frac, why, d, eq, band, stop_pct, cfg):
         row = self.ctxs.get(coin) or {}
         mark = self.marks.get(coin)
-        w, why = TG.weight(d, cfg)
         self.counts["evaluated"] += 1
-        self.readings.append({"coin": coin, "book": "trend", "weekly": None, "daily": None, "h4": None, "range": None,
+        self.readings.append({"coin": coin, "book": cfg.get("book", "trend"), "weekly": None, "daily": None, "h4": None, "range": None,
                               "line": None, "close": d[-1]["c"] if d else None, "trigger": None, "why": why,
                               "vol_m": None, "funding_pct": H.funding_annual_pct(row), "days": len(d), "mark": mark})
-        if w is None or not mark:
+        if frac is None or not mark:
             self.say(f"{coin}: no reading on one timeframe (data gap); position and stop kept as they are")
             return
         pos = self.positions.get(coin)
         cur = pos["sz"] * mark if pos else 0.0
         mult = self.thr["multiplier"] if self.thr["multiplier"] > 0 else 1.0
-        tgt = w * alloc * eq * mult
+        tgt = frac * eq * mult
         action = TG.decide(cur, tgt, band)
         self.say(f"{coin}: target {tgt / eq * 100 if eq else 0:.0f}% of pot, holding {cur / eq * 100 if eq else 0:.0f}% → {action}")
         if action in ("hold", "none") or self.dry:
             return
         if action == "close":
-            self.close_position(coin, pos, mark * (1 - self.s["paper_slippage_pct"] / 100) if self.mode == "paper" else mark, "below its average", self.now)
+            self.close_position(coin, pos, mark * (1 - self.s["paper_slippage_pct"] / 100) if self.mode == "paper" else mark, "below its average" if not cfg.get("family") else "target weight zero", self.now)
             return
         if action == "decrease":
             self.target_resize(coin, pos, tgt, mark, stop_pct)
@@ -763,7 +801,7 @@ class Cycle:
         stop = mark * (1 - stop_pct)
         lev = int(self.s["leverage_cap_x"])
         cand = {"coin": coin, "kind": "target", "tier": "T", "stop": stop, "bar_t": self.bars.get(coin)[0][-1]["t"],
-                "book": "trend", "benchmark": coin, "bench_mark": mark}
+                "book": self.s["target"].get("book", "trend"), "benchmark": coin, "bench_mark": mark}
         sizing = {"notional": notional, "risk_amt": notional * stop_pct, "leverage": lev, "risk_pct": stop_pct * notional / eq * 100 if eq else 0,
                   "notional_pct_equity": notional / eq * 100 if eq else 0, "dist_pct": stop_pct * 100}
         pos = self.execute_entry(cand, sizing, mark, {"weekly_dir": None, "daily_dir": None})

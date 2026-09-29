@@ -16,3 +16,12 @@ Never on the roadmap: leverage above 3x, sub-4-hour bars, a model placing orders
 ## Bot Doctrine build (from 2026-09-26)
 
 Phase 1 (specs from data) done: [specs/PHASE1.md](specs/PHASE1.md). Phase 2 part 1 (trend) done 2026-09-26: daily bars, target-weight mode, agent `trend-1d` in paper. Phase 2 part 2 (carry) done 2026-09-27: spot pairs, maker orders, two-leg positions, funding income, agent `carry-1h` in paper. Next: Phase 3/4 gates (Trend paper integration; Carry testnet run, which needs a funded Hyperliquid account and the always-on runner), then Phase 5 regime layer. Earlier note: Phase 2 part 2, engine capabilities (daily bars and target-weight mode for trend; spot, post-only, two-leg positions, funding income and an always-on hourly runner for carry), each test-first.
+
+## Bot factory (from 2026-09-29)
+
+The dashboard becomes a factory that keeps creating, testing and retiring bots. The plan and its status are in
+[specs/FACTORY.md](specs/FACTORY.md). Phases 0–4 were built on 2026-09-29: shared families and regime code in the
+engine, the private AiFi Lab (data, harness, frozen gates, trial registry, nightly loop) and the paper arena. The
+Doctrine's remaining steps fold in: regime weights → factory Phase 6, carry and trend dashboard views → Phase 5,
+pairs → a lab family once the short side is justified.
+
