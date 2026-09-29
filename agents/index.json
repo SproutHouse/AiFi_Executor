@@ -31,6 +31,20 @@
       "name": "Carry",
       "enabled": true,
       "desc": "Doctrine bot 1: short perp + long spot on HYPE, PUMP, XPL, BTC, ETH, ZEC; collects funding. Paper until testnet-validated; gate = capture efficiency >= 80%."
+    },
+    {
+      "id": "arena-01",
+      "name": "A01 Rotation",
+      "enabled": true,
+      "desc": "Arena · rs_rotation · bull specialist · 13 coins · backtest Sharpe 1.13, max drawdown 18% · recipe rot-e335df0b (AiFi Lab). Paper; demoted automatically if it stops matching its backtest.",
+      "arena": {
+        "recipe": "rot-e335df0b",
+        "family": "rs_rotation",
+        "enrolled": "2026-09-29",
+        "tag": "bull specialist",
+        "dev_sharpe": 1.132,
+        "dev_max_dd": 17.99
+      }
     }
   ]
 }

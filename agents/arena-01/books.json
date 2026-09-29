@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "note": "Arena agent: trades its recipe's coins by target weight (or carry). This book exists for the dashboard.",
+  "books": [
+    {
+      "book": "arena",
+      "enabled": true,
+      "benchmark": "AAVE",
+      "pot_share_pct": 100,
+      "open_risk_cap_pct": 100,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "AAVE",
+          "note": "recipe"
+        },
+        {
+          "coin": "ADA",
+          "note": "recipe"
+        },
+        {
+          "coin": "AVAX",
+          "note": "recipe"
+        },
+        {
+          "coin": "BNB",
+          "note": "recipe"
+        },
+        {
+          "coin": "BTC",
+          "note": "recipe"
+        },
+        {
+          "coin": "DOGE",
+          "note": "recipe"
+        },
+        {
+          "coin": "ETH",
+          "note": "recipe"
+        },
+        {
+          "coin": "LINK",
+          "note": "recipe"
+        },
+        {
+          "coin": "LTC",
+          "note": "recipe"
+        },
+        {
+          "coin": "NEAR",
+          "note": "recipe"
+        },
+        {
+          "coin": "SOL",
+          "note": "recipe"
+        },
+        {
+          "coin": "UNI",
+          "note": "recipe"
+        },
+        {
+          "coin": "XRP",
+          "note": "recipe"
+        }
+      ]
+    }
+  ]
+}
