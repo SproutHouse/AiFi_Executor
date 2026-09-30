@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-30T00:23:29.638401Z",
+  "updated": "2026-09-30T01:16:26.140882Z",
   "mode": "paper",
   "positions": {
     "LTC": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 12.44963042641309,
       "entry_fee": 0.056023336918858906,
-      "funding_paid": 0.0,
+      "funding_paid": 0.0013737821352479444,
       "opened": "2026-09-30T00:23:22Z",
       "opened_ts": 1790727802,
       "last_bar_t": 1790640000,
-      "last_funding_ts": 1790727802,
+      "last_funding_ts": 1790730980,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,8 +45,8 @@
       "book": "arena",
       "benchmark": "LTC",
       "bench_entry": 66.5271,
-      "mark": 66.5271,
-      "upnl_pct": -0.04997501249375258
+      "mark": 67.149,
+      "upnl_pct": 0.8843648360751688
     },
     "NEAR": {
       "coin": "NEAR",
@@ -63,11 +63,11 @@
       "leverage": 3,
       "notional_pct_equity": 6.42572916852508,
       "entry_fee": 0.028915781258362853,
-      "funding_paid": 0.0,
+      "funding_paid": 0.0007090613644990521,
       "opened": "2026-09-30T00:23:22Z",
       "opened_ts": 1790727802,
       "last_bar_t": 1790640000,
-      "last_funding_ts": 1790727802,
+      "last_funding_ts": 1790730980,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -91,8 +91,8 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 4.9127,
-      "mark": 4.9127,
-      "upnl_pct": -0.04997501249375258
+      "mark": 5.0388,
+      "upnl_pct": 2.515558838733578
     },
     "UNI": {
       "coin": "UNI",
@@ -109,11 +109,11 @@
       "leverage": 3,
       "notional_pct_equity": 7.277663330565059,
       "entry_fee": 0.032749484987542765,
-      "funding_paid": 0.0,
+      "funding_paid": 0.0008030699327963805,
       "opened": "2026-09-30T00:23:22Z",
       "opened_ts": 1790727802,
       "last_bar_t": 1790640000,
-      "last_funding_ts": 1790727802,
+      "last_funding_ts": 1790730980,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -137,8 +137,8 @@
       "book": "arena",
       "benchmark": "UNI",
       "bench_entry": 8.8032,
-      "mark": 8.8032,
-      "upnl_pct": -0.04997501249375258
+      "mark": 8.8924,
+      "upnl_pct": 0.9627865093262189
     }
   }
 }
