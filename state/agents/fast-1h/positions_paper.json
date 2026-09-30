@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-30T13:19:14.576933Z",
+  "updated": "2026-09-30T14:19:01.613378Z",
   "mode": "paper",
   "positions": {
     "CRV": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 8.422670070845841,
       "entry_fee": 0.03830772298130774,
-      "funding_paid": 0.062332788817941055,
+      "funding_paid": 0.06338861587418512,
       "opened": "2026-09-28T18:17:20Z",
       "opened_ts": 1790619440,
-      "last_bar_t": 1790769600,
-      "last_funding_ts": 1790774303,
+      "last_bar_t": 1790773200,
+      "last_funding_ts": 1790777875,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,53 +44,8 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2699.2,
-      "mark": 0.39657,
-      "upnl_pct": 9.640355746003948
-    },
-    "AVAX": {
-      "coin": "AVAX",
-      "side": "long",
-      "kind": "flip",
-      "tier": "A",
-      "mode": "paper",
-      "entry": 11.18559,
-      "stop": 10.98989832971056,
-      "initial_stop": 10.144348319088884,
-      "notional": 106.62053546999454,
-      "sz": 9.531954547770349,
-      "risk_amt": 10.166083996561884,
-      "leverage": 3,
-      "notional_pct_equity": 10.487866862604426,
-      "entry_fee": 0.04797924096149754,
-      "funding_paid": 0.05927018304616135,
-      "opened": "2026-09-29T07:16:25Z",
-      "opened_ts": 1790666185,
-      "last_bar_t": 1790769600,
-      "last_funding_ts": 1790774303,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "Bullish",
-        "pair_daily": "Bullish",
-        "h4_range": "Overextended",
-        "funding_annual_pct": 14.217217200000002,
-        "hours_mode": "auto"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:fast-1h",
-        "trigger:flip",
-        "tier:A",
-        "stop:1h-line",
-        "long-only",
-        "book:l1s"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "l1s",
-      "benchmark": "BTC",
-      "bench_entry": 83979.0,
-      "mark": 11.29,
-      "upnl_pct": 0.9334331045568467
+      "mark": 0.38798,
+      "upnl_pct": 7.265464413179545
     }
   }
 }
