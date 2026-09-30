@@ -221,7 +221,7 @@ class Synthetic(unittest.TestCase):
             DP.main(["--kv-json", str(out), "--state", str(self.st), "--config", str(self.cfg), "--now", str(S.NOW)])
         kv = json.loads(out.read_text())
         self.assertTrue({"exec:latest", "exec:ledger", "exec:stamp", "doc:index"} <= set(kv))
-        self.assertTrue(all(k in ("exec:latest", "exec:ledger", "exec:stamp", "exec:agents", "doc:index") or k.startswith("doc:") for k in kv))
+        self.assertTrue(all(k in ("exec:latest", "exec:ledger", "exec:stamp", "exec:agents", "exec:factory", "doc:index") or k.startswith("doc:") for k in kv))
         idx = json.loads(kv["exec:agents"])
         self.assertEqual(idx["agents"][0]["id"], "core")
         bad = {"equity", "cash", "notional", "pnl", "risk_amt", "start", "peak"}
@@ -244,9 +244,11 @@ class Synthetic(unittest.TestCase):
         with mock.patch.object(DP, "api", fake_api), mock.patch.object(DP, "kv_get", return_value=json.dumps(index)) as get, \
                 mock.patch.dict("os.environ", env), contextlib.redirect_stdout(io.StringIO()):
             DP.main(["--state", str(self.st), "--config", str(self.cfg), "--now", str(S.NOW)])
-        self.assertEqual([c.args for c in get.call_args_list], [("ns1", "doc:index"), ("ns1", "exec:agents")])
+        want = [("ns1", "doc:index"), ("ns1", "exec:agents")] + ([("ns1", "exec:factory")] if DP.factory_payload() else [])
+        self.assertEqual([c.args for c in get.call_args_list], want)       # exec:factory is read to write it only on change
         self.assertEqual(calls[1][0], "/storage/kv/namespaces/ns1/bulk")
-        self.assertEqual([x["key"] for x in calls[1][1]], ["exec:latest", "exec:ledger", "exec:stamp", "exec:agents"])
+        self.assertEqual([x["key"] for x in calls[1][1]], ["exec:latest", "exec:ledger", "exec:stamp", "exec:agents"]
+                         + (["exec:factory"] if DP.factory_payload() else []))    # the mocked read returned nothing, so it differs
         self.assertEqual(len(calls), 2)
 
     def test_scrubber_refuses_a_leak(self):

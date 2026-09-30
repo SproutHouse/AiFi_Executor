@@ -1,0 +1,63 @@
+# The owner's switch from paper to live for ONE agent (docs/specs/FACTORY.md, Phase 5). Nothing else can flip it.
+name: go-live
+on:
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: "Agent id (from the dashboard's Shortlist)"
+        required: true
+        type: string
+      pot_usd:
+        description: "The live wallet's starting balance in USD (its paper twin gets the same)"
+        required: true
+        type: string
+      confirm:
+        description: "Type exactly: LIVE <agent id>   (or BACK <agent id> to return it to paper)"
+        required: true
+        type: string
+      allow_github_runner:
+        description: "Allow live orders from GitHub's own (US-hosted) runners. Leave off unless you have decided that is acceptable."
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: executor
+  cancel-in-progress: false
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check the confirmation and where live orders would run from
+        env:
+          AGENT: ${{ inputs.agent }}
+          CONFIRM: ${{ inputs.confirm }}
+          RUNNER: ${{ vars.RUNNER_LABEL }}
+          ALLOW: ${{ inputs.allow_github_runner }}
+        run: |
+          if [ "$CONFIRM" = "BACK $AGENT" ]; then echo "returning $AGENT to paper"; exit 0; fi
+          [ "$CONFIRM" = "LIVE $AGENT" ] || { echo "::error::confirm must be exactly: LIVE $AGENT"; exit 1; }
+          if [ -z "$RUNNER" ] && [ "$ALLOW" != "true" ]; then
+            echo "::error::Live orders would be sent from GitHub's US-hosted runners. Set the RUNNER_LABEL variable to your own runner, or tick allow_github_runner if you have decided that is acceptable."
+            exit 1
+          fi
+      - name: Switch
+        env:
+          AGENT: ${{ inputs.agent }}
+          POT: ${{ inputs.pot_usd }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          if [ "$CONFIRM" = "BACK $AGENT" ]; then python3 scripts/go_live.py "$AGENT" --back; else python3 scripts/go_live.py "$AGENT" --pot "$POT"; fi
+      - name: Commit
+        env:
+          AGENT: ${{ inputs.agent }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          git config user.name "aifi-runner"
+          git config user.email "aifi-runner@users.noreply.github.com"
+          git add -A agents config
+          git commit -q -m "Go-live: $CONFIRM"
+          for i in 1 2 3; do git pull -q --rebase --autostash || true; git push -q && exit 0; sleep 10; done; exit 1

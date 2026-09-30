@@ -18,7 +18,7 @@ const facts = {};
 const bad = (m) => problems.push(m);
 
 // ------------------------------------------------------------------ module contract (source files) --
-const ORDER = ["core", "gaterun", "dial", "now", "activity", "positions", "results", "rules", "arrival", "boot"];
+const ORDER = ["core", "gaterun", "dial", "now", "activity", "positions", "results", "rules", "arrival", "factory", "boot"];
 const code = (src) => src.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n").replace(/\/\*[\s\S]*?\*\//g, "").trim();
 for (const n of ORDER) {
   const p = path.join(cloud, "ui", n + ".js");

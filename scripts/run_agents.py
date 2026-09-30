@@ -100,9 +100,41 @@ def main(argv):
                 print(f"[{aid}] dashboard push failed (the cycle itself is unaffected)", flush=True)
         else:
             print(f"[{aid}] no Cloudflare secrets: dashboard not pushed", flush=True)
+    if not dry:
+        fleet_guard()
     if failed:
         print("failed agents: " + ", ".join(failed), flush=True)
         sys.exit(1)
+
+
+def fleet_guard():
+    """The fleet kill switch's automatic trigger: when the LIVE agents together are down more than
+    agents/fleet.json max_live_dd_pct from their peaks, set state/FLEET_HALT (no agent enters; exits still run).
+    Fleet drawdown = 1 - sum(current equity) / sum(each agent's own peak), which never understates the real one."""
+    f = C.fleet()
+    lim = f.get("max_live_dd_pct")
+    if not lim or C.FLEET_HALT.exists():
+        return None
+    cur = peak = 0.0
+    for a in C.agents():
+        if not a.get("enabled", True):
+            continue
+        st = C.ROOT / "state" if a["id"] == "core" else C.ROOT / "state" / "agents" / a["id"]
+        pts = [p for p in C.read_jsonl(st / "ledger" / "equity.jsonl") if p.get("mode") == "live" and p.get("equity")]
+        if pts:
+            cur += pts[-1]["equity"]
+            peak += max(p["equity"] for p in pts)
+    if peak <= 0:
+        return None
+    dd = (1 - cur / peak) * 100
+    print(f"fleet (live): drawdown {dd:.1f}% (limit {lim}%)", flush=True)
+    if dd > float(lim):
+        C.FLEET_HALT.parent.mkdir(parents=True, exist_ok=True)
+        C.FLEET_HALT.write_text(f"fleet drawdown {dd:.1f}% beyond {lim}%")
+        C.FLEET_HALT.with_name("FLEET_HALT.since").write_text(C.iso())
+        C.notify("Executor: FLEET HALTED", f"live agents together are down {dd:.1f}% (limit {lim}%); no agent enters, exits still run. "
+                                          "Resume with the control workflow (fleet-resume) once reviewed.")
+    return dd
 
 
 if __name__ == "__main__":

@@ -36,7 +36,9 @@ def equity(p, positions, marks):
         if pos.get("kind") == "carry":
             unreal += carry_value(pos, m)
         elif m:
-            unreal += (m - pos["entry"]) / pos["entry"] * pos["notional"]
+            # open P&L less the funding already owed: funding is charged to cash at close (cycle._record_close), so
+            # counting it here keeps equity (and the throttle's drawdown) honest while the position is open
+            unreal += (m - pos["entry"]) / pos["entry"] * pos["notional"] - pos.get("funding_paid", 0.0)
     return p["cash"] + unreal, unreal
 
 

@@ -4,6 +4,9 @@
 name: deploy-dashboard
 on:
   workflow_dispatch: {}
+  push:                      # redeploy when the dashboard's own code changes (not on the hourly state commits)
+    branches: [main]
+    paths: ["cloud/worker.js", "cloud/design.js", "cloud/mission.js", "cloud/ui/**", "cloud/wrangler.toml"]
 permissions:
   contents: read
 jobs:

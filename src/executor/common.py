@@ -18,6 +18,11 @@ if not re.fullmatch(r"[a-z][a-z0-9-]{1,23}", AGENT):
 CONFIG = ROOT / "config" if AGENT == "core" else ROOT / "agents" / AGENT
 STATE = Path(os.environ.get("EXECUTOR_STATE") or (ROOT / "state" if AGENT == "core" else ROOT / "state" / "agents" / AGENT))
 DOCS = ROOT / "docs"
+# The fleet: one kill switch and one size dial over every agent (docs/specs/FACTORY.md, Phase 6). agents/fleet.json is
+# the owner's and the lab's settings; state/FLEET_HALT is the switch (set by the control workflow or by the fleet
+# drawdown guard in run_agents.py). Exits are never blocked by it, exactly like an agent's own HALT.
+FLEET_CFG = ROOT / "agents" / "fleet.json"
+FLEET_HALT = Path(os.environ.get("EXECUTOR_FLEET_HALT") or (ROOT / "state" / "FLEET_HALT"))
 BAR_SECONDS = 4 * 3600
 
 
@@ -200,3 +205,20 @@ def local_now(tz_name):
 
 def pct(x, nd=2):
     return f"{x * 100:.{nd}f}%"
+
+
+def fleet():
+    return load_json(FLEET_CFG) or {}
+
+
+def fleet_mult(agent=None):
+    """The fleet's size dial for this agent, 0..1. Only applied when the owner turned on apply_regime_weights (the
+    lab then writes size_mult from the regime weights); paper arena agents keep 1.0 so they stay comparable with
+    their backtests."""
+    f = fleet()
+    if not f.get("apply_regime_weights"):
+        return 1.0
+    try:
+        return max(0.0, min(1.0, float((f.get("size_mult") or {}).get(agent or AGENT, 1.0))))
+    except (TypeError, ValueError):
+        return 1.0

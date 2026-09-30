@@ -14,6 +14,7 @@ import POSITIONS from "./ui/positions.js";
 import RESULTS from "./ui/results.js";
 import RULES from "./ui/rules.js";
 import ARRIVAL from "./ui/arrival.js";
+import FACTORY from "./ui/factory.js";
 import BOOT from "./ui/boot.js";
 import GATERUN_CSS from "./ui/gaterun.css";
 import DIAL_CSS from "./ui/dial.css";
@@ -23,6 +24,7 @@ import POSITIONS_CSS from "./ui/positions.css";
 import RESULTS_CSS from "./ui/results.css";
 import RULES_CSS from "./ui/rules.css";
 import ARRIVAL_CSS from "./ui/arrival.css";
+import FACTORY_CSS from "./ui/factory.css";
 
 const APP = "AiFi Executor";
 const COOKIE = "ex";
@@ -36,7 +38,7 @@ const DOC_TITLES = { how_it_works: "How it works", logic: "Decision logic", risk
 // module is one block. Modules are joined with ";" on its own line so a missing semicolon or a trailing
 // line comment in one file can never swallow the next; then the text is made safe to inline in <script>.
 const MODULES = [["core", CORE], ["gaterun", GATERUN], ["dial", DIAL], ["now", NOW], ["activity", ACTIVITY],
-                 ["positions", POSITIONS], ["results", RESULTS], ["rules", RULES], ["arrival", ARRIVAL], ["boot", BOOT]];
+                 ["positions", POSITIONS], ["results", RESULTS], ["rules", RULES], ["arrival", ARRIVAL], ["factory", FACTORY], ["boot", BOOT]];
 const inlineSafe = (s) => String(s).replace(/<\/(script)/gi, "<\\/$1").replace(/<!--/g, "<\\!--");
 // Size (spec §15): the CORE API comment block, whole-line // comments, blank lines and indentation are dropped
 // at join time (about 65 KB). Line breaks stay, so automatic semicolon insertion is untouched. This is safe
@@ -56,7 +58,7 @@ const CLIENT = inlineSafe('(function(){"use strict";\n'
   + "\n})();");
 // CSS comments and indentation are dropped the same way (no stylesheet has "/*" inside a string or url()).
 const leanCss = (c) => String(c || "").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map(l => l.trim()).filter(Boolean).join("\n");
-const CSS = [DESIGN_CSS, MISSION_CSS, GATERUN_CSS, DIAL_CSS, NOW_CSS, ACTIVITY_CSS, POSITIONS_CSS, RESULTS_CSS, RULES_CSS, ARRIVAL_CSS].map(leanCss).join("\n");
+const CSS = [DESIGN_CSS, MISSION_CSS, GATERUN_CSS, DIAL_CSS, NOW_CSS, ACTIVITY_CSS, POSITIONS_CSS, RESULTS_CSS, RULES_CSS, ARRIVAL_CSS, FACTORY_CSS].map(leanCss).join("\n");
 
 export default {
   async fetch(request, env) {
@@ -77,6 +79,7 @@ export default {
     if (!/^[a-z][a-z0-9-]{1,23}$/.test(ag)) return json({ error: "bad agent id" }, 400);
     const k = (name) => ag === "core" ? "exec:" + name : "exec:" + ag + ":" + name;
     if (p === "/api/agents") return kvRaw(env, "exec:agents", '{"v":1,"agents":[]}');
+    if (p === "/api/factory") return kvRaw(env, "exec:factory", '{"v":1}');
     if (p === "/api/latest") return kvRaw(env, k("latest"));
     if (p === "/api/ledger") return ledger(env, k("ledger"));
     if (p === "/api/stamp") return kvRaw(env, k("stamp"), "{}");

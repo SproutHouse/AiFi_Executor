@@ -701,6 +701,9 @@ class Bundle:
     def halt(self):
         """From the HALT file, never from last_run. since: HALT.since, else the ISO in the HALT text, else null (never mtime)."""
         f = self.X.halt_file
+        side_name = "HALT.since"
+        if not f.exists() and C.FLEET_HALT.exists():        # the fleet kill switch halts every agent
+            f, side_name = C.FLEET_HALT, "FLEET_HALT.since"
         if not f.exists():
             return {"set": False, "reason": None, "since": None}
         try:
@@ -709,7 +712,7 @@ class Bundle:
             text = ""
         reason, iso = halt_reason(text)
         since = None
-        side = f.with_name("HALT.since")
+        side = f.with_name(side_name)
         if side.exists():
             try:
                 m = ISO_RX.search(side.read_text())
@@ -1502,6 +1505,19 @@ def namespace_id():
     raise RuntimeError(f"KV namespace '{NAMESPACE_TITLE}' not found; run the deploy-dashboard workflow first")
 
 
+FACTORY_MAX_BYTES = 200_000
+
+
+def factory_payload():
+    """factory/factory.json (written by the AiFi Lab: shortlist evidence, fleet allocation, lab totals) as the
+    exec:factory value, or None. Ratios, percentages and ids only; capped in size; never required."""
+    raw = C.load_json(C.ROOT / "factory" / "factory.json")
+    if not isinstance(raw, dict) or raw.get("v") != 1:
+        return None
+    out = dumps(raw)
+    return out if len(out) <= FACTORY_MAX_BYTES else None
+
+
 def write_kv_json(path, b, docs):
     """The local preview's KV: every key a fresh namespace would hold. Returns the pairs a real push would write,
     judged against the doc:index already in the file."""
@@ -1514,6 +1530,9 @@ def write_kv_json(path, b, docs):
     full = {k: v for k, v in prev.items() if k.startswith("exec:")}          # keep the other agents' payloads
     full.update({key("latest"): pairs[key("latest")], key("ledger"): pairs[key("ledger")], key("stamp"): pairs[key("stamp")], "doc:index": dumps(index)})
     full["exec:agents"] = dumps(agents_index(prev.get("exec:agents"), b))
+    fac = factory_payload()
+    if fac:
+        full["exec:factory"] = fac
     full.update({f"doc:{slug}": t for slug, t in docs.items()})
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text(json.dumps(full, indent=1, ensure_ascii=False) + "\n")
@@ -1552,6 +1571,9 @@ def main(argv=None):
         remote_index = None
     pairs, _ = kv_pairs(b, docs, remote_index)
     pairs["exec:agents"] = dumps(agents_index(kv_get(ns, "exec:agents"), b))
+    fac = factory_payload()
+    if fac and kv_get(ns, "exec:factory") != fac:          # written only when the lab changed it (KV write budget)
+        pairs["exec:factory"] = fac
     res = api(f"/storage/kv/namespaces/{ns}/bulk", [{"key": k, "value": v} for k, v in pairs.items()])
     if not res.get("success"):
         raise RuntimeError(f"bulk write failed: {res.get('errors')}")

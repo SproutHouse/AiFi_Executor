@@ -620,7 +620,8 @@ SHEETS.agents = function () {
     + '<td class="num">' + R(a.rec && a.rec.rel_R_avg) + '</td><td class="num">' + P(a.pot_chg_pct) + '</td><td class="num">' + (a.n_open != null ? a.n_open : '—') + '</td>'
     + '<td class="l">' + status(a) + '</td><td class="l sub">' + ago(a.last_t) + '</td></tr>').join('')
     : '<tr><td colspan="10" class="empty">No agent has pushed yet. Each agent appears here after its first check.</td></tr>';
-  return { html: '<div class="doc"><h2>Agents</h2><p class="sub">Each agent runs its own rules with its own key and its own pot. Tap one to switch the whole dashboard to it. Results are in R and % of each agent\'s own pot, so they compare fairly across pot sizes; judge nothing under 30 closed trades.</p></div>'
+  return { html: '<div class="doc"><h2>Agents</h2><p class="sub">Each agent runs its own rules with its own key and its own pot. Tap one to switch the whole dashboard to it. Results are in R and % of each agent\'s own pot, so they compare fairly across pot sizes; judge nothing under 30 closed trades.</p>'
+    + '<p class="fx-line"><button class="btn small primary" type="button" data-sheet="shortlist">Shortlist</button> <button class="btn small" type="button" data-sheet="fleet">Fleet</button> <span class="sub">bots from the AiFi Lab, and how the whole fleet is split</span></p></div>'
     + '<div class="tbl"><table><thead><tr><th class="l">Agent</th><th class="l">Mode</th><th>Trades</th><th>Avg</th><th>Total</th><th>vs hold</th><th>Pot</th><th>Open</th><th class="l">Status</th><th class="l">Last check</th></tr></thead><tbody>' + body + '</tbody></table></div>',
     after(el) { $$('[data-agent-go]', el).forEach(b => b.onclick = () => switchAgent(b.dataset.agentGo)); } };
 };

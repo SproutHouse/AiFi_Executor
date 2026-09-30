@@ -40,3 +40,12 @@ and prints the `workers.dev` address of the page in the deploy step's log. Bookm
 home screen for an app-like view.
 
 Redeploy the same way after any change under `cloud/`. The bundle refreshes on its own every cycle.
+
+## Shortlist and Fleet (bot factory, 2026-09-30)
+
+Tap the agent name in the top bar to open **Agents**, then:
+- **Shortlist:** every AiFi Lab bot in the paper arena, with its evidence (backtest, unseen year, market regimes, paper vs backtest) and a Ready verdict with reasons. It links to the go-live workflow; the dashboard itself never switches anything.
+- **Fleet:** the equal-risk split with regime weights, the correlation matrix, paper and live totals, and the fleet kill switch.
+
+The data comes from `factory/factory.json`, written by the lab nightly and carried to KV (`exec:factory`, route
+`/api/factory`) by the hourly push, which writes it only when it changed. The sheets live in `cloud/ui/factory.js`.

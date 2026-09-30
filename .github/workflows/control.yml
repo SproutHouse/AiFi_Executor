@@ -9,10 +9,10 @@ on:
         type: string
         default: "core"
       action:
-        description: "flatten closes every position and halts; halt stops new entries; resume clears the halt"
+        description: "flatten closes every position and halts; halt stops new entries; resume clears the halt; fleet-halt / fleet-resume do it for EVERY agent"
         required: true
         type: choice
-        options: ["halt", "resume", "flatten"]
+        options: ["halt", "resume", "flatten", "fleet-halt", "fleet-resume"]
       reason:
         description: "Why (recorded)"
         required: false
@@ -53,12 +53,34 @@ jobs:
           HL_ACCOUNT_ADDRESS_TREND_1D: ${{ secrets.HL_ACCOUNT_ADDRESS_TREND_1D }}
           HL_AGENT_KEY_CARRY_1H: ${{ secrets.HL_AGENT_KEY_CARRY_1H }}
           HL_ACCOUNT_ADDRESS_CARRY_1H: ${{ secrets.HL_ACCOUNT_ADDRESS_CARRY_1H }}
+          HL_AGENT_KEY_ARENA_01: ${{ secrets.HL_AGENT_KEY_ARENA_01 }}
+          HL_ACCOUNT_ADDRESS_ARENA_01: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_01 }}
+          HL_AGENT_KEY_ARENA_02: ${{ secrets.HL_AGENT_KEY_ARENA_02 }}
+          HL_ACCOUNT_ADDRESS_ARENA_02: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_02 }}
+          HL_AGENT_KEY_ARENA_03: ${{ secrets.HL_AGENT_KEY_ARENA_03 }}
+          HL_ACCOUNT_ADDRESS_ARENA_03: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_03 }}
+          HL_AGENT_KEY_ARENA_04: ${{ secrets.HL_AGENT_KEY_ARENA_04 }}
+          HL_ACCOUNT_ADDRESS_ARENA_04: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_04 }}
+          HL_AGENT_KEY_ARENA_05: ${{ secrets.HL_AGENT_KEY_ARENA_05 }}
+          HL_ACCOUNT_ADDRESS_ARENA_05: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_05 }}
+          HL_AGENT_KEY_ARENA_06: ${{ secrets.HL_AGENT_KEY_ARENA_06 }}
+          HL_ACCOUNT_ADDRESS_ARENA_06: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_06 }}
+          HL_AGENT_KEY_ARENA_07: ${{ secrets.HL_AGENT_KEY_ARENA_07 }}
+          HL_ACCOUNT_ADDRESS_ARENA_07: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_07 }}
+          HL_AGENT_KEY_ARENA_08: ${{ secrets.HL_AGENT_KEY_ARENA_08 }}
+          HL_ACCOUNT_ADDRESS_ARENA_08: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_08 }}
+          HL_AGENT_KEY_ARENA_09: ${{ secrets.HL_AGENT_KEY_ARENA_09 }}
+          HL_ACCOUNT_ADDRESS_ARENA_09: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_09 }}
+          HL_AGENT_KEY_ARENA_10: ${{ secrets.HL_AGENT_KEY_ARENA_10 }}
+          HL_ACCOUNT_ADDRESS_ARENA_10: ${{ secrets.HL_ACCOUNT_ADDRESS_ARENA_10 }}
           EXECUTOR_AGENT: ${{ inputs.agent }}
         run: |
           case "$ACTION" in
             flatten) ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/control.py --flatten ;;
             halt)    ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/control.py --halt "$REASON" ;;
             resume)  ${{ steps.py.outputs.bin }} scripts/with_agent_keys.py ${{ steps.py.outputs.bin }} scripts/control.py --resume ;;
+            fleet-halt)   python3 scripts/control.py --fleet-halt "$REASON" ;;
+            fleet-resume) python3 scripts/control.py --fleet-resume ;;
           esac
       - name: Push the dashboard bundle
         if: always()

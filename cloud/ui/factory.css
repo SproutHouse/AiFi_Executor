@@ -1,0 +1,24 @@
+/* cloud/ui/factory.css — Shortlist and Fleet sheets (docs/specs/FACTORY.md). Prefix fx-. Tokens only. */
+.fx-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:var(--s2) 0 0;font-size:var(--fs-sm);color:var(--ink-2)}
+.fx-card{margin:var(--s3) 0 0;padding:var(--s4);border-radius:var(--r-md);background:var(--glass-2);border:1px solid var(--line)}
+.fx-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s3)}
+.fx-t{min-width:0}
+.fx-t .pill{vertical-align:1px;margin-left:4px}
+.fx-t .sub{overflow-wrap:anywhere}
+.fx-hy{margin:var(--s2) 0 0;color:var(--ink-2);font-size:var(--fs-sm);line-height:1.5}
+.fx-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s3);margin-top:var(--s3)}
+@media (min-width:640px){.fx-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.fx-h3{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 var(--s2)}
+.fx-kv{display:flex;justify-content:space-between;gap:var(--s2);font-size:var(--fs-sm);padding:2px 0;border-bottom:1px solid var(--line)}
+.fx-kv i{font-style:normal;color:var(--muted)}
+.fx-kv b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--ink);white-space:nowrap}
+.fx-nr{margin:var(--s3) 0 0;padding-left:18px;color:var(--ink-2);font-size:var(--fs-sm)}
+.fx-go{margin-top:var(--s3);font-size:var(--fs-sm)}
+.fx-go summary{cursor:pointer;color:var(--accent);font-weight:600;min-height:44px;display:flex;align-items:center}
+.fx-go ol{margin:var(--s2) 0 0;padding-left:18px;color:var(--ink-2);line-height:1.55}
+.fx-go code{font-family:var(--mono);font-size:.92em;overflow-wrap:anywhere}
+.fx-tot{display:grid;gap:4px;margin-top:var(--s3);max-width:420px}
+.fx-corr td.num{font-family:var(--mono)}
+.fx-c1{background:var(--accent-soft)}
+.fx-c2{background:var(--warn-soft)}
+.fx-c3{background:var(--bad-soft)}

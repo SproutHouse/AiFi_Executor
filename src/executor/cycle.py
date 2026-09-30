@@ -19,8 +19,15 @@ from . import families as F, market_regime as MR
 HALT = C.STATE / "HALT"
 
 
+def agent_coins(s):
+    t, c = s.get("target") or {}, s.get("carry") or {}
+    return list(t.get("coins") or t.get("weights") or []) + list(c.get("basket") or [])
+
+
 def resolve_mode(s):
     mode = s.get("mode", "paper")
+    if mode == "live" and any(H.is_builder(c) for c in agent_coins(s)) and not s.get("builder_live_validated"):
+        return "paper", "live requested but builder-market (HIP-3) order handling is not validated yet (docs/specs/MARKETS.md): running paper"
     if mode == "live" and s.get("strategy") == "carry" and not s.get("carry_live_validated"):
         return "paper", "live requested but carry live order handling is not validated on testnet yet (Phase 4): running paper"
     if mode == "live":
@@ -61,6 +68,8 @@ class Bars:
     def get(self, coin):
         if coin not in self.cache:
             d = H.candles(coin, "1d", self.s["data"]["candle_days_daily"])
+            if H.is_builder(coin):
+                d = H.weekdays(d)
             days = self.s["data"].get("candle_days_trigger", self.s["data"]["candle_days_4h"]) if self.tf != "4h" else self.s["data"]["candle_days_4h"]
             h = d if self.tf == "1d" else H.candles(coin, self.tf, days)
             self.cache[coin] = (d, h)
@@ -96,6 +105,9 @@ class Cycle:
         self.hours_mode, self.local = HR.mode(self.s)
         self.halt = HALT.exists()
         self.halt_reason = HALT.read_text().strip() if self.halt else ""
+        if not self.halt and C.FLEET_HALT.exists():
+            self.halt, self.halt_reason = True, "fleet halt: " + (C.FLEET_HALT.read_text().strip() or "manual")
+        self.fleet_mult = C.fleet_mult()
         self.bars = Bars(self.s)
         self.ex = self.info = self.addr = None
         self.pot = None
@@ -121,7 +133,7 @@ class Cycle:
 
     # ------------------------------------------------------------ market --
     def load_market(self):
-        self.ctxs = H.meta_and_ctxs()
+        self.ctxs = H.meta_and_ctxs({c.split(":")[0] for c in agent_coins(self.s) if H.is_builder(c)})
         self.marks = {k: float(v["markPx"]) for k, v in self.ctxs.items() if v.get("markPx")}
         btc_d, btc_h = self.bars.get("BTC")
         self.btc = R.context(btc_d, btc_h, self.now, self.s["indicators"])
@@ -428,7 +440,7 @@ class Cycle:
         else:
             sanity_ok, sanity_detail = True, "no second source for this coin"
         worst_entry = mark * (1 + self.s["entry_slippage_cap_pct"] / 100)
-        sizing = K.size(self.equity or 0.0, worst_entry, cand["stop"], self.s, row.get("maxLeverage"), self.thr["multiplier"])
+        sizing = K.size(self.equity or 0.0, worst_entry, cand["stop"], self.s, row.get("maxLeverage"), self.thr["multiplier"] * self.fleet_mult)
         flags = {"halt": self.halt, "halt_reason": self.halt_reason, "throttle_halt": self.thr["halt"],
                  "drawdown_pct": self.thr["drawdown_pct"], "fresh": self.fresh, "fresh_detail": self.fresh_detail,
                  "sanity_ok": sanity_ok, "sanity_detail": sanity_detail, "universe_ok": u_ok, "universe_reasons": u_reasons,
@@ -599,7 +611,7 @@ class Cycle:
                     L.record_refusal({"coin": coin, "kind": "carry", "tier": "C"}, failed, self.now, "pre-trade")
                 self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} REFUSED: " + "; ".join(f"{c['check']} ({c['detail']})" for c in failed))
                 return
-            n = CA.target_notional(self.equity or 0.0, n_active, cfg)
+            n = CA.target_notional(self.equity or 0.0, n_active, cfg) * self.fleet_mult
             pos = {"coin": coin, "kind": "carry", "side": "carry", "mode": self.mode, "state": "entering", "target_n": n,
                    "capital": n * (1 + 1 / cfg["perp_leverage"]), "book": "carry", "opened": C.iso(self.now), "opened_ts": self.now,
                    "last_funding_ts": int(self.now * 1000), "legs": {"spot": {"pair": pair["pair"], "sz": 0.0, "entry": 0.0, "mark": spot_mid},
@@ -771,7 +783,7 @@ class Cycle:
             return
         pos = self.positions.get(coin)
         cur = pos["sz"] * mark if pos else 0.0
-        mult = self.thr["multiplier"] if self.thr["multiplier"] > 0 else 1.0
+        mult = (self.thr["multiplier"] if self.thr["multiplier"] > 0 else 1.0) * self.fleet_mult
         tgt = frac * eq * mult
         action = TG.decide(cur, tgt, band)
         self.say(f"{coin}: target {tgt / eq * 100 if eq else 0:.0f}% of pot, holding {cur / eq * 100 if eq else 0:.0f}% → {action}")
@@ -870,7 +882,7 @@ class Cycle:
         self.run_doc = {"t": C.iso(self.now), "agent": C.AGENT, "tf": self.bars.tf, "mode": self.mode, "hours": self.hours_mode, "dry": self.dry, "fresh": self.fresh,
                         "failed": self.failed, "btc_weekly": R.label(self.btc.get("weekly_dir")), "btc_daily": R.label(self.btc.get("daily_dir")),
                         "positions": sorted(self.positions), "open_proposals": [p["id"] for p in P.open_proposals()],
-                        "throttle": self.thr, "halt": self.halt, "counts": self.counts, "summary": self.summary,
+                        "throttle": self.thr, "halt": self.halt, "fleet_mult": self.fleet_mult, "counts": self.counts, "summary": self.summary,
                         "readings": self.readings, "equity": self.equity, "hours_local": self.local.strftime("%H:%M %Z")}
         if not self.dry:
             C.write_json(C.STATE / "runs" / "last_run.json", self.run_doc)

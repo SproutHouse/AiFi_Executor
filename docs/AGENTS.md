@@ -19,6 +19,11 @@ that survived the lab's frozen gates and a locked holdout. It runs in paper with
 automatically if its paper stops matching its backtest (specs/FACTORY.md). Their `desc` carries the recipe id and the
 backtest numbers.
 
+**Twins** (`<agent>-twin`) are started by the go-live workflow. When an agent goes live, its twin keeps running the same rules
+in paper with the same pot; the gap between the two is the real cost of execution. A twin never goes live itself.
+**The fleet** (`agents/fleet.json`, `state/FLEET_HALT`) is one kill switch and one optional size dial over every
+agent (specs/FACTORY.md).
+
 Evidence: [backtests/variants.md](backtests/variants.md). Trading more often on these signals mostly trades away the
 edge; the live paper comparison exists to test that with real fills rather than argue about it.
 

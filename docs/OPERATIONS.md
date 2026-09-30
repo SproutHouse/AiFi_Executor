@@ -59,6 +59,14 @@ The throttle halts on its own at a 20% drawdown; `resume` clears that too, so lo
    the pot dictates; keep the pot small until 30 live trades have matched the rules.
 9. After 30 live trades with positive expectancy, consider raising the pot. Never raise the caps.
 
+### Going live with a factory bot (arena agents, Trend, Core, Wide)
+
+Use the **go-live** workflow instead of editing settings by hand (docs/specs/FACTORY.md → Shortlist and going
+live). Steps 1–5 above still apply to that agent's own wallet. Add its two secrets, `HL_AGENT_KEY_<ID>` and
+`HL_ACCOUNT_ADDRESS_<ID>`, then run go-live with the confirmation `LIVE <agent>`. A paper twin starts beside it.
+`BACK <agent>` returns it to paper. The fleet kill switch (`control → fleet-halt` / `fleet-resume`) stops new
+entries on every agent at once.
+
 ## Books
 
 `config/books.json` holds the books. To retire a book, set `"enabled": false`; open positions in it still
@@ -71,6 +79,20 @@ See [DASHBOARD.md](DASHBOARD.md). One-time: three secrets and the **deploy-dashb
 then refreshes after every cycle on its own.
 
 ## Running outside the United States and Canada
+
+**2026-09-29: Oracle denied the signup and will not reconsider.** Paper trading sends no orders, so it keeps
+running on GitHub's runners. The question only matters when the first bot goes live, and go-live refuses GitHub's
+runners until you decide. The alternatives:
+
+| Option | Cost | Where | Fit |
+|---|---|---|---|
+| alwaysdata free plan | free for life, no card advertised | Paris | 1 GB disk, 256 MB RAM, ¼ CPU, SSH and scheduled tasks. Too small for a GitHub runner; the hourly cycle would run from its own scheduled task and push state with a narrow token. Best free fit. |
+| Hetzner CAX11 / CX22 | about €4 a month | Germany, Finland | A real server: the self-hosted runner below works as written. Most robust. |
+| Koyeb free instance | free, card required since 2026 | Frankfurt | Web services only, sleeps after an hour idle: not suitable for scheduled jobs. |
+| Google Cloud always-free | free | US regions only | Fails the location rule. |
+
+The self-hosted runner steps below were written for Oracle and work unchanged on any Ubuntu server.
+
 
 GitHub's free runners are in US data centres and the free plan cannot choose a region, so the executor
 can instead run on a server you control, registered with GitHub as a self-hosted runner. GitHub then only

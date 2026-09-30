@@ -25,17 +25,31 @@ def info(body):
     return C.http_json(API, body)
 
 
-def meta_and_ctxs():
-    """{coin: {szDecimals, maxLeverage, dayNtlVlm, openInterest, funding, markPx, oraclePx, midPx, ...}}"""
-    meta, ctxs = info({"type": "metaAndAssetCtxs"})
+def meta_and_ctxs(dexes=()):
+    """{coin: {szDecimals, maxLeverage, dayNtlVlm, openInterest, funding, markPx, oraclePx, midPx, ...}}.
+    dexes: builder-deployed perp exchanges (HIP-3, e.g. "xyz") to include; their coins are named "xyz:SP500"."""
     out = {}
-    for i, u in enumerate(meta["universe"]):
-        if u.get("isDelisted"):
-            continue
-        row = dict(u)
-        row.update(ctxs[i] if i < len(ctxs) else {})
-        out[u["name"]] = row
+    for dex in [None] + sorted(set(dexes or ())):
+        meta, ctxs = info({"type": "metaAndAssetCtxs", "dex": dex} if dex else {"type": "metaAndAssetCtxs"})
+        for i, u in enumerate(meta["universe"]):
+            if u.get("isDelisted"):
+                continue
+            row = dict(u)
+            row.update(ctxs[i] if i < len(ctxs) else {})
+            out[u["name"]] = row
     return out
+
+
+def is_builder(coin):
+    """A builder-market (HIP-3) coin: "dex:NAME". These are stock indices, commodities and stocks."""
+    return ":" in coin
+
+
+def weekdays(bars):
+    """Builder-market perps trade all week but their underlying does not: the lab backtests on the underlying's
+    weekday history, so the engine reads weekday bars only for these coins (same calendar on both sides)."""
+    import datetime as _dt
+    return [b for b in bars if _dt.datetime.fromtimestamp(b["t"], tz=_dt.timezone.utc).weekday() < 5]
 
 
 def candles(coin, interval, days, completed_only=True):
