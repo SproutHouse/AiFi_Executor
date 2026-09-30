@@ -222,3 +222,8 @@ def fleet_mult(agent=None):
         return max(0.0, min(1.0, float((f.get("size_mult") or {}).get(agent or AGENT, 1.0))))
     except (TypeError, ValueError):
         return 1.0
+
+
+def host():
+    """Where cycles run and orders are sent from: "github" or "alwaysdata" (config/host.json, one switch for both)."""
+    return (load_json(ROOT / "config" / "host.json") or {}).get("host", "github")

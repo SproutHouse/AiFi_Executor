@@ -1,0 +1,44 @@
+# When cycles run on the owner's own server (config/host.json = alwaysdata), the server commits state but holds no
+# Cloudflare token. This pushes the dashboard for exactly the agents whose state changed in that push (KV write
+# budget: 1000 writes a day on the free plan). With host = github the cycle workflow pushes the dashboard itself.
+name: dashboard-sync
+on:
+  push:
+    branches: [main]
+    paths: ["state/**"]
+permissions:
+  contents: read
+concurrency:
+  group: dashboard-sync
+  cancel-in-progress: false
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0 }
+      - name: Agents whose state changed
+        id: changed
+        env: { BEFORE: "${{ github.event.before }}", AFTER: "${{ github.sha }}" }
+        run: |
+          HOST=$(python3 -c "import json;print(json.load(open('config/host.json')).get('host','github'))")
+          if [ "$HOST" = "github" ]; then echo "only="; exit 0; fi
+          git cat-file -e "$BEFORE" 2>/dev/null || BEFORE="$AFTER~1"
+          ONLY=$(git diff --name-only "$BEFORE" "$AFTER" -- state | python3 -c "
+          import sys
+          ids = set()
+          for p in sys.stdin.read().split():
+              parts = p.split('/')
+              if parts[1] in ('host_beat.json', 'requests', 'FLEET_HALT', 'FLEET_HALT.since'):
+                  continue
+              ids.add(parts[2] if len(parts) > 3 and parts[1] == 'agents' else 'core')
+          print(','.join(sorted(ids)))")
+          echo "only=$ONLY" >> "$GITHUB_OUTPUT"; echo "changed: $ONLY"
+      - name: Push those agents' dashboard
+        if: steps.changed.outputs.only != ''
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ONLY: ${{ steps.changed.outputs.only }}
+        run: python3 scripts/run_agents.py --push-only --only "$ONLY"

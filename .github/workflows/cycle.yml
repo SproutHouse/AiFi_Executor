@@ -28,8 +28,15 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Which host runs cycles (config/host.json)
+        id: host
+        run: echo "host=$(python3 -c "import json;print(json.load(open('config/host.json')).get('host','github'))")" >> "$GITHUB_OUTPUT"
+      - name: Standby (another host runs the cycles)
+        if: steps.host.outputs.host != 'github'
+        run: echo "config/host.json says ${{ steps.host.outputs.host }} - that server runs the cycles and GitHub stands by."
       - name: Python (a venv with the exchange SDK only when some agent is live)
         id: py
+        if: steps.host.outputs.host == 'github'
         run: |
           if grep -lq '"mode": *"live"' config/settings.json agents/*/settings.json 2>/dev/null; then
             python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
@@ -38,6 +45,7 @@ jobs:
             echo "every agent is in paper mode: system python3, standard library only"; echo "bin=python3" >> "$GITHUB_OUTPUT"
           fi
       - name: Run due agents
+        if: steps.host.outputs.host == 'github'
         env:
           HL_AGENT_KEY: ${{ secrets.HL_AGENT_KEY }}
           HL_ACCOUNT_ADDRESS: ${{ secrets.HL_ACCOUNT_ADDRESS }}
@@ -81,7 +89,7 @@ jobs:
           [ "$FORCE" = "true" ] && ARGS="$ARGS --force"
           ${{ steps.py.outputs.bin }} scripts/run_agents.py $ARGS
       - name: Commit state
-        if: always()
+        if: always() && steps.host.outputs.host == 'github'
         run: |
           git config user.name "aifi-runner"
           git config user.email "aifi-runner@users.noreply.github.com"

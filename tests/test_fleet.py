@@ -114,3 +114,27 @@ class GoLive(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HostSwitch(unittest.TestCase):
+    """config/host.json decides where cycles run; order-placing requests run only through run_requests.py."""
+    def test_default_host_is_github(self):
+        self.assertIn(C.host(), ("github", "alwaysdata"))
+        home = sandbox()
+        r = run(home, "-c", "import sys; sys.path.insert(0,'src'); from executor import common as C; print(C.host())")
+        self.assertEqual(r.stdout.strip(), json.loads((ROOT / "config" / "host.json").read_text())["host"])
+
+    def test_requests_refuse_what_they_do_not_know(self):
+        home = sandbox()
+        req = home / "state" / "requests"
+        req.mkdir(parents=True)
+        (req / "a-bogus.json").write_text(json.dumps({"action": "rm -rf", "agent": "core"}))
+        (req / "b-noagent.json").write_text(json.dumps({"action": "flatten", "agent": "nobody-here"}))
+        (req / "c-badid.json").write_text(json.dumps({"action": "approve", "agent": "core", "proposal_id": "x; rm -rf /"}))
+        (req / "d-junk.json").write_text("not json")
+        r = run(home, "scripts/run_requests.py")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        done = {p.name: json.loads(p.read_text()) for p in (req / "done").glob("*.json")}
+        self.assertEqual(sorted(done), ["a-bogus.json", "b-noagent.json", "c-badid.json", "d-junk.json"])
+        self.assertTrue(all(d["exit"] == 2 for d in done.values()))
+        self.assertEqual(list(req.glob("*.json")), [])

@@ -81,3 +81,19 @@ process is attack surface for no gain. Alerts are one-way.
 3. Rotate: approve a new agent, replace `HL_AGENT_KEY`, run `scripts/verify_keys.py`.
 4. Check the account's fills for anything the ledger does not know, and record what happened in
    `docs/DECISIONS.md`.
+
+## The alwaysdata host (2026-09-30)
+
+When `config/host.json` says `alwaysdata`, the cycle runs on a shared-hosting account in Paris, and live agents'
+API keys sit in `~/.aifi/env` there (chmod 600, never in the repo, never printed).
+
+**What that means:**
+- **The host could, in principle, read that file.** That is accepted because an API (agent) wallet can trade but can never withdraw, move funds or change the account; each live agent has its own wallet holding only its own pot; and the master keys never leave the owner.
+- **The server's GitHub token is narrow:** Contents on AiFi_Executor only, so it cannot touch the lab or any other repo.
+- **The Cloudflare token stays on GitHub.**
+
+**If the host is ever suspected compromised:**
+1. Revoke each agent's API wallet in Hyperliquid.
+2. Revoke the `aifi-server` token.
+3. Set `config/host.json` back to `github`.
+

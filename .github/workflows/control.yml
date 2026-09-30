@@ -29,8 +29,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Which host runs cycles (config/host.json)
+        id: host
+        run: echo "host=$(python3 -c "import json;print(json.load(open('config/host.json')).get('host','github'))")" >> "$GITHUB_OUTPUT"
+      - name: File the flatten for the server (no order leaves GitHub)
+        if: steps.host.outputs.host != 'github' && inputs.action == 'flatten'
+        env: { AGENT: "${{ inputs.agent }}", REASON: "${{ inputs.reason }}" }
+        run: |
+          mkdir -p state/requests
+          python3 -c "import json,os,time; t=time.strftime('%Y%m%dT%H%M%SZ',time.gmtime()); json.dump({'action':'flatten','agent':os.environ['AGENT'],'reason':os.environ['REASON'],'at':t}, open(f\"state/requests/{t}-flatten-{os.environ['AGENT']}.json\",'w'))"
+          echo "Filed. The server runs it within 5 minutes; the result lands in state/requests/done/ and as an alert."
       - name: Python (a venv with the exchange SDK only when live mode is configured)
         id: py
+        if: steps.host.outputs.host == 'github' || inputs.action != 'flatten'
         run: |
           if grep -lq '"mode": *"live"' config/settings.json agents/*/settings.json 2>/dev/null; then
             python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
@@ -39,6 +50,7 @@ jobs:
             echo "bin=python3" >> "$GITHUB_OUTPUT"
           fi
       - name: Apply
+        if: steps.host.outputs.host == 'github' || inputs.action != 'flatten'
         env:
           ACTION: ${{ inputs.action }}
           REASON: ${{ inputs.reason }}

@@ -40,8 +40,9 @@ jobs:
         run: |
           if [ "$CONFIRM" = "BACK $AGENT" ]; then echo "returning $AGENT to paper"; exit 0; fi
           [ "$CONFIRM" = "LIVE $AGENT" ] || { echo "::error::confirm must be exactly: LIVE $AGENT"; exit 1; }
-          if [ -z "$RUNNER" ] && [ "$ALLOW" != "true" ]; then
-            echo "::error::Live orders would be sent from GitHub's US-hosted runners. Set the RUNNER_LABEL variable to your own runner, or tick allow_github_runner if you have decided that is acceptable."
+          HOST=$(python3 -c "import json;print(json.load(open('config/host.json')).get('host','github'))")
+          if [ "$HOST" = "github" ] && [ -z "$RUNNER" ] && [ "$ALLOW" != "true" ]; then
+            echo "::error::Live orders would be sent from GitHub's US-hosted runners. Move cycles to your own server (config/host.json = alwaysdata), or tick allow_github_runner if you have decided GitHub is acceptable."
             exit 1
           fi
       - name: Switch

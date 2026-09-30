@@ -91,7 +91,38 @@ runners until you decide. The alternatives:
 | Koyeb free instance | free, card required since 2026 | Frankfurt | Web services only, sleeps after an hour idle: not suitable for scheduled jobs. |
 | Google Cloud always-free | free | US regions only | Fails the location rule. |
 
-The self-hosted runner steps below were written for Oracle and work unchanged on any Ubuntu server.
+**Chosen 2026-09-30: alwaysdata** (free plan, Paris). The server runs the hourly cycle itself; GitHub keeps
+everything that places no order. Everything lives in `ops/alwaysdata/`.
+
+| Piece | Where it runs |
+|---|---|
+| Hourly cycle (every agent), state commit | **server**: `tick.sh cycle` at :05 |
+| Flatten and approve, which place orders | **server**: `tick.sh requests` every 5 min. The control and approve workflows file `state/requests/*.json` instead of trading from GitHub. |
+| Halt, resume, fleet-halt, go-live | GitHub. These only edit files. |
+| Dashboard push | GitHub (`dashboard-sync`, on each state push, only the agents that changed). The Cloudflare token never leaves GitHub. |
+| Lab, research, runner-watch | GitHub, unchanged |
+
+**One switch, `config/host.json`.** GitHub's cycle workflow and the server both read it, so exactly one of them
+runs cycles. Set `"host": "alwaysdata"` only after the server passes its install checks; set it back to `"github"`
+to fail over.
+
+**Setup, once:**
+1. Create a free alwaysdata account.
+2. Turn on SSH in its admin panel.
+3. On GitHub, create a fine-grained token `aifi-server`: owner SproutHouse, only AiFi_Executor, Contents read and write.
+4. SSH in and run
+   `curl -fsSL https://raw.githubusercontent.com/SproutHouse/AiFi_Executor/main/ops/alwaysdata/install.sh -o install.sh && bash install.sh`.
+   The first run creates `~/.aifi/env` (chmod 600).
+5. Fill `GH_TOKEN` and `ALERT_WEBHOOK` in that file, then run `bash install.sh` again. It checks Python, runs a dry cycle from Paris and a push test, and prints the two scheduled tasks.
+6. Add both tasks in the admin panel: Advanced → Scheduled tasks.
+7. Flip `config/host.json` to `alwaysdata`.
+
+**Live agents on this host:** each agent's `HL_AGENT_KEY_<ID>` / `HL_ACCOUNT_ADDRESS_<ID>` go in `~/.aifi/env`
+(the GitHub secret slots are then unused). Re-run `install.sh` once an agent is live, so it installs the
+exchange SDK in `~/aifi/venv`.
+
+The self-hosted runner steps below were written for Oracle and work unchanged on any Ubuntu server with more
+memory (Hetzner, for example).
 
 
 GitHub's free runners are in US data centres and the free plan cannot choose a region, so the executor

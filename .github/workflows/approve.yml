@@ -28,8 +28,18 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Which host runs cycles (config/host.json)
+        id: host
+        run: echo "host=$(python3 -c "import json;print(json.load(open('config/host.json')).get('host','github'))")" >> "$GITHUB_OUTPUT"
+      - name: File the approval for the server (no order leaves GitHub)
+        if: steps.host.outputs.host != 'github' && inputs.confirm == 'yes'
+        env: { AGENT: "${{ inputs.agent }}", PID: "${{ inputs.proposal_id }}" }
+        run: |
+          mkdir -p state/requests
+          python3 -c "import json,os,time; t=time.strftime('%Y%m%dT%H%M%SZ',time.gmtime()); json.dump({'action':'approve','agent':os.environ['AGENT'],'proposal_id':os.environ['PID'],'at':t}, open(f\"state/requests/{t}-approve-{os.environ['AGENT']}.json\",'w'))"
       - name: Python (a venv with the exchange SDK only when live mode is configured)
         id: py
+        if: steps.host.outputs.host == 'github'
         run: |
           if grep -lq '"mode": *"live"' config/settings.json agents/*/settings.json 2>/dev/null; then
             python3 -m venv .venv && .venv/bin/pip install --quiet -r requirements-live.txt
@@ -38,6 +48,7 @@ jobs:
             echo "bin=python3" >> "$GITHUB_OUTPUT"
           fi
       - name: Execute the proposal
+        if: steps.host.outputs.host == 'github'
         env:
           PROPOSAL_ID: ${{ inputs.proposal_id }}
           CONFIRM: ${{ inputs.confirm }}
