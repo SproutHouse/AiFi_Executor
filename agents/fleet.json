@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "note": "The fleet (docs/specs/FACTORY.md, Phase 6). max_live_dd_pct: when the LIVE agents together fall this far from their peaks, run_agents.py sets state/FLEET_HALT (no agent enters; exits still run) until the owner resumes it. apply_regime_weights: false keeps every agent at full size; true lets size_mult (written nightly by the AiFi Lab from the regime weights in docs/specs/REGIME.md) scale LIVE agents down in bear or crisis regimes. Paper arena agents are never scaled, so they stay comparable with their backtests.",
+  "max_live_dd_pct": 15,
+  "apply_regime_weights": false,
+  "size_mult": {}
+}

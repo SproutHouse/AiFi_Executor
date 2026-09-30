@@ -1,0 +1,179 @@
+{
+ "v": 1,
+ "gen": "2026-09-30T03:35:59Z",
+ "lab": {
+  "tried": 8,
+  "survivors": 1,
+  "by_family": {
+   "rs_rotation": {
+    "tried": 1,
+    "survived": 1
+   },
+   "tsmom": {
+    "tried": 1,
+    "survived": 0
+   },
+   "donchian": {
+    "tried": 1,
+    "survived": 0
+   },
+   "meanrev": {
+    "tried": 1,
+    "survived": 0
+   },
+   "carry": {
+    "tried": 2,
+    "survived": 0
+   },
+   "cloud_trend": {
+    "tried": 1,
+    "survived": 0
+   },
+   "sma_trend": {
+    "tried": 1,
+    "survived": 0
+   }
+  },
+  "last_batch": "2026-09-29",
+  "gates_version": 1,
+  "vetoed": 0,
+  "retired": 0
+ },
+ "regime": {
+  "now": "bull",
+  "fine": "bull",
+  "since": "2026-08-24",
+  "as_of": "2026-09-28"
+ },
+ "shortlist": [
+  {
+   "agent": "arena-01",
+   "name": "A01 Rotation",
+   "recipe": "rot-e335df0b",
+   "family": "rs_rotation",
+   "tag": "bull specialist",
+   "hypothesis": "Coins that outperformed over the past three weeks keep outperforming over the next week; holding only those above their own 50-day average (dual momentum) and only in bull regimes avoids the momentum crashes that follow market turns.",
+   "enrolled": "2026-09-29",
+   "enabled": true,
+   "live": false,
+   "status": "incubating",
+   "days": 1.1,
+   "backtest": {
+    "sharpe": 1.132,
+    "cagr_pct": 17.32,
+    "max_dd_pct": 17.99,
+    "years": 7.75,
+    "deflated": 0.9971,
+    "alpha_t": 2.06,
+    "holdout_sharpe": 0.763,
+    "holdout_ret_pct": 9.95,
+    "regimes": {
+     "bull": 32.84,
+     "bear": -0.43,
+     "crisis": -7.42
+    }
+   },
+   "paper": {
+    "ret_pct": null,
+    "dd_pct": null,
+    "weight_match_pct": null,
+    "weight_checks": 0,
+    "p5_pct": null
+   },
+   "ready": false,
+   "not_ready": [
+    "1 of 42 days in the arena",
+    "fewer than 10 weight checks"
+   ]
+  }
+ ],
+ "fleet": {
+  "regime": "bull",
+  "window": "2023-06-01 → 2026-09-28",
+  "members": [
+   {
+    "agent": "trend-1d",
+    "name": "Trend",
+    "kind": "directional",
+    "mode": "paper",
+    "vol_pct": 21.7,
+    "erc_pct": 1.1,
+    "regime_w": 1.0,
+    "share_pct": 1.1
+   },
+   {
+    "agent": "carry-1h",
+    "name": "Carry",
+    "kind": "carry",
+    "mode": "paper",
+    "vol_pct": 0.3,
+    "erc_pct": 97.3,
+    "regime_w": 1.0,
+    "share_pct": 97.3
+   },
+   {
+    "agent": "arena-01",
+    "name": "A01 Rotation",
+    "kind": "directional",
+    "mode": "paper",
+    "vol_pct": 15.9,
+    "erc_pct": 1.5,
+    "regime_w": 1.0,
+    "share_pct": 1.5
+   }
+  ],
+  "corr": {
+   "agents": [
+    "trend-1d",
+    "carry-1h",
+    "arena-01"
+   ],
+   "m": [
+    [
+     1.0,
+     0.09,
+     0.52
+    ],
+    [
+     0.09,
+     1.0,
+     0.11
+    ],
+    [
+     0.52,
+     0.11,
+     1.0
+    ]
+   ]
+  },
+  "excluded": [
+   {
+    "agent": "core",
+    "why": "no recipe the lab can backtest (signal-flip agent)"
+   },
+   {
+    "agent": "wide-4h",
+    "why": "no recipe the lab can backtest (signal-flip agent)"
+   },
+   {
+    "agent": "fast-1h",
+    "why": "no recipe the lab can backtest (signal-flip agent)"
+   }
+  ],
+  "totals": {
+   "paper": {
+    "agents": 5,
+    "ret_pct": -0.22,
+    "dd_pct": 0.82
+   }
+  },
+  "kill": {
+   "halt": false,
+   "reason": null,
+   "max_live_dd_pct": 15,
+   "apply_regime_weights": false
+  },
+  "size_mult_live": {},
+  "method": "equal risk contribution on daily backtest returns since 2023-06, then the regime weights of docs/specs/REGIME.md (directional and carry: bull 1, bear 0.5, crisis 0)"
+ }
+}
