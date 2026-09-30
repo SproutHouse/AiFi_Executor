@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 # One-time setup on an alwaysdata account (free plan is enough: 1 GB disk, 256 MB RAM). Run over SSH:
 #   curl -fsSL https://raw.githubusercontent.com/SproutHouse/AiFi_Executor/main/ops/alwaysdata/install.sh -o install.sh && bash install.sh
-# Safe to run again. It clones the public repo, prepares ~/.aifi/env (you fill it), checks Python, a dry cycle and the
+# Safe to run again. It clones the public repo, prepares ~/.aifi-host/env (you fill it), checks Python, a dry cycle and the
 # push token, and prints the two scheduled tasks to add in the alwaysdata admin panel. It never prints a secret.
 set -euo pipefail
-BASE="$HOME/aifi"; REPO="$BASE/AiFi_Executor"; ENVF="$HOME/.aifi/env"
-mkdir -p "$BASE/logs" "$HOME/.aifi"; chmod 700 "$HOME/.aifi"
+# Server only. On a Mac (or anywhere that is not a Linux server) it stops before touching anything.
+if [ "$(uname -s)" != "Linux" ]; then
+  echo "This installer is for the alwaysdata server, not this $(uname -s) machine: nothing was changed."
+  echo "Log in first:  ssh <account>@ssh-<account>.alwaysdata.net   then run it there."; exit 1
+fi
+BASE="$HOME/aifi-host"; REPO="$BASE/AiFi_Executor"; ENVF="$HOME/.aifi-host/env"
+mkdir -p "$BASE/logs" "$HOME/.aifi-host"; chmod 700 "$HOME/.aifi-host"
 [ -d "$REPO/.git" ] || git clone -q https://github.com/SproutHouse/AiFi_Executor "$REPO"
 cd "$REPO"; git pull -q --rebase --autostash || true
 git config user.name "aifi-host"; git config user.email "desk@aifi.invalid"

@@ -112,14 +112,14 @@ to fail over.
 3. On GitHub, create a fine-grained token `aifi-server`: owner SproutHouse, only AiFi_Executor, Contents read and write.
 4. SSH in and run
    `curl -fsSL https://raw.githubusercontent.com/SproutHouse/AiFi_Executor/main/ops/alwaysdata/install.sh -o install.sh && bash install.sh`.
-   The first run creates `~/.aifi/env` (chmod 600).
+   The first run creates `~/.aifi-host/env` (chmod 600).
 5. Fill `GH_TOKEN` and `ALERT_WEBHOOK` in that file, then run `bash install.sh` again. It checks Python, runs a dry cycle from Paris and a push test, and prints the two scheduled tasks.
 6. Add both tasks in the admin panel: Advanced → Scheduled tasks.
 7. Flip `config/host.json` to `alwaysdata`.
 
-**Live agents on this host:** each agent's `HL_AGENT_KEY_<ID>` / `HL_ACCOUNT_ADDRESS_<ID>` go in `~/.aifi/env`
+**Live agents on this host:** each agent's `HL_AGENT_KEY_<ID>` / `HL_ACCOUNT_ADDRESS_<ID>` go in `~/.aifi-host/env`
 (the GitHub secret slots are then unused). Re-run `install.sh` once an agent is live, so it installs the
-exchange SDK in `~/aifi/venv`.
+exchange SDK in `~/aifi-host/venv`.
 
 The self-hosted runner steps below were written for Oracle and work unchanged on any Ubuntu server with more
 memory (Hetzner, for example).

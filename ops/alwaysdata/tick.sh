@@ -3,15 +3,15 @@
 #   cycle      at :05 every hour  → pull, run every due agent (scripts/run_agents.py), commit and push state
 #   requests   every 5 minutes    → pull, execute flatten/approve requests the control and approve workflows filed
 #                                   under state/requests/ (so no order ever leaves GitHub's US machines), push
-# Secrets come from ~/.aifi/env (chmod 600): GH_TOKEN (Contents read/write on AiFi_Executor only), ALERT_WEBHOOK, and
+# Secrets come from ~/.aifi-host/env (chmod 600): GH_TOKEN (Contents read/write on AiFi_Executor only), ALERT_WEBHOOK, and
 # per live agent HL_AGENT_KEY[_<ID>] / HL_ACCOUNT_ADDRESS[_<ID>]. The Cloudflare token is NOT here: the dashboard
 # is pushed by GitHub (dashboard-sync workflow) when this server's state commit lands.
-# One run at a time (flock); logs in ~/aifi/logs/<date>.log, kept 14 days.
+# One run at a time (flock); logs in ~/aifi-host/logs/<date>.log, kept 14 days.
 set -uo pipefail
 MODE="${1:-cycle}"
-BASE="${AIFI_BASE:-$HOME/aifi}"
+BASE="${AIFI_BASE:-$HOME/aifi-host}"
 REPO="$BASE/AiFi_Executor"
-ENVF="${AIFI_ENV:-$HOME/.aifi/env}"
+ENVF="${AIFI_ENV:-$HOME/.aifi-host/env}"
 mkdir -p "$BASE/logs"
 exec >>"$BASE/logs/$(date -u +%F).log" 2>&1
 exec 9>"$BASE/.lock"
