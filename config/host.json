@@ -1,4 +1,4 @@
 {
-  "host": "github",
+  "host": "alwaysdata",
   "note": "Where cycles run and where every order is sent from. \"github\": the hourly cycle workflow on GitHub's runners (US data centres; fine for paper, and go-live refuses live orders from there unless explicitly allowed). \"alwaysdata\": the owner's alwaysdata server in Paris (ops/alwaysdata/). Both sides read this one file, so exactly one of them runs the cycle; flatten and approve become requests the server executes (state/requests/). Switch by editing this line and pushing."
 }
