@@ -14,8 +14,14 @@ REPO="$BASE/AiFi_Executor"
 ENVF="${AIFI_ENV:-$HOME/.aifi-host/env}"
 mkdir -p "$BASE/logs"
 exec >>"$BASE/logs/$(date -u +%F).log" 2>&1
-exec 9>"$BASE/.lock"
-flock -n 9 || { echo "$(date -u +%FT%TZ) $MODE: previous run still going; skipped"; exit 0; }
+if command -v flock >/dev/null 2>&1; then
+  exec 9>"$BASE/.lock"
+  flock -n 9 || { echo "$(date -u +%FT%TZ) $MODE: previous run still going; skipped"; exit 0; }
+else                                           # no flock: an atomic mkdir lock, cleared if older than 30 minutes
+  find "$BASE" -maxdepth 1 -name .lockdir -mmin +30 -exec rmdir {} \; 2>/dev/null
+  mkdir "$BASE/.lockdir" 2>/dev/null || { echo "$(date -u +%FT%TZ) $MODE: previous run still going; skipped"; exit 0; }
+  trap 'rmdir "$BASE/.lockdir" 2>/dev/null' EXIT
+fi
 find "$BASE/logs" -name '*.log' -mtime +14 -delete 2>/dev/null || true
 ts() { date -u +%FT%TZ; }
 [ -r "$ENVF" ] || { echo "$(ts) $MODE: $ENVF missing"; exit 1; }

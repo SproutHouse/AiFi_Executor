@@ -35,6 +35,6 @@ cat <<MSG
 Ready. In the alwaysdata admin panel → Advanced → Scheduled tasks, add two tasks (type: Execute the command):
   1. Command: $REPO/ops/alwaysdata/tick.sh cycle      Frequency (cron): 5 * * * *
   2. Command: $REPO/ops/alwaysdata/tick.sh requests   Frequency (cron): */5 * * * *
-Then on GitHub (AiFi_Executor → Settings → Secrets and variables → Actions → Variables) add EXECUTOR_HOST = alwaysdata.
-From that moment GitHub stops running cycles and this server runs them. Logs: $BASE/logs/
+Until config/host.json in the repo says "alwaysdata", the tasks stand by and GitHub keeps running cycles.
+Once both tasks exist, set it (or ask Claude to): from that commit on, this server runs every cycle. Logs: $BASE/logs/
 MSG
