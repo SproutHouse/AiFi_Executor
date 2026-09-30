@@ -1,6 +1,6 @@
 {
  "v": 1,
- "gen": "2026-09-30T03:35:59Z",
+ "gen": "2026-09-30T03:38:25Z",
  "lab": {
   "tried": 8,
   "survivors": 1,
@@ -57,7 +57,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 1.1,
+   "days": 1.2,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -97,9 +97,9 @@
     "kind": "directional",
     "mode": "paper",
     "vol_pct": 21.7,
-    "erc_pct": 1.1,
+    "erc_pct": 25.6,
     "regime_w": 1.0,
-    "share_pct": 1.1
+    "share_pct": 25.6
    },
    {
     "agent": "carry-1h",
@@ -107,9 +107,9 @@
     "kind": "carry",
     "mode": "paper",
     "vol_pct": 0.3,
-    "erc_pct": 97.3,
+    "erc_pct": 40.0,
     "regime_w": 1.0,
-    "share_pct": 97.3
+    "share_pct": 40.0
    },
    {
     "agent": "arena-01",
@@ -117,9 +117,9 @@
     "kind": "directional",
     "mode": "paper",
     "vol_pct": 15.9,
-    "erc_pct": 1.5,
+    "erc_pct": 34.4,
     "regime_w": 1.0,
-    "share_pct": 1.5
+    "share_pct": 34.4
    }
   ],
   "corr": {
@@ -174,6 +174,6 @@
    "apply_regime_weights": false
   },
   "size_mult_live": {},
-  "method": "equal risk contribution on daily backtest returns since 2023-06, then the regime weights of docs/specs/REGIME.md (directional and carry: bull 1, bear 0.5, crisis 0)"
+  "method": "equal risk contribution on daily backtest returns since 2023-06 (volatility floors: carry 5%, directional 10%; at most 40% per bot), then the regime weights of docs/specs/REGIME.md (bull 1, bear 0.5, crisis 0)"
  }
 }
