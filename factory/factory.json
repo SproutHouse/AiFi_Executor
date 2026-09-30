@@ -1,8 +1,8 @@
 {
  "v": 1,
- "gen": "2026-09-30T03:38:25Z",
+ "gen": "2026-09-30T05:00:35Z",
  "lab": {
-  "tried": 8,
+  "tried": 16,
   "survivors": 1,
   "by_family": {
    "rs_rotation": {
@@ -10,11 +10,11 @@
     "survived": 1
    },
    "tsmom": {
-    "tried": 1,
+    "tried": 3,
     "survived": 0
    },
    "donchian": {
-    "tried": 1,
+    "tried": 2,
     "survived": 0
    },
    "meanrev": {
@@ -26,15 +26,15 @@
     "survived": 0
    },
    "cloud_trend": {
-    "tried": 1,
+    "tried": 4,
     "survived": 0
    },
    "sma_trend": {
-    "tried": 1,
+    "tried": 3,
     "survived": 0
    }
   },
-  "last_batch": "2026-09-29",
+  "last_batch": "2026-09-30",
   "gates_version": 1,
   "vetoed": 0,
   "retired": 0
@@ -43,7 +43,7 @@
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-09-28"
+  "as_of": "2026-09-29"
  },
  "shortlist": [
   {
@@ -74,29 +74,28 @@
     }
    },
    "paper": {
-    "ret_pct": null,
-    "dd_pct": null,
-    "weight_match_pct": null,
-    "weight_checks": 0,
+    "ret_pct": 0.24,
+    "dd_pct": 0.12,
+    "weight_match_pct": 100,
+    "weight_checks": 13,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "1 of 42 days in the arena",
-    "fewer than 10 weight checks"
+    "1 of 42 days in the arena"
    ]
   }
  ],
  "fleet": {
   "regime": "bull",
-  "window": "2023-06-01 → 2026-09-28",
+  "window": "2023-06-01 → 2026-09-29",
   "members": [
    {
     "agent": "trend-1d",
     "name": "Trend",
     "kind": "directional",
     "mode": "paper",
-    "vol_pct": 21.7,
+    "vol_pct": 21.6,
     "erc_pct": 25.6,
     "regime_w": 1.0,
     "share_pct": 25.6
@@ -162,9 +161,9 @@
   ],
   "totals": {
    "paper": {
-    "agents": 5,
-    "ret_pct": -0.22,
-    "dd_pct": 0.82
+    "agents": 6,
+    "ret_pct": -0.12,
+    "dd_pct": 0.67
    }
   },
   "kill": {
