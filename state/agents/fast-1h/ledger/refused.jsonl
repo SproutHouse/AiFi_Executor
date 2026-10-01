@@ -85,3 +85,6 @@
 {"t": "2026-10-01T02:05:45Z", "coin": "NEAR", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}
 {"t": "2026-10-01T04:06:30Z", "coin": "AAVE", "kind": "flip", "tier": "A", "stage": "pre-trade", "detail": [{"check": "book open-risk cap", "ok": false, "detail": "book eth-defi: 2.01% after entry, cap 2.0%"}]}
 {"t": "2026-10-01T06:05:45Z", "coin": "INJ", "kind": "flip", "tier": "A", "stage": "pre-trade", "detail": [{"check": "universe filters", "ok": false, "detail": "24h volume 3.2M below 5M"}]}
+{"t": "2026-10-01T08:06:44Z", "coin": "NEAR", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}
+{"t": "2026-10-01T08:06:44Z", "coin": "DOT", "kind": "pullback", "tier": "B", "stage": "pre-trade", "detail": [{"check": "universe filters", "ok": false, "detail": "24h volume 1.8M below 5M"}]}
+{"t": "2026-10-01T08:06:44Z", "coin": "INJ", "kind": "pullback", "tier": "B", "stage": "pre-trade", "detail": [{"check": "universe filters", "ok": false, "detail": "24h volume 3.3M below 5M"}]}
