@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-09-30T20:06:33.852247Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-01T00:06:32.524087Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -14,9 +14,10 @@ No closed trades yet.
 
 None yet.
 
-## Refused signals: 43 recorded (state/ledger/refused.jsonl)
+## Refused signals: 44 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
+- TRX: signal pullback tier B REFUSED: universe filters (24h volume 2.2M below 5M)
+- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open
