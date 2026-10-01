@@ -83,3 +83,4 @@
 {"t": "2026-09-30T22:05:45Z", "coin": "DOT", "kind": "pullback", "tier": "B", "stage": "pre-trade", "detail": [{"check": "universe filters", "ok": false, "detail": "24h volume 1.7M below 5M"}]}
 {"t": "2026-10-01T00:06:32Z", "coin": "XLM", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}
 {"t": "2026-10-01T02:05:45Z", "coin": "NEAR", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}
+{"t": "2026-10-01T04:06:30Z", "coin": "AAVE", "kind": "flip", "tier": "A", "stage": "pre-trade", "detail": [{"check": "book open-risk cap", "ok": false, "detail": "book eth-defi: 2.01% after entry, cap 2.0%"}]}
