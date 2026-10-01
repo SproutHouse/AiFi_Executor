@@ -7,7 +7,6 @@ import { CSS as DESIGN_CSS, FONTS } from "./design.js";
 import { MISSION_CSS } from "./mission.js";
 import CORE from "./ui/core.js";
 import GATERUN from "./ui/gaterun.js";
-import DIAL from "./ui/dial.js";
 import NOW from "./ui/now.js";
 import ACTIVITY from "./ui/activity.js";
 import POSITIONS from "./ui/positions.js";
@@ -15,9 +14,10 @@ import RESULTS from "./ui/results.js";
 import RULES from "./ui/rules.js";
 import ARRIVAL from "./ui/arrival.js";
 import FACTORY from "./ui/factory.js";
+import FLEET from "./ui/fleet.js";
+import BOT from "./ui/bot.js";
 import BOOT from "./ui/boot.js";
 import GATERUN_CSS from "./ui/gaterun.css";
-import DIAL_CSS from "./ui/dial.css";
 import NOW_CSS from "./ui/now.css";
 import ACTIVITY_CSS from "./ui/activity.css";
 import POSITIONS_CSS from "./ui/positions.css";
@@ -25,10 +25,13 @@ import RESULTS_CSS from "./ui/results.css";
 import RULES_CSS from "./ui/rules.css";
 import ARRIVAL_CSS from "./ui/arrival.css";
 import FACTORY_CSS from "./ui/factory.css";
+import FLEET_CSS from "./ui/fleet.css";
+import BOT_CSS from "./ui/bot.css";
 
 const APP = "AiFi Executor";
 const COOKIE = "ex";
 const DAY = 86400;
+const AGENT_ID = /^[a-z][a-z0-9-]{1,23}$/;
 const DOCS = ["how_it_works", "logic", "risk", "universe", "execution", "security", "ledger", "operations", "decisions"];
 const DOC_TITLES = { how_it_works: "How it works", logic: "Decision logic", risk: "Risk", universe: "Universe and books",
                      execution: "Execution", security: "Security", ledger: "The ledger", operations: "Runbook", decisions: "Decisions" };
@@ -37,8 +40,8 @@ const DOC_TITLES = { how_it_works: "How it works", logic: "Decision logic", risk
 // One script, one IIFE, modules in README order. core.js alone declares top-level names; every other
 // module is one block. Modules are joined with ";" on its own line so a missing semicolon or a trailing
 // line comment in one file can never swallow the next; then the text is made safe to inline in <script>.
-const MODULES = [["core", CORE], ["gaterun", GATERUN], ["dial", DIAL], ["now", NOW], ["activity", ACTIVITY],
-                 ["positions", POSITIONS], ["results", RESULTS], ["rules", RULES], ["arrival", ARRIVAL], ["factory", FACTORY], ["boot", BOOT]];
+const MODULES = [["core", CORE], ["gaterun", GATERUN], ["now", NOW], ["activity", ACTIVITY], ["positions", POSITIONS],
+                 ["results", RESULTS], ["rules", RULES], ["arrival", ARRIVAL], ["factory", FACTORY], ["fleet", FLEET], ["bot", BOT], ["boot", BOOT]];
 const inlineSafe = (s) => String(s).replace(/<\/(script)/gi, "<\\/$1").replace(/<!--/g, "<\\!--");
 // Size (spec §15): the CORE API comment block, whole-line // comments, blank lines and indentation are dropped
 // at join time (about 65 KB). Line breaks stay, so automatic semicolon insertion is untouched. This is safe
@@ -58,7 +61,8 @@ const CLIENT = inlineSafe('(function(){"use strict";\n'
   + "\n})();");
 // CSS comments and indentation are dropped the same way (no stylesheet has "/*" inside a string or url()).
 const leanCss = (c) => String(c || "").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map(l => l.trim()).filter(Boolean).join("\n");
-const CSS = [DESIGN_CSS, MISSION_CSS, GATERUN_CSS, DIAL_CSS, NOW_CSS, ACTIVITY_CSS, POSITIONS_CSS, RESULTS_CSS, RULES_CSS, ARRIVAL_CSS, FACTORY_CSS].map(leanCss).join("\n");
+const CSS = [DESIGN_CSS, MISSION_CSS, GATERUN_CSS, NOW_CSS, ACTIVITY_CSS, POSITIONS_CSS, RESULTS_CSS, RULES_CSS, ARRIVAL_CSS, FACTORY_CSS,
+             FLEET_CSS, BOT_CSS].map(leanCss).join("\n");
 
 export default {
   async fetch(request, env) {
@@ -73,10 +77,15 @@ export default {
       return redirect(url.origin + "/login");
     }
     let m;
-    if (p === "/") return html(appPage());
+    // Two shells (COMMAND_CENTER_SPEC §2.1): "/" is the Command Center, "/?a=<id>" one bot's page. A bad id goes home.
+    if (p === "/") {
+      const a = url.searchParams.get("a");
+      if (a !== null && !AGENT_ID.test(a)) return redirect(url.origin + "/");
+      return shell(request, a === null ? "fleet" : "bot");
+    }
     // Several agents share this dashboard: ?a=<agent id> picks whose payload; "core" (the default) keeps exec:<name>.
     const ag = url.searchParams.get("a") || "core";
-    if (!/^[a-z][a-z0-9-]{1,23}$/.test(ag)) return json({ error: "bad agent id" }, 400);
+    if (!AGENT_ID.test(ag)) return json({ error: "bad agent id" }, 400);
     const k = (name) => ag === "core" ? "exec:" + name : "exec:" + ag + ":" + name;
     if (p === "/api/agents") return kvRaw(env, "exec:agents", '{"v":1,"agents":[]}');
     if (p === "/api/factory") return kvRaw(env, "exec:factory", '{"v":1}');
@@ -129,6 +138,22 @@ async function login(request, env, url) {
 const NOSTORE = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
 function html(body, status = 200) {
   return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", ...NOSTORE, "x-frame-options": "DENY", "referrer-policy": "no-referrer" } });
+}
+// The app shells are cached by the browser but always revalidated (§2.4): an ETag per shell, the sha-256 of the page,
+// computed once per isolate. The 304 is only ever answered after the auth check above it.
+const SHELLS = {};
+async function shell(request, view) {
+  const s = SHELLS[view] || (SHELLS[view] = (async () => {
+    const body = appPage(view);
+    const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(body));
+    return { body, etag: '"' + [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, "0")).join("") + '"' };
+  })());
+  const { body, etag } = await s;
+  const headers = { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-cache", etag, "x-content-type-options": "nosniff",
+                    "x-frame-options": "DENY", "referrer-policy": "no-referrer" };
+  const inm = request.headers.get("If-None-Match");
+  if (inm && inm.split(",").some(t => t.trim().replace(/^W\//, "") === etag)) return new Response(null, { status: 304, headers });
+  return new Response(body, { headers });
 }
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", ...NOSTORE } });
@@ -208,31 +233,44 @@ const ICON = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.
 const HEAD = (title) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0b0f" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)"><meta name="color-scheme" content="dark light"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Executor"><link rel="icon" href="${ICON}"><title>${esc(title)}</title>${THEME_BOOT}${FONTS}<style>${CSS}</style></head><body><div class="bg" aria-hidden="true"></div>`;
 const SHEET = '<div class="sheet-bg" id="sheetbg"></div><div class="sheet glass" id="sheet" role="dialog" aria-modal="true" aria-label="Details"></div>';
 const SVG = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
-// The five tabs (spec §2). 24px, stroke 1.7 from design.js; the Activity dots are drawn thicker so they
-// read as beads on the rail rather than vanishing into the line.
+// The bot page's four tabs (COMMAND_CENTER_SPEC §2.2). 24px, stroke 1.7 from design.js; the Activity dots are drawn
+// thicker so they read as beads on the rail rather than vanishing into the line.
 const NAV = [
-  ["now", "Now", '<path d="M3 12h4l2-6 4 12 2-6h6"/>'],
+  ["overview", "Overview", '<path d="M3 12h4l2-6 4 12 2-6h6"/>'],
+  ["results", "Trades", '<path d="M4 17l5-6 4 3 7-9"/><path d="M15 5h5v5"/>'],
   ["activity", "Activity", '<path d="M6 5v14"/><path d="M6 6h.01M6 12h.01M6 18h.01" stroke-width="4"/><path d="M10 6h10M10 12h10M10 18h7"/>'],
-  ["positions", "Positions", '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>'],
-  ["results", "Results", '<path d="M4 17l5-6 4 3 7-9"/><path d="M15 5h5v5"/>'],
   ["rules", "Rules", '<path d="M4 5a3 3 0 0 1 3-3h13v17H7a3 3 0 0 0-3 3z"/><path d="M4 19a3 3 0 0 1 3-3h13"/>'],
 ];
+const ICO_FLEET = '<rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>';
+const ICO_BACK = '<path d="M15 6l-6 6 6 6"/>';
+const ICO_DOC = '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>';
 const THEME_BTN = '<button class="btn icon" type="button" data-theme-toggle title="Light / dark" aria-label="Switch light or dark theme">' + SVG('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>') + '</button>';
 const FOOT = '<div class="foot">Deterministic rules, no model. Every figure comes from the state each check commits, in R and percent of the pot; the dashboard never shows money amounts.</div>';
 // Doc pages get the theme toggle only, never the app bundle.
 const PAGE_JS = "<script>(function(){var d=document.documentElement;function dark(){var t=d.dataset.theme;return t==='dark'||(t!=='light'&&!matchMedia('(prefers-color-scheme: light)').matches)}document.querySelectorAll('[data-theme-toggle]').forEach(function(b){b.addEventListener('click',function(){var n=dark()?'light':'dark';d.dataset.theme=n;try{localStorage.setItem('aifi.theme',n)}catch(e){}document.querySelectorAll('meta[name=theme-color]').forEach(function(m){m.setAttribute('content',n==='light'?'#eef1f6':'#0a0b0f')})})})})();</script>";
 
-// The app shell (spec §2). Mount points the client fills: #capsule (health capsule, the only aria-live
-// region), #modepill, #railstat (the capsule's mirror), #ttl (the one h1), #alerts (alert rail, every tab),
-// #view (the tab), #sheet/#sheetbg, #toast.
-function appPage() {
-  const rail = NAV.map(([id, label, d], i) => `<a href="#${id}" data-tab="${id}" class="nav" aria-keyshortcuts="${i + 1}">${SVG(d)}<span>${label}</span><span class="k" aria-hidden="true">${i + 1}</span></a>`).join("");
+// The app shells (COMMAND_CENTER_SPEC §2, §3.0, §5.0). view "fleet" is the Command Center at "/", view "bot" one bot's
+// page at "/?a=<id>". Both carry every mount the client fills: #capsule (status capsule, the page's only aria-live
+// region), #modepill, #railstat (the capsule's mirror), #ttl (the one h1), #roster (rail mini roster), #alerts (alert
+// rail), #view, #sheet/#sheetbg, #toast and #app. The bot page adds #back ("‹ All bots") and the four-tab bar.
+function appPage(view) {
+  const bot = view === "bot";
+  const navA = (href, label, d, extra) => `<a href="${href}" class="nav"${extra || ""}>${SVG(d)}<span>${label}</span></a>`;
+  const rail = bot
+    ? navA("/", "All bots", ICO_BACK, " data-back") + NAV.map(([id, label, d], i) => `<a href="#${id}" data-tab="${id}" class="nav" aria-keyshortcuts="${i + 1}">${SVG(d)}<span>${label}</span><span class="k" aria-hidden="true">${i + 1}</span></a>`).join("")
+    : navA("/", "Command center", ICO_FLEET, ' aria-current="page"') + navA("/doc/how_it_works", "Rules &amp; docs", ICO_DOC);
   const tabs = NAV.map(([id, label, d]) => `<a href="#${id}" data-tab="${id}">${SVG(d)}<span>${label}</span></a>`).join("");
+  const lead = bot
+    ? `<a class="btn small ghost fl-backbtn" id="back" href="/" data-back aria-label="All bots"><span aria-hidden="true">‹</span><span class="fl-bkw">All bots</span></a>`
+    : `<a class="brand tmark" href="/" aria-label="${APP}, Command center"><span class="mark" aria-hidden="true">Ex</span></a>`;
+  const loading = bot ? "Loading the bot…" : "Loading the fleet…";
+  const foot = bot ? FOOT : FOOT.replace("</div>", ' <span class="fl-footl"><a href="/doc/how_it_works">Rules &amp; docs</a> · <a href="/logout">Log out</a></span></div>');
   return HEAD(APP) + `
-<div class="shell">
+<div class="shell" data-view="${bot ? "bot" : "fleet"}">
   <aside class="rail glass">
-    <a class="brand" href="#now"><span class="mark" aria-hidden="true">Ex</span><div class="bn">${APP}</div></a>
-    <nav aria-label="Sections"><span class="pill" aria-hidden="true"></span>${rail}</nav>
+    <a class="brand" href="/"${bot ? " data-back" : ""}><span class="mark" aria-hidden="true">Ex</span><div class="bn">${APP}</div></a>
+    <nav aria-label="${bot ? "Sections" : "Pages"}"><span class="pill" aria-hidden="true"></span>${rail}</nav>
+    <div class="roster" id="roster" role="navigation" aria-label="Bots"></div>
     <div class="foot rfoot">
       <button class="status" type="button" id="railstat" data-health><span class="dot"></span><span class="txt"><b>Checking…</b><span class="age"></span></span></button>
       <a class="btn small ghost" href="/logout">Log out</a>
@@ -240,16 +278,16 @@ function appPage() {
   </aside>
   <div class="main"><div class="wrap">
     <header class="topbar"><div class="row">
-      <a class="brand tmark" href="#now" aria-label="${APP}, back to Now"><span class="mark" aria-hidden="true">Ex</span></a>
-      <h1 id="ttl" class="vh-sm">Now</h1>
+      ${lead}
+      <h1 id="ttl" class="${bot ? "fl-bttl" : "vh-sm"}">${bot ? "" : "Command center"}</h1>
       <button class="capsule" type="button" id="capsule" data-health aria-live="polite"><span class="dot"></span><span class="cw">Checking…</span></button>
-      <div class="ctl"><button class="pill accent agentbtn" type="button" id="agentbtn" data-sheet="agents" aria-label="switch agent" hidden>…</button><span class="pill mute" id="modepill">…</span>${THEME_BTN}</div>
+      <div class="ctl"><span class="pill mute" id="modepill">…</span>${bot ? THEME_BTN.replace('class="btn icon"', 'class="btn icon wide-only"') : THEME_BTN}</div>
     </div></header>
-    <main class="app" id="app"><div class="alerts" id="alerts"></div><div id="view"><div class="card"><div class="empty">Loading the executor…<noscript> This dashboard needs JavaScript.</noscript></div></div></div></main>
-    ${FOOT}
+    <main class="app" id="app" data-view="${bot ? "bot" : "fleet"}"><div class="alerts" id="alerts"></div><div id="view"><div class="card"><div class="empty">${loading}<noscript> This dashboard needs JavaScript.</noscript></div></div></div></main>
+    ${foot}
   </div></div>
 </div>
-<nav class="tabbar glass" aria-label="Sections">${tabs}</nav>
+${bot ? `<nav class="tabbar glass" aria-label="Sections">${tabs}</nav>` : ""}
 ${SHEET}
 <div class="toast" id="toast"></div>
 <script>${CLIENT}</script></body></html>`;
@@ -258,7 +296,7 @@ const PAGE_TOP = (title, right) => `<div class="wrap" style="max-width:1120px"><
 async function docPage(env, slug) {
   const raw = await env.EXEC.get("doc:" + slug);
   const others = DOCS.map(s => `<a class="btn small" href="/doc/${s}"${s === slug ? ' aria-current="page"' : ""}>${esc(DOC_TITLES[s])}</a>`).join(" ");
-  return html(HEAD(DOC_TITLES[slug]) + PAGE_TOP(DOC_TITLES[slug], `<a class="btn" href="/#rules/${slug}">Dashboard</a>`) + `<nav class="crumbs" aria-label="Documents">${others}</nav><div class="card doc rise">${md(raw || "_This document has not been pushed yet._")}</div>${FOOT}</div>${PAGE_JS}</body></html>`);
+  return html(HEAD(DOC_TITLES[slug]) + PAGE_TOP(DOC_TITLES[slug], `<a class="btn" href="/">Dashboard</a>`) + `<nav class="crumbs" aria-label="Documents">${others}</nav><div class="card doc rise">${md(raw || "_This document has not been pushed yet._")}</div>${FOOT}</div>${PAGE_JS}</body></html>`);
 }
 function loginPage(msg) {
   return HEAD(APP + " · sign in") + `<div class="login-wrap"><div class="card login rise${msg ? " shake" : ""}"><div class="brand"><span class="mark" aria-hidden="true">Ex</span><h1>${APP}</h1></div><p class="sub" style="margin:0">Private. Enter the dashboard password.</p><form method="post" action="/login"><input class="field" type="password" name="password" autocomplete="current-password" autofocus required placeholder="password" aria-label="Password">${msg ? '<div class="err">' + esc(msg) + "</div>" : ""}<button class="btn primary" type="submit" style="width:100%;justify-content:center;height:40px">Sign in</button></form></div></div></body></html>`;

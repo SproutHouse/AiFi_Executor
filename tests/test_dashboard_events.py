@@ -107,11 +107,18 @@ CASES = {
                             ("thr_half", None, None, None, "11.2", None, None), None)],
     "leftover stop cancel failed": [({"coin": "LINK", "e": E_CONN}, True, SKIP, None)],
     "% of pot, holding": [({"coin": "BTC", "tgt": 330.0, "cur": 0.0, "eq": 1000.0, "action": "open"}, True, SKIP, None)],
-    "carry ENTERING": [({"coin": "HYPE", "apr": 0.14, "n": 200.0, "self": base_self()}, True, SKIP, None)],
-    "carry EXITING": [({"coin": "HYPE", "apr": -0.02}, True, SKIP, None)],
-    "carry CLOSED": [({"coin": "HYPE", "rec": {"pnl": 1.2, "capture": 0.86}, "cap": "86%", "self": base_self()}, True, SKIP, None)],
-    "carry safety override": [({"coin": "HYPE", "cfg": {"max_unhedged_hours": 3}}, True, SKIP, None)],
-    "resized to": [({"coin": "ETH", "tgt": 280.0, "new_stop": 2311.5, "self": base_self()}, True, SKIP, None)],
+    # Command Center §6.1: the five acting lines are typed events now (the `target` weights line stays SKIP)
+    "carry ENTERING": [({"coin": "HYPE", "apr": 0.349, "n": 200.0, "self": base_self()}, True, ("carry_in", "HYPE", "carry", None, "34.9", None, None), None)],
+    "carry EXITING": [({"coin": "HYPE", "apr": -0.002}, True, ("carry_out", "HYPE", "carry", None, "-0.2", None, None), None),
+                      ({"coin": "HYPE", "apr": None}, True, ("carry_out", "HYPE", "carry", None, "0.0", None, None), None)],
+    "carry CLOSED": [({"coin": "HYPE", "rec": {"pnl": 1.2, "capture": 0.85}, "cap": "85%", "self": base_self()}, True,
+                      ("carry_closed", "HYPE", "carry", None, "+0.12,85%", None, None), None),
+                     ({"coin": "HYPE", "rec": {"pnl": -0.5, "capture": None}, "cap": "n/a", "self": base_self()}, True,
+                      ("carry_closed", "HYPE", "carry", None, "-0.05,n/a", None, None), None)],
+    "carry safety override": [({"coin": "HYPE", "cfg": {"max_unhedged_hours": 3}, "what": "lagging leg completed"}, True, ("carry_fix", "HYPE", "carry", None, None, None, None), None),
+                              ({"coin": "HYPE", "cfg": {"max_unhedged_hours": 3}, "what": "leading leg trimmed"}, True, ("carry_fix", "HYPE", "carry", None, None, None, None), None)],
+    "carry dust": [({"coin": "HYPE", "leg": "spot"}, True, SKIP, None)],
+    "resized to": [({"coin": "BTC", "tgt": 480.0, "new_stop": 71642.35, "self": base_self()}, True, ("resized", "BTC", "target", None, "48", None, None), None)],
     "entry check failed": [({"coin": "HYPE", "e": ValueError("could not convert string to float: ''")}, True,
                             ("entry_failed", "HYPE", None, None, "ValueError", None, None), None)],
 }
@@ -145,7 +152,7 @@ def render(fn, call, overrides):
 class SayTemplates(unittest.TestCase):
     def test_every_say_parses_into_its_event(self):
         sites = say_sites()
-        self.assertEqual(len(sites), 46, "cycle.py gained or lost a say(): add or remove its template case here")
+        self.assertEqual(len(sites), 47, "cycle.py gained or lost a say(): add or remove its template case here")
         used = set()
         for fn, call, src in sites:
             keys = [k for k in CASES if k in src]

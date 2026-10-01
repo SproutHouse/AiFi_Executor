@@ -55,7 +55,10 @@
   function trades(L) {                                           // trades.rows → objects keyed by trades.cols
     if (rowsMemo.L === L) return rowsMemo.rows;
     const T = (L && L.trades) || {}, cols = Array.isArray(T.cols) ? T.cols : [], rows = Array.isArray(T.rows) ? T.rows : [];
-    const out = rows.filter(Array.isArray).map(r => { const o = {}; cols.forEach((c, i) => { o[c] = r[i]; }); return o; });
+    // t_at: when it was recorded (t_rec, the check that wrote the close), the time every list shows; t_out stays the curve's key
+    const out = rows.filter(Array.isArray).map(r => { const o = {}; cols.forEach((c, i) => { o[c] = r[i]; }); o.t_at = num(o.t_rec) != null ? num(o.t_rec) : num(o.t_out);
+      if ((o.cy = o.kind === 'carry')) { o.cap = num(o.cap_ret_pct) != null ? num(o.cap_ret_pct) : num(o.R) != null ? num(o.R) * 100 : null; o.R = o.rel_R = o.cost_R = null; }
+      return o; });
     rowsMemo = { L, rows: out };
     return out;
   }
@@ -140,7 +143,25 @@
     return '<div>' + h + '<div class="rs-books">' + vb.map(x => bookTile(x, ser[x.b])).join('') + '</div>'
       + '<div class="legend"><span><i class="sw rs-a"></i>the book’s closed R</span><span><i class="sw dash rs-m"></i>holding its benchmark</span></div></div>';
   }
+  const KD = () => kindOf(S.b);
+  const pc = v => '<span class="' + fmt.cls(v) + '">' + fmt.pct(v) + '</span>';
+  // A collector is judged on the funding it keeps, a rebalancer over a year: the same words as the Overview (bot.js).
+  function kindVerdict(k, rise) {
+    const b = S.b || {}, o = num((b.origin || {}).t), day = o != null ? Math.floor((nowS() - o) / 86400) + 1 : null, R = rowOf(AGENT) || {};
+    let lead, body;
+    if (k === 'carry') {
+      const s = b.carry_sum || R.carry || {}, cp = num(s.capture_pct), g = num(s.gate_pct) != null ? num(s.gate_pct) : 80;
+      lead = day == null || day <= 14 ? 'Too early · judged over 2–4 weeks (day ' + (day == null ? '—' : day) + ' of 14)' : cp == null ? 'Capture —' : cp < g ? 'Capture below the ' + g + '% gate' : 'Capture gate met';
+      body = meter('v-n', cp != null ? Math.max(0, Math.min(1, cp / 100)) : 0, 'var(--accent)', cp == null ? 'funding kept not known yet' : 'kept ' + cp + '% of its funding; the gate is ' + g + '%')
+        + '<p class="cap">Funding kept is the share of the funding it could earn that it collected after costs. Results are in % of capital, never R. It stays on paper until a testnet run validates it.</p>';
+    } else {
+      lead = R.arena ? 'Proving itself in the arena' : 'Judged yearly' + (day != null ? ' · day ' + day + ' of 365' : '');
+      body = '<p class="cap">' + (R.arena ? 'The lab compares its paper record with its backtest before offering it to the owner.' : 'A rebalancer is judged over a year against holding its coins; a few weeks say little.') + '</p>';
+    }
+    return card('verdict', rise, head('Verdict', k === 'carry' ? 'Is it keeping the funding?' : 'How it is judged') + '<p class="rs-lead">' + esc(lead) + '</p>' + body);
+  }
   function verdictCard(L, rise) {
+    if (KD() !== 'flip') return kindVerdict(KD(), rise);
     const gates = gatesOf(L), gN = gates.find(g => g.k === 'n') || {}, n = num(gN.val), N = num(gN.target) || needN();
     const fails = gates.filter(g => g.state === 'failing'), all = gates.length > 0 && gates.every(g => g.state === 'passing');
     const failWords = word.list(fails.map(g => GSHORT[g.k] || g.k));
@@ -163,18 +184,19 @@
   let chart = null, chartView = 'R', crossFn = null;
   const potOff = () => modeOf(S.b).eff === 'live' && !!S.b && !!S.b.pot && S.b.pot.net === false;
   function curveCard(L, rise) {
-    const rs = rser(L);
-    if (!rs.length) {
+    const rs = rser(L), np = uniq(((L && L.eq) || {}).pct).length;
+    if (!rs.length && np >= 2) chartView = 'P';
+    if (!rs.length && np < 2) {
       const b = S.b || {}, o = b.origin || {}, pot = b.pot || {}, since = num(o.t) != null ? num(o.t) : num(pot.since);
       const checks = num(pot.n_pts) != null ? num(pot.n_pts) : runsOf(b).length, md = (o.mode || modeOf(b).eff) === 'live' ? 'Live' : 'Paper';
       return card('curve', rise, head('Curve' + tip('R'))
         + '<div class="rs-nochart"><div class="nochart"><p>The first closed trade starts this line. <span class="sub">' + md + (since != null ? ' since ' + esc(fmt.day(since)) : '')
         + ' · ' + word.plural(checks, 'check') + ' · ' + word.plural(nClosed(L), 'trade') + '.</span></p></div></div>');
     }
-    if (potOff()) chartView = 'R';
-    const seg = '<div class="seg" data-rs-seg="curve" aria-label="Curve units"><button type="button" data-v="R" aria-pressed="' + (chartView === 'R') + '">In R</button>'
+    if (potOff() && rs.length) chartView = 'R';
+    const seg = '<div class="seg" data-rs-seg="curve" aria-label="Curve units"><button type="button" data-v="R" aria-pressed="' + (chartView === 'R') + '"' + (rs.length ? '' : ' disabled') + '>In R</button>'
       + '<button type="button" data-v="P" aria-pressed="' + (chartView === 'P') + '"' + (potOff() ? ' disabled' : '') + '>Pot %</button><span class="ind"></span></div>';
-    return card('curve', rise, head('Curve' + tip('R'), 'Closed R against holding each book’s benchmark instead', seg)
+    return card('curve', rise, head('Curve' + tip('R'), rs.length ? 'Closed R against holding each book’s benchmark instead' : 'The pot since it started', seg)
       + (potOff() ? '<p class="note">Pot % needs the deposits record.</p>' : '')
       + '<div class="rs-chart"><div class="lwc" id="rs-lwc"><div class="rs-cmsg">Loading the chart…</div></div></div>'
       + '<div class="legend rs-legend" id="rs-legend"></div>'
@@ -211,7 +233,7 @@
     killChart();
     const el = document.getElementById('rs-lwc'), LW = window.LightweightCharts, L = drawn;
     if (!el || !LW || !L) return;
-    const rs = rser(L); if (!rs.length) return;
+    const rs = rser(L); if (!rs.length && (chartView !== 'P' || uniq((L.eq || {}).pct).length < 2)) return;
     el.innerHTML = '';
     const C = colors(), inR = chartView !== 'P', thr = cfg().thr || [];
     const pf = inR ? v => fmt.R(v, 1) : v => fmt.pct(v, 1);
@@ -278,7 +300,7 @@
         const here = T.get(t) || [], rr = byT.get(t) || [];
         if (!rr.length) return setLegend(at(t) + '<span>Closed <b>' + fmt.R(cum.get(t)) + '</b></span>');
         const what = here.length
-          ? here.slice(0, 3).map(x => '<b>' + esc(x.c) + '</b> ' + rv(x.R) + ' (' + esc(word.exit(x.rsn)) + (num(x.rel_R) != null ? ', ' + rv(x.rel_R) + ' vs holding' : '') + ')').join(' · ') + (here.length > 3 ? ' · ' + (here.length - 3) + ' more' : '')
+          ? here.slice(0, 3).map(x => '<b>' + esc(x.c) + '</b> ' + rv(x.R) + ' (' + esc(word.exit(x.rsn, x)) + (num(x.rel_R) != null ? ', ' + rv(x.rel_R) + ' vs holding' : '') + ')').join(' · ') + (here.length > 3 ? ' · ' + (here.length - 3) + ' more' : '')
           : rr.map(r => rv(r[1])).join(' · ');
         setLegend(at(t) + '<span>' + what + '</span><span>Total <b>' + fmt.R(cum.get(t)) + '</b></span>');
       };
@@ -318,6 +340,8 @@
   const tile = (k, v, s, extra) => '<div class="t"><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (s ? '<div class="s">' + s + '</div>' : '') + (extra || '') + '</div>';
   function rTile(key, v) { const x = num(v); return x == null ? na(true) : '<span class="' + fmt.cls(x) + '">' + cu(key, x, 'R', fmt.Rn(x)) + '<small>R</small></span>'; }
   function recordCard(L, rise) {
+    if (KD() !== 'flip') return card('record', rise, head('Record') + '<p class="rs-one">' + (KD() === 'carry' ? 'A funding collector is judged on the funding it keeps, not in R.' : 'A rebalancer is judged on its holdings over a year, not trade by trade.')
+      + ' <a href="#overview/record">Wins &amp; losses ›</a></p>');
     const a = allStats(L), n = num(a.n) || 0, N = needN();
     if (!n) return card('record', rise, head('Record') + '<p class="rs-one">No closed trades yet, so there is no record to judge. Win rate, average R and the rest start with the first close.</p>');
     const few = n < N, FEW = 'n=' + fmt.int(n) + ': too few to judge', sub = s => few ? FEW : s;
@@ -355,7 +379,7 @@
   const distMode_ = n => n > 60 ? (distMode || 'hist') : 'dots';
   const distCap = m => (m === 'hist' ? 'Trades per half R, from −1.5 R to +6 R; the end bins hold everything beyond.' : 'Every trade in order, on an R axis from −1.5 to +6; hollow dots lie beyond it.') + ' The dashed line at −1 R is a full stop.';
   function rCard(L, rise) {
-    const n = rser(L).length; if (!n) return '';
+    const n = rser(L).length; if (!n || KD() !== 'flip') return '';
     const mode = distMode_(n);
     const seg = n > 60 ? '<div class="seg" data-rs-seg="dist" aria-label="R per trade view"><button type="button" data-v="dots" aria-pressed="' + (mode === 'dots') + '">Dots</button><button type="button" data-v="hist" aria-pressed="' + (mode === 'hist') + '">Histogram</button><span class="ind"></span></div>' : '';
     return card('r', rise, head('R per trade', 'Trend following: many small losses, a few large wins.', seg)
@@ -401,8 +425,10 @@
   const F = { book: '', coin: '', out: '', k: 't_out', dir: -1, shown: 50 };
   const COLS = [['t_out', 'Closed', 'l'], ['c', 'Coin', 'l'], ['b', 'Book', 'l'], ['rsn', 'Exit', 'l'], ['hours', 'Held', ''], ['R', 'R', ''], ['rel_R', 'vs holding', ''], ['cost_R', 'Costs', ''], ['pnl_pct', '% of pot', '']];
   const STRK = { c: 1, b: 1, rsn: 1 };
+  const cols = () => KD() === 'carry' ? COLS.slice(0, 5).concat([['cap', '% of capital', '']], COLS.slice(8)) : COLS;
+  const val = r => r.cy ? num(r.cap) : num(r.R);
   function sorted(rows) {
-    const k = F.k, d = F.dir, key = r => k === 'rsn' ? word.exit(r.rsn) : STRK[k] ? r[k] : num(r[k]);
+    const k = F.k, d = F.dir, key = r => k === 'rsn' ? word.exit(r.rsn, r) : STRK[k] ? r[k] : num(r[k]);
     return rows.slice().sort((a, b) => {
       const x = key(a), y = key(b);
       if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
@@ -411,25 +437,25 @@
   }
   function filtered(L) {
     return trades(L).filter(r => (!F.book || r.b === F.book) && (!F.coin || r.c === F.coin)
-      && (!F.out || (F.out === 'win' ? num(r.R) > 0.005 : num(r.R) < -0.005)));
+      && (!F.out || (F.out === 'win' ? val(r) > 0.005 : val(r) < -0.005)));
   }
   function tcard(r) {
-    const R = num(r.R), rel = num(r.rel_R);
-    const lbl = r.c + ', ' + fmt.R(R) + ', ' + word.exit(r.rsn) + ', closed ' + whenY(num(r.t_out)) + '. Open the trade.';
+    const R = num(r.R), rel = num(r.rel_R), hv = r.cy ? fmt.pct(r.cap) + ' of capital' : fmt.R(R);
+    const lbl = r.c + ', ' + hv + ', ' + word.exit(r.rsn, r) + ', closed ' + whenY(r.t_at) + '. Open the trade.';
     return '<button type="button" class="rs-tc" data-trade="' + esc(r.id) + '" aria-label="' + esc(lbl) + '"><span class="rs-tcc"><b>' + esc(r.c) + '</b><span>' + esc(r.b || '') + '</span></span>'
-      + '<span class="rs-tcr ' + fmt.cls(R) + '">' + fmt.R(R) + '</span><span class="rs-tcw">' + esc(word.exit(r.rsn)) + ' · held ' + esc(hrs(r.hours)) + '</span>'
-      + '<span class="rs-tcd"><span>' + esc(whenY(num(r.t_out))) + '</span><span>' + (rel == null ? 'vs holding —' : rv(rel) + ' vs holding') + '</span></span></button>';
+      + '<span class="rs-tcr ' + fmt.cls(val(r)) + '">' + hv + '</span><span class="rs-tcw">' + esc(word.exit(r.rsn, r)) + ' · held ' + esc(hrs(r.hours)) + '</span>'
+      + '<span class="rs-tcd"><span>' + esc(whenY(r.t_at)) + '</span><span>' + (r.cy ? pc(r.pnl_pct) + ' of pot' : rel == null ? 'vs holding —' : rv(rel) + ' vs holding') + '</span></span></button>';
   }
   function trow(r) {
-    return '<tr data-trade="' + esc(r.id) + '" tabindex="0"><td class="l">' + esc(whenY(num(r.t_out))) + '</td><td class="l"><b class="mono">' + esc(r.c) + '</b></td><td class="l">' + esc(r.b || '—')
-      + '</td><td class="l">' + esc(word.exit(r.rsn)) + '</td><td class="num">' + (num(r.hours) == null ? '—' : fmt.num(r.hours, 1) + ' h') + '</td><td class="num">' + rv(r.R)
-      + '</td><td class="num">' + (num(r.rel_R) == null ? '—' : rv(r.rel_R)) + '</td><td class="num">' + (num(r.cost_R) == null ? '—' : fmt.num(r.cost_R, 2) + ' R')
+    return '<tr data-trade="' + esc(r.id) + '" tabindex="0"><td class="l">' + esc(whenY(r.t_at)) + '</td><td class="l"><b class="mono">' + esc(r.c) + '</b></td><td class="l">' + esc(r.b || '—')
+      + '</td><td class="l">' + esc(word.exit(r.rsn, r)) + '</td><td class="num">' + (num(r.hours) == null ? '—' : fmt.num(r.hours, 1) + ' h') + '</td><td class="num">'
+      + (r.cy ? pc(r.cap) : rv(r.R) + '</td><td class="num">' + (num(r.rel_R) == null ? '—' : rv(r.rel_R)) + '</td><td class="num">' + (num(r.cost_R) == null ? '—' : fmt.num(r.cost_R, 2) + ' R'))
       + '</td><td class="num"><span class="' + fmt.cls(r.pnl_pct) + '">' + fmt.pct(r.pnl_pct) + '</span></td></tr>';
   }
   function tradesBody(L) {
     const rows = sorted(filtered(L)), shown = rows.slice(0, F.shown), all = trades(L).length;
     if (!rows.length) return '<div class="empty">No closed trade matches these filters.</div>';
-    const th = COLS.map(([k, lbl, c]) => '<th class="sort' + (c ? ' ' + c : '') + '"' + (F.k === k ? ' aria-sort="' + (F.dir > 0 ? 'ascending' : 'descending') + '"' : '') + ' data-k="' + k + '"><button type="button" class="rs-th">' + lbl + '</button></th>').join('');
+    const th = cols().map(([k, lbl, c]) => '<th class="sort' + (c ? ' ' + c : '') + '"' + (F.k === k ? ' aria-sort="' + (F.dir > 0 ? 'ascending' : 'descending') + '"' : '') + ' data-k="' + k + '"><button type="button" class="rs-th">' + lbl + '</button></th>').join('');
     return '<div class="rs-cards">' + shown.map(tcard).join('') + '</div>'
       + '<div class="rs-tw"><div class="tbl rs-tbl" aria-label="Closed trades"><table><thead><tr>' + th + '</tr></thead><tbody>' + shown.map(trow).join('') + '</tbody></table></div></div>'
       + '<div class="rs-more"><span>Showing ' + fmt.int(shown.length) + ' of ' + fmt.int(rows.length) + (rows.length !== all ? ' matching' : '') + '</span>'
@@ -619,23 +645,23 @@
     }
     const all = trades(L).slice().sort((a, b) => (num(a.t_out) || 0) - (num(b.t_out) || 0)), i = all.findIndex(r => String(r.id) === String(id)), r = all[i];
     if (!r) return '<h2>Trade</h2><div class="empty">This trade isn’t among the latest ' + word.plural(all.length, 'closed trade') + ' in the record.</div>';
-    const R = num(r.R), rel = num(r.rel_R), bench = benchOf(r.b), prev = all[i - 1], next = all[i + 1];
+    const R = num(r.R), rel = num(r.rel_R), bench = benchOf(r.b), prev = all[i - 1], next = all[i + 1], cy = r.cy;
     const tierPill = r.tier === 'A' ? '<span class="pill auto">Auto grade</span>' : r.tier === 'B' ? '<span class="pill">Watch-only grade</span>' : '';
-    const html = '<h2><span class="mono">' + esc(r.c) + '</span> <span class="' + fmt.cls(R) + '">' + fmt.R(R) + '</span></h2>'
-      + '<p class="sub rs-shs">Closed ' + esc(stampY(num(r.t_out))) + ' · ' + esc(word.exit(r.rsn)) + ' · held ' + esc(hrs(r.hours)) + '</p>'
+    const html = '<h2><span class="mono">' + esc(r.c) + '</span> ' + (cy ? pc(r.cap) + ' of capital' : '<span class="' + fmt.cls(R) + '">' + fmt.R(R) + '</span>') + '</h2>'
+      + '<p class="sub rs-shs">Closed ' + esc(stampY(r.t_at)) + ' · ' + esc(word.exit(r.rsn, r)) + ' · held ' + esc(hrs(r.hours)) + '</p>'
       + '<div class="rs-shp">' + (r.b ? '<span class="pill">' + esc(r.b) + '</span>' : '') + tierPill + (r.kind ? '<span class="pill">' + esc(word.kind(r.kind, true)) + '</span>' : '') + chip(r.c) + '</div>'
       + '<div class="sec"><h3>Result</h3><dl class="facts">'
-      + fact('Final R' + tip('R'), rv(R)) + fact('vs holding' + (bench ? ' ' + esc(bench) : '') + tip('vsHolding'), rel == null ? na(true) : rv(rel))
+      + (cy ? fact('% of capital', pc(r.cap)) : fact('Final R' + tip('R'), rv(R)) + fact('vs holding' + (bench ? ' ' + esc(bench) : '') + tip('vsHolding'), rel == null ? na(true) : rv(rel)))
       + fact('Result, % of pot', '<span class="' + fmt.cls(r.pnl_pct) + '">' + fmt.pct(r.pnl_pct) + '</span>')
-      + fact('Costs (fees and funding)', num(r.cost_R) == null ? na(true) : fmt.num(r.cost_R, 2) + ' R')
+      + (cy ? '' : fact('Costs (fees and funding)', num(r.cost_R) == null ? na(true) : fmt.num(r.cost_R, 2) + ' R'))
       + (num(r.mfe_R) != null ? fact('Best during the trade', rv(r.mfe_R)) : '') + (num(r.mae_R) != null ? fact('Worst during the trade', rv(r.mae_R)) : '')
       + '</dl></div>'
       + '<div class="sec"><h3>Trade</h3><dl class="facts">'
-      + fact('Book', esc(r.b || '—') + (bench ? ' <span class="sub">(benchmark ' + esc(bench) + ')</span>' : '')) + fact('Grade', esc(word.tier(r.tier))) + fact('Signal', esc(word.kind(r.kind, true)))
-      + fact('Opened', esc(stampY(num(r.t_in)))) + fact('Closed', esc(stampY(num(r.t_out)))) + fact('Held', esc(hrs(r.hours))) + fact('Exit', esc(word.exit(r.rsn)))
+      + fact('Book', esc(r.b || '—') + (bench ? ' <span class="sub">(benchmark ' + esc(bench) + ')</span>' : '')) + (cy ? '' : fact('Grade', esc(word.tier(r.tier))) + fact('Signal', esc(word.kind(r.kind, true))))
+      + fact('Opened', esc(stampY(num(r.t_in)))) + fact('Closed', esc(stampY(r.t_at))) + fact('Held', esc(hrs(r.hours))) + fact('Exit', esc(word.exit(r.rsn, r)))
       + '</dl></div>'
-      + '<div class="sec"><h3>Market prices</h3><dl class="facts">' + [['Entry', r.entry], ['Exit', r.exit], ['First stop', r.stop0]].map(([k, v]) => fact(k, num(v) == null ? na(true) : fmt.px(v))).join('') + '</dl>'
-      + '<p class="cap">Market prices, not your money.' + (num(r.stop0) == null ? ' The first stop is stored from the engine update on.' : '') + '</p></div>'
+      + '<div class="sec"><h3>Market prices</h3><dl class="facts">' + (cy ? [['Entry', r.entry]] : [['Entry', r.entry], ['Exit', r.exit], ['First stop', r.stop0]]).map(([k, v]) => fact(k, num(v) == null ? na(true) : fmt.px(v))).join('') + '</dl>'
+      + '<p class="cap">Market prices, not your money.' + (num(r.stop0) == null && !cy ? ' The first stop is stored from the engine update on.' : '') + '</p></div>'
       + '<div class="pn">' + (prev ? '<button type="button" class="btn small" data-rs-tr="' + esc(prev.id) + '">‹ Older</button>' : '<span></span>')
       + (next ? '<button type="button" class="btn small" data-rs-tr="' + esc(next.id) + '">Newer ›</button>' : '<span></span>') + '</div>';
     return {

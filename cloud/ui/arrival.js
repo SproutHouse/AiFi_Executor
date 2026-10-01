@@ -2,9 +2,8 @@
 // One block (see ui/README.md). It registers hooks only and exports nothing: arrival(prev, next) after core's land()
 // has re-rendered the open tab in place, route(tab) for first-view motion, and show/hide.
 // The rest of the moment lives with its owners, reached only through the DOM they expose:
-//   dial.js      the newly landed bead grows in (scale .6→1) and pings once (.dl-new, .dl-ping.dl-once)
 //   gaterun.js   replays the new run once, only when it differs from the run before it (ex.gr, "Same as …")
-//   now.js       new Latest rows enter with a "new" dot (.enter, .nw-nd); the pot total counts up (ex.nw.R)
+//   bot.js       the Overview's own motion (its sections, the heartbeat strip); fleet.js runs the master's arrivals
 //   activity.js  the new heartbeat cell scales in and new timeline rows enter; positions.js its cards (ex.r.<id>)
 //   core.js      keeps scrollY, refreshes an open sheet, paints the Activity tab dot (ex.seenEv)
 // This module adds, each with a reduced-motion path (static, instant, no pulse):
@@ -20,7 +19,7 @@
   const EASE = 'cubic-bezier(.16,1,.3,1)', D3 = 600, COUNT = 800, TOAST = 4000;
   const arr = v => (Array.isArray(v) ? v : []);
   const V = () => document.getElementById('view');
-  // Not ours to animate: the dial and Gate Run run their own motion, ages tick on the clock, and these modules
+  // Not ours to animate: the Gate Run runs its own motion, ages tick on the clock, and these modules
   // count their own numbers from their own memory (results [data-cu], positions [data-ps-r], now's pot .nw-R).
   const SKIP = '.dl,.gr,[data-ago],[data-ar-skip],[data-cu],[data-ps-r],.nw-R,svg,.vh,.tipbox';
   let wired = false;
@@ -130,7 +129,7 @@
   // live region and already announces a changed state word.
   const DOTC = { ok: 'ok', warn: 'gap', bad: 'bad', act: 'ar-act', mute: 'mute' };
   let lastW = null, pend = null;
-  function seeTarget() { return S.tab === 'now' && lastW && lastW.run ? document.getElementById('now-gaterun') : null; }   // else the top
+  function seeTarget() { return S.tab === 'overview' && lastW && lastW.run ? document.getElementById('overview-gaterun') : null; }   // else the top
   function seeButton(w) {
     if (w.tone === 'mute' || scrollY <= innerHeight) return '';     // only when scrolled more than a screen, and something to see
     const t = seeTarget();
@@ -392,17 +391,18 @@
     init();
     stopSettle();
     const root = V(); if (!root || !S.b) return;
-    safe(() => { if (tab === 'now') ladders(root); bars(root); }, 'Motion');
+    safe(() => { if (tab === 'overview') ladders(root); bars(root); }, 'Motion');
     snap();
     measureSoon(1300);                                              // after the cards' entrance
   });
   hook('arrival', (prev, next) => {
+    if (PAGE !== 'bot') return;                                     // the master's arrivals are fleet.js's own (§7)
     init();
     const root = V();
     if (!root || !next) return;
     still(root); still($('#sheet'));
     safe(restore, 'Scroll');
-    safe(() => { if (S.tab === 'now') ladders(root); numbers(root); bars(root); dotPop(prev, next); }, 'Arrival motion');
+    safe(() => { if (S.tab === 'overview') ladders(root); numbers(root); bars(root); dotPop(prev, next); }, 'Arrival motion');
     measureSoon(D3 + 200);
     if (!prev) return;
     let w = null;

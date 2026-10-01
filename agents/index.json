@@ -6,37 +6,37 @@
       "id": "core",
       "name": "Core",
       "enabled": true,
-      "desc": "12-14 names, 4h flips, Bitcoin gate. The original rules; best backtested edge, fewest trades."
+      "desc": "Trades 12–14 big coins every 4 hours when the bigger trend and Bitcoin agree. The original rules: the best backtest, the fewest trades."
     },
     {
       "id": "wide-4h",
       "name": "Wide",
       "enabled": true,
-      "desc": "31 liquid names, 4h flips, no Bitcoin gate. About 1.7x the trades, smaller edge."
+      "desc": "Trades 31 liquid coins every 4 hours when the bigger trend agrees, without the Bitcoin check. About 1.7× Core's trades, a smaller edge."
     },
     {
       "id": "fast-1h",
       "name": "Fast",
       "enabled": true,
-      "desc": "31 names, 1h flips inside 4h/daily/weekly. Most trades; no edge proven in backtest. Paper experiment."
+      "desc": "Trades 31 coins every hour when the bigger trend agrees. No proven edge yet, so paper only."
     },
     {
       "id": "trend-1d",
       "name": "Trend",
       "enabled": true,
-      "desc": "Doctrine bot 2: BTC+ETH long while above the 50-day average, vol-targeted, daily. Frozen rule; judged yearly, sized as tuition."
+      "desc": "Holds Bitcoin and Ether while each is above its 50-day average, sized to their swings, checked daily. Judged over a year."
     },
     {
       "id": "carry-1h",
       "name": "Carry",
       "enabled": true,
-      "desc": "Doctrine bot 1: short perp + long spot on HYPE, PUMP, XPL, BTC, ETH, ZEC; collects funding. Paper until testnet-validated; gate = capture efficiency >= 80%."
+      "desc": "Earns funding while staying price-neutral (short perp, long spot). Paper until a testnet run validates it; to scale, it must keep at least 80% of the funding it should earn."
     },
     {
       "id": "arena-01",
       "name": "A01 Rotation",
       "enabled": true,
-      "desc": "Arena · rs_rotation · bull specialist · 13 coins · backtest Sharpe 1.13, max drawdown 18% · recipe rot-e335df0b (AiFi Lab). Paper; demoted automatically if it stops matching its backtest.",
+      "desc": "Holds the 3 strongest of 13 coins in a bull market, re-ranked weekly. Picked by the AiFi Lab (recipe rot-e335df0b); paper, and dropped if it stops matching its backtest.",
       "arena": {
         "recipe": "rot-e335df0b",
         "family": "rs_rotation",

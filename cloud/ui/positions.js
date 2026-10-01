@@ -1,8 +1,8 @@
-// cloud/ui/positions.js — the Positions tab (spec §7) and the position sheet (§9.3). One block (ui/README.md): private
-// names stay inside; exports go only through the registries:
-//   VIEWS.positions                       the tab: position cards · risk budget · books · waiting for approval
+// cloud/ui/positions.js — position cards and the position sheet (spec §7, §9.3). One block (ui/README.md): private
+// names stay inside; exports go only through the registries. The Positions tab itself is gone (COMMAND_CENTER_SPEC
+// §2.3): its cards now sit in the bot page's Overview › Holding now (bot.js), and its risk and books panels moved there.
 //   COMP.positionCard(p, opts?) → html     one position card (opts {first}); a tap opens SHEETS.pos
-//   COMP.ladder(p, {mini}?) → html         the R-ladder (mini: 8px track, ticks and bead, no labels; for Now › Holding)
+//   COMP.ladder(p, {mini}?) → html         the R-ladder (mini: 8px track, ticks and bead, no labels)
 //   COMP.stopWords(p, {tips}?) → html      "stop 3.2% below · locks in +0.41 R" (or "risks −0.60 R")
 //   COMP.fitLadders(root)                  re-lays ladder labels with measured widths after inserting ladders elsewhere
 //   SHEETS.pos(id)                         the position sheet (id = pos[].id)
@@ -11,14 +11,10 @@
 {
   const clamp = (v, a, z) => Math.min(z, Math.max(a, v));
   const f2 = v => (+v).toFixed(2);
-  // % of the pot: 2 decimals (§14), a true zero prints "0%". Caps and shares print as configured ("2.5%", "4%").
-  const ppot = v => { const x = num(v); if (x == null) return '—'; const s = fmt.pctu(x, 2); return /^0([.,]0+)?%$/.test(s) ? '0%' : s; };
-  const pcap = v => { const x = num(v); if (x == null) return '—'; const r = Math.round(x * 100) / 100, d = Math.abs(r - Math.round(r)) < 1e-9 ? 0 : Math.abs(r * 10 - Math.round(r * 10)) < 1e-9 ? 1 : 2; return fmt.num(r, d) + '%'; };
   const Rs = v => '<span class="' + fmt.cls(v) + '">' + fmt.R(v) + '</span>';
   const pid = p => String(p.id != null ? p.id : (p.c || '?') + '-' + (p.t_in != null ? p.t_in : ''));
   // Distances keep §14's one decimal; a hair above zero reads "less than 0.1%" rather than a false "0.0%".
   const dist = d => { const x = num(d); return x == null ? '—' : x >= 0 && x < 0.05 ? 'less than 0.1%' : fmt.pctu(x, 1); };
-  const BOOKW = { vol: 'volume', fund: 'funding', days: 'history', oi: 'open interest', lev: 'leverage', list: 'not listed', uni: 'filters' };
 
   // ------------------------------------------------------------------------------------------ data ---
   function posOf(b) { return b && Array.isArray(b.pos) ? b.pos.filter(isObj) : null; }
@@ -171,7 +167,8 @@
     for (let i = 1; i < pts.length; i++) if (pts[i][1] > pts[i - 1][1] + 1e-9)
       dots += '<i class="ps-dt" style="left:' + X(pts[i][0]) + '%;top:' + f2(Y(pts[i][1]) / H * 100) + '%"></i>';
     const n = raises(pts), cur = last[1];
-    const cap = tr.src === 'e4' || tr.src === 'flat' ? (n ? word.plural(n, 'raise') + ' since entry' : 'not raised yet')
+    const cap = p.kind === 'target' && !n ? 'moves only when a rebalance resizes it'
+      : tr.src === 'e4' || tr.src === 'flat' ? (n ? word.plural(n, 'raise') + ' since entry' : 'not raised yet')
       : tr.src === 'log' ? (n ? word.plural(n, 'raise') + ' since entry, from the check log' : 'not raised yet')
       : tr.src === 'part' ? 'raises before ' + fmt.when(tr.win) + ' are not in this data · trail history starts with the engine update'
       : 'raised; when is not recorded · trail history starts with the engine update';
@@ -188,18 +185,20 @@
   }
   function exitsLine(p, first) {
     const d = num(p.to_stop_pct), e = isObj(p.exits) ? p.exits : {};
+    // a rebalancer's position: a fixed protective stop (touched, not a close) or a rebalance to 0; never a daily or weekly turn
+    if (p.kind === 'target') return '<p class="ps-ex">Exits if its protective stop' + (d == null ? '' : d < 0 ? ' (at or through it now)' : ' (' + dist(d) + ' below)') + ' is touched, or when a rebalance takes its target weight to 0.</p>';
     const h4 = d == null ? '' : d < 0 ? ' (at or through it now)' : ' (' + dist(d) + ' below)';
-    let s = 'Exits if a 4-hour close falls below the stop' + h4 + ' or the daily or weekly turns.';
+    let s = 'Exits if ' + aBw('a') + ' close falls below the stop' + h4 + ' or the daily or weekly turns.';
     const dd = num(e.d_pct), ww = num(e.w_pct), side = v => v == null ? '—' : v < 0 ? dist(-v) + ' above the mark' : dist(v) + ' below';
     if (dd != null || ww != null) s += ' Daily line ' + side(dd) + ' · weekly line ' + side(ww) + '.';
     else s += ' <span class="ps-na">Daily and weekly distances after the engine update.</span>';
-    if (first) s += '<span class="ps-nt1">No fixed target: it rides until the stop or a 4-hour, daily or weekly turn.</span>';
+    if (first) s += '<span class="ps-nt1">No fixed target: it rides until the stop or a ' + (bw() === 'daily' ? '' : bw() + ', ') + 'daily or weekly turn.</span>';
     return '<p class="ps-ex">' + s + '</p>';
   }
   function secLine(p) {
     const sz = num(p.size_pct), lev = num(p.lev), rk = num(p.risk_pct);
     return '<p class="ps-sec">Exposure ' + (sz == null ? '—' : fmt.pctu(sz, sz >= 10 ? 0 : 1)) + ' of pot · ' + (lev == null ? 'leverage —' : fmt.lev(lev) + ' isolated')
-      + ' · only ' + (rk == null ? '—' : fmt.pctu(rk, 2)) + ' of pot at risk at entry' + tip('exposure') + '</p>';
+      + (p.kind === 'target' ? '' : ' · only ' + (rk == null ? '—' : fmt.pctu(rk, 2)) + ' of pot at risk at entry') + tip('exposure') + '</p>';
   }
   function body(p, o) {
     o = o || {};
@@ -219,257 +218,6 @@
     return '<article class="card ps-card rise" data-pos="' + esc(pid(p)) + '" aria-label="' + esc((p.c || '') + ' position') + '">' + body(p, o) + '</article>';
   }
 
-  // -------------------------------------------------------------------------------- empty (flat) ---
-  function flatCard(b) {
-    const st = stateOf(b), halted = !!(st.halt && st.halt.set) || !!(st.thr && st.thr.state === 'halted');
-    const ns = Array.isArray(b.names) ? b.names.filter(isObj) : null;
-    const best = g => ns.filter(n => n.grp === g && num(n.dist) != null && num(n.dist) > 0).sort((a, z) => num(a.dist) - num(z.dist))[0];
-    let c;
-    if (!ns) c = 'Closest now: ' + na();
-    else {
-      const nx = best('next'), th = best('thin');
-      if (nx) c = 'Closest now: ' + chip(nx.c) + ' <a class="ps-deck hit" href="#now/ondeck">' + esc(word.dist(nx.dist)) + ' ›</a>';
-      else if (th) c = 'Closest now: ' + chip(th.c) + ' ' + esc(word.dist(th.dist)) + ', but too thin (' + esc(word.reasons(th.elig)) + ') · <a class="ps-deck hit" href="#now/ondeck">On deck ›</a>';
-      else c = 'No name is one flip away right now. <a class="ps-deck hit" href="#now/ondeck">On deck ›</a>';
-    }
-    return '<div class="card ps-flat rise"><p><b>No open positions.</b> An auto-grade flip that passes every check appears here with its stop and R-ladder.</p>'
-      + (halted ? '<p class="ps-na">Buying is stopped right now, so nothing new opens until it resumes.</p>' : '')
-      + '<p class="ps-cl">' + c + '</p></div>';
-  }
-  function cardsSection(b) {
-    const list = posOf(b);
-    const head = n => '<div class="ps-sh"><h2 class="eyebrow">Open positions' + (n ? ' · ' + n : '') + '</h2>' + (n > 1 ? '<span class="sub">closest to its stop first</span>' : '') + '</div>';
-    if (!list) return head(0) + '<div class="card rise"><div class="empty">' + (b && b.v !== 2 ? 'Positions fill in after the next check.' : 'Open positions ' + na()) + '</div></div>';
-    if (!list.length) return head(0) + flatCard(b);
-    const s = sorted(list);
-    return head(s.length) + '<div class="cq"><div class="ps-cards">' + s.map((p, i) => safe(() => card(p, { first: i === 0 }), (p.c || '') + ' position')).join('') + '</div></div>';
-  }
-
-  // ---------------------------------------------------------------------------------- risk budget ---
-  // Meters draw with transform scaleX(--k): they start from the last drawn value (0 on the first view) and after()
-  // moves them to the new one, so a first view grows from 0 and an arrival moves from the old value (§13).
-  const KMEM = {};
-  const kAttr = (key, k, style) => ' data-psk="' + esc(key) + '" data-k="' + (+clamp(k || 0, 0, 1).toFixed(4)) + '" style="' + (style ? style + ';' : '') + '--k:' + (KMEM[key] != null ? KMEM[key] : 0) + '"';
-  const OP = [1, 0.8, 0.6, 0.45, 0.3];
-  function row(label, value, viz, capHtml) {
-    return '<div class="ps-row"><div class="ps-rl">' + label + '</div><div class="ps-rv">' + value + '</div>' + (viz ? '<div class="ps-viz">' + viz + '</div>' : '')
-      + (capHtml ? '<div class="ps-rc cap">' + capHtml + '</div>' : '') + '</div>';
-  }
-  function bookOrder(b) {
-    const rk = isObj(b.risk) ? b.risk : {}, by = isObj(rk.by_book) ? rk.by_book : {};
-    const names = (Array.isArray(b.books) ? b.books : []).filter(isObj).map(x => x.b).filter(x => x != null);
-    Object.keys(by).forEach(k => { if (!names.includes(k)) names.push(k); });
-    return names.map(k => ({ b: k, r: isObj(by[k]) ? by[k] : {} }));
-  }
-  function openRisk(b, rk, cfg) {
-    const cap = num(rk.cap_pct) != null ? num(rk.cap_pct) : num(cfg.open_cap_pct), used = num(rk.used_pct), per = num(cfg.risk_pct);
-    const label = 'Open risk' + tip('riskInUse');
-    if (used == null) return row(label, na(true), '', 'Open risk ' + na());
-    const D = Math.max(cap || 0, used) || 1, X = v => +(clamp(v / D, 0, 1) * 100).toFixed(2);
-    const bk = bookOrder(b);
-    let at = 0, segs = '', i = 0;
-    for (const x of bk) {
-      const u = num(x.r.used_pct) || 0; if (u <= 0) continue;
-      x.op = OP[Math.min(i++, OP.length - 1)]; x.start = at;
-      segs += '<i class="ps-seg" style="left:' + X(at) + '%;width:' + f2(X(at + u) - X(at)) + '%;opacity:' + x.op + '"></i>';
-      at += u;
-    }
-    // A tick where each book's own cap would stop it: from its segment's start, or from the end of the used span
-    // for a book with nothing open (its next trade would start there).
-    const ticks = [];
-    for (const x of bk) {
-      const c = num(x.r.cap_pct); if (c == null) continue;
-      const t = (x.start != null ? x.start : at) + c;
-      if (t > D + 1e-9) continue;
-      const q = ticks.find(q => Math.abs(q.t - t) < 0.005);
-      if (q) q.b.push(x.b); else ticks.push({ t, b: [x.b] });
-    }
-    const tk = ticks.map(q => '<i class="ps-cap" style="left:' + X(q.t) + '%" title="' + esc(q.b.join(', ') + ': may go to ' + pcap(q.t)) + '"></i>').join('');
-    const leg = bk.map(x => {
-      const u = num(x.r.used_pct), on = (u || 0) > 0;
-      return '<span class="ps-lg"><i class="ps-sw' + (on ? '' : ' ps-off') + '"' + (on ? ' style="opacity:' + x.op + '"' : '') + '></i>' + esc(x.b) + ' <b>' + ppot(u) + '</b> of ' + pcap(x.r.cap_pct) + '</span>';
-    }).join('');
-    const room = per ? Math.max(0, Math.floor(((cap != null ? cap : D) - used) / per + 1e-9)) : null;
-    const free = num(rk.max) != null && num(rk.n_open) != null ? Math.max(0, num(rk.max) - num(rk.n_open)) : null;
-    const nroom = room == null ? null : free == null ? room : Math.min(room, free);
-    const roomW = nroom == null ? '' : nroom === 0 ? 'No room for another full-size trade' + (room > 0 && free === 0 ? ': every slot is taken' : '') + '. '
-      : 'Room for ' + word.plural(nroom, 'more full-size trade', 'more full-size trades') + (room > nroom ? ' (slots)' : '') + '. ';
-    const viz = '<div class="ps-rt" role="img" aria-label="' + esc(ppot(used) + ' of ' + pcap(cap) + ' of the pot at risk, split by book. Ticks mark how far each book may go.') + '">'
-      + '<div class="ps-rs"' + kAttr('risk', 1) + '>' + segs + '</div>' + tk + '</div><div class="ps-lgs">' + leg + '</div>';
-    return row(label, '<b>' + ppot(used) + '</b> of ' + pcap(cap) + ' at risk', viz, esc(roomW) + 'Ticks mark how far each book may go (its own cap).');
-  }
-  function stopsHit(rk) {
-    const v = num(rk.stops_hit_pct), n0 = num(rk.n_open) === 0;
-    let val;
-    if (v == null) val = na(true);
-    else if (fmt.cls(v) === 'neg') val = '<b class="neg">' + fmt.pct(v) + '</b> of pot <span class="ps-wd neg">loss</span>';
-    else if (fmt.cls(v) === 'pos') val = '<b class="pos">' + fmt.pct(v) + '</b> of pot <span class="ps-wd pos">locked in</span>';
-    else val = '<b>0%</b> of pot · ' + (n0 ? 'nothing at risk' : 'about even');
-    return row('If every stop hit now' + tip('lockedR'), val, '', v == null ? 'The result at every stop ' + na() : '');
-  }
-  function slots(rk, cfg) {
-    const max = num(rk.max) != null ? num(rk.max) : num(cfg.max_pos), n = num(rk.n_open), L = 'Slots' + tip('slot');
-    if (max == null || n == null) return row(L, na(true), '', '');
-    const pips = Array.from({ length: clamp(max, 0, 24) }, (_, i) => '<i class="ps-pip' + (i < n ? ' ps-on' : '') + '"></i>').join('');
-    return row(L, '<b>' + fmt.int(n) + '</b> of ' + fmt.int(max), '<span class="ps-pips" role="img" aria-label="' + esc(n + ' of ' + max + ' slots in use') + '">' + pips + '</span>',
-      esc(fmt.int(Math.max(0, max - n)) + ' free.'));
-  }
-  function gross(rk, cfg) {
-    const g = num(rk.gross_x), c = num(rk.gross_cap_x) != null ? num(rk.gross_cap_x) : num(cfg.gross_cap_x), L = 'Gross exposure';
-    if (g == null) return row(L, na(true), '', '');
-    return row(L, '<b>' + fmt.x(g) + '</b> of ' + (c == null ? '—' : fmt.lev(c)), '<div class="meter sx ps-m"><i' + kAttr('gross', c ? g / c : 0) + '></i></div>',
-      'Every open position’s size added up, as a multiple of the pot.');
-  }
-  function drawdown(b, cfg) {
-    const st = stateOf(b), thr = isObj(st.thr) ? st.thr : null, dd = num(thr && thr.dd_pct), mult = num(thr && thr.mult);
-    const T = Array.isArray(cfg.thr) ? cfg.thr.map(num) : [null, null], t1 = T[0], t2 = T[1];
-    const D = Math.max(25, t2 != null ? t2 * 1.25 : 0, dd || 0), X = v => +(clamp(v / D, 0, 1) * 100).toFixed(2);
-    const state = thr && thr.state;
-    let w = state === 'normal' ? 'normal' : state === 'halved' ? 'risk halved' : state === 'halted' ? 'buying stopped' : 'unknown';
-    let wc = state === 'normal' ? 'pos' : state === 'halved' ? 'ps-wn' : state === 'halted' ? 'neg' : 'ps-mu';
-    if (dd != null && state !== 'halted' && t2 != null && dd >= t2) { w = 'buying stops from the next check'; wc = 'neg'; }
-    else if (dd != null && state === 'normal' && t1 != null && dd >= t1 && mult === 1) { w = 'risk halves from the next check'; wc = 'ps-wn'; }
-    const lvl = dd == null ? '' : t2 != null && dd >= t2 ? 'ps-bad' : t1 != null && dd >= t1 ? 'ps-wrn' : 'ps-ok';
-    const tick = (v, t) => v == null ? '' : '<i class="ps-gt" style="left:' + X(v) + '%"></i><span class="ps-gl" style="left:' + X(v) + '%">' + t + '</span>';
-    const aria = 'Drawdown ' + (dd == null ? 'not in this data' : fmt.pctu(dd, 1)) + ' on a 0 to ' + D + '% scale.' + (t1 != null ? ' Risk halves at ' + t1 + '%.' : '') + (t2 != null ? ' Buying stops at ' + t2 + '%.' : '');
-    const viz = '<div class="ps-g" role="img" aria-label="' + esc(aria) + '"><div class="ps-gtr"><i class="ps-gf ' + lvl + '"' + kAttr('dd', dd == null ? 0 : dd / D) + '></i></div>'
-      + tick(t1, 'risk halves') + tick(t2, 'stops buying') + '</div>';
-    const val = (dd == null ? na(true) : '<b>' + fmt.pctu(dd, 1) + '</b>') + ' · <span class="ps-wd ' + wc + '">' + w + '</span>';
-    return row('Drawdown' + tip('drawdown'), val, viz, 'How far the pot is below its peak.' + (t1 != null && t2 != null ? ' Risk per trade halves at ' + esc(t1) + '%; buying stops at ' + esc(t2) + '% until reviewed.' : ''));
-  }
-  function riskCard(b) {
-    const rk = isObj(b.risk) ? b.risk : null, cfg = isObj(b.cfg) ? b.cfg : {}, st = stateOf(b), dd = num(st.thr && st.thr.dd_pct);
-    const h = '<section class="card cq ps-risk rise" id="positions-risk"><div class="head"><div class="ttl"><h2>Risk budget</h2><span class="sub">What the open positions could lose, as % of the pot</span></div></div>';
-    if (!rk) return h + '<p class="ps-lead">Risk in use ' + na() + '</p><div class="ps-rows">' + drawdown(b, cfg) + '</div></section>';
-    const lead = num(rk.n_open) === 0 ? '<p class="ps-lead">Nothing at risk. ' + (dd == null ? 'How far the pot is below its peak is not in this data.' : 'The pot is ' + fmt.pctu(dd, 1) + ' below its peak.') + '</p>' : '';
-    return h + lead + '<div class="ps-rows">' + [openRisk(b, rk, cfg), stopsHit(rk), slots(rk, cfg), gross(rk, cfg), drawdown(b, cfg)].join('') + '</div></section>';
-  }
-
-  // ---------------------------------------------------------------------------------------- books ---
-  // Why names are not tradeable today, grouped by check: "AAVE, CRV: volume · CRV: funding" (from names[].elig).
-  function whyLine(bk, b) {
-    const fails = {};
-    for (const n of (Array.isArray(b.names) ? b.names.filter(isObj) : [])) if (n.b === bk.b && Array.isArray(n.elig))
-      for (const e of n.elig) { const c = Array.isArray(e) ? e[0] : e; (fails[c] = fails[c] || []).push(n.c); }
-    const why = isObj(bk.why) ? bk.why : {};
-    return Object.keys(why).map(c => (fails[c] || []).length ? fails[c].map(esc).join(', ') + ': ' + esc(BOOKW[c] || c) : esc(BOOKW[c] || c) + ' ' + fmt.int(why[c])).join(' · ');
-  }
-  function tradesLine(bk, L, gates) {
-    const s = L && L.stats && isObj(L.stats.book) ? L.stats.book[bk.b] : null, g = num(gates && gates.n);
-    if (!isObj(s) || !num(s.n)) return '';
-    const n = num(s.n), rel = num(s.rel_R);
-    return 'n ' + fmt.int(n) + (g != null && n < g ? ' of ' + fmt.int(g) : '') + (rel != null ? ' · <span class="ps-nw">' + Rs(rel) + ' per trade vs holding' + tip('vsHolding') + '</span>' : '');
-  }
-  function namesHtml(bk) {
-    const ns = (Array.isArray(bk.names) ? bk.names : []).filter(x => Array.isArray(x) && x[0]);
-    if (!ns.length) return '';
-    const one = x => '<span class="ps-nm">' + chip(x[0]) + (x[1] === 0 ? '<span class="ps-ut">untested</span>' : '') + '</span>';
-    const rest = ns.slice(8);
-    return '<div class="ps-nms">' + ns.slice(0, 8).map(one).join('') + '</div>'
-      + (rest.length ? '<details class="ps-mn"><summary><span class="ps-mo">and ' + rest.length + ' more</span><span class="ps-mc">show fewer</span></summary><div class="ps-nms">' + rest.map(one).join('') + '</div></details>' : '');
-  }
-  function booksCard(b) {
-    const books = Array.isArray(b.books) ? b.books.filter(isObj) : null;
-    const h = ['<section class="card cq ps-books rise" id="positions-books"><div class="head"><div class="ttl"><h2>Books' + tip('book') + '</h2><span class="sub">Each book is judged against its benchmark, with its own share and risk cap</span></div></div>'];
-    if (!books || (!books.length && b.v !== 2)) return h.join('') + '<div class="empty">' + (b.v !== 2 ? 'Books fill in after the next check.' : 'Books ' + na()) + '</div></section>';
-    if (!books.length) return h.join('') + '<div class="empty">No books are set up.</div></section>';
-    const by = isObj(b.risk) && isObj(b.risk.by_book) ? b.risk.by_book : {}, cfg = isObj(b.cfg) ? b.cfg : {};
-    const L = S.ledger && S.ledgerGen === b.gen ? S.ledger : null;
-    h.push('<ul class="list ps-bl">');
-    for (const bk of books) {
-      const r = isObj(by[bk.b]) ? by[bk.b] : {}, u = num(r.used_pct), c = num(r.cap_pct) != null ? num(r.cap_pct) : num(bk.cap_pct);
-      const tr = num(bk.tradeable), of = num(bk.of), why = whyLine(bk, b), zero = tr === 0 && !!of;
-      const codes = Object.keys(isObj(bk.why) ? bk.why : {}).map(c => esc(BOOKW[c] || c)).join(', ');
-      const tw = tr == null ? 'tradeable today ' + na(true) : 'tradeable today <b>' + fmt.int(tr) + '</b> of ' + (of == null ? '—' : fmt.int(of));
-      const bx = L ? tradesLine(bk, L, cfg.gates) : '';
-      h.push('<li class="ps-b"><div class="ps-bh"><span class="ps-bn">' + esc(bk.b) + '</span>' + (bk.bench ? '<span class="ps-vs">vs ' + esc(bk.bench) + '</span>' : '')
-        + (bk.on === false ? '<span class="pill mute">off</span>' : '') + '<span class="ps-bt' + (zero ? ' ps-wn' : '') + '">' + tw + (zero && codes ? ' · ' + codes : '') + '</span></div>'
-        + '<div class="ps-bs">Gets ' + pcap(bk.share_pct) + ' of the pot, may risk up to ' + pcap(c) + (bk.sweep ? ' · earmarks gains for ' + esc(bk.bench || 'its benchmark') : '') + '</div>'
-        + '<div class="ps-bm"><div class="meter sx ps-m"><i' + kAttr('book:' + bk.b, c ? (u || 0) / c : 0) + '></i></div><span class="ps-bu">' + (u == null ? na(true) : ppot(u)) + ' of ' + pcap(c) + ' in use'
-        + (num(r.n) ? ' · ' + fmt.int(r.n) + ' open' : '') + '</span></div>'
-        + (why ? '<div class="ps-bw">' + why + '</div>' : '')
-        + namesHtml(bk)
-        + '<div class="ps-bx" data-ps-bx="' + esc(bk.b) + '"' + (bx ? '' : ' hidden') + '>' + bx + '</div></li>');
-    }
-    h.push('</ul><p class="cap ps-foot">Open interest and leverage are checked when a signal fires.</p></section>');
-    return h.join('');
-  }
-  // "n 4 of 30 · +0.30 R per trade vs holding" needs the ledger; it is fetched only once trades exist.
-  function fillTrades(root, b) {
-    if (!num(isObj(b.rec) ? b.rec.n : null) || !Array.isArray(b.books)) return;
-    if (S.ledger && S.ledgerGen === b.gen) return;
-    loadLedger().then(L => {
-      if (!L || S.b !== b) return;
-      const cfg = isObj(b.cfg) ? b.cfg : {};
-      $$('[data-ps-bx]', root).forEach(el => {
-        const bk = b.books.find(x => isObj(x) && x.b === el.dataset.psBx); if (!bk) return;
-        const t = tradesLine(bk, L, cfg.gates); if (t) { el.innerHTML = t; el.hidden = false; }
-      });
-    });
-  }
-
-  // ------------------------------------------------------------------------------ waiting (legacy) ---
-  function approvalCard(b) {
-    const ps = Array.isArray(b.proposals) ? b.proposals.filter(isObj) : [];
-    if (!ps.length) return '';
-    const now = nowS();
-    const li = ps.map(p => {
-      const e = num(p.expires);
-      const ex = e == null ? 'expiry ' + na() : e > now ? 'expires ' + fmt.when(e) + ' <span class="sub" data-ago="' + e + '">' + fmt.ago(e) + '</span>' : 'expired ' + fmt.when(e);
-      return '<li class="it">' + chip(p.c) + '<span>' + esc(cap1(word.kind(p.kind, true))) + ' · ' + esc(word.tier(p.tier)) + ' · ' + ex + '</span></li>';
-    }).join('');
-    return '<section class="card ps-appr rise" id="positions-approval"><div class="head"><div class="ttl"><h2>Waiting for approval</h2><span class="sub">Old approval model: nothing new is proposed, and these expire on their own</span></div></div><ul class="list">' + li + '</ul></section>';
-  }
-
-  // ----------------------------------------------------------------------------------------- view ---
-  function animate(root) {
-    void root.offsetWidth;                                   // commit the starting values so the change transitions
-    $$('[data-psk]', root).forEach(el => { const k = Number(el.dataset.k); el.style.setProperty('--k', k); KMEM[el.dataset.psk] = k; });
-  }
-  // First view after a change: the bead slides from the last seen R (localStorage ex.r.<id>) and open R counts from it.
-  function lastSeen(root, list) {
-    const ids = new Set();
-    for (const p of list) {
-      const id = pid(p), n = num(p.r_now); ids.add(id);
-      if (n == null) continue;
-      const old = num(lsGet('ex.r.' + id, null));
-      if (old != null && Math.abs(old - n) >= 0.005 && !reduced) {
-        const el = $$('.ps-card', root).find(x => x.dataset.pos === id);
-        const lad = el && $('.ps-lad', el), bead = lad && $('[data-ps-bead]', lad), trk = lad && $('.ps-trk', lad);
-        if (bead && trk && trk.clientWidth) {
-          const lo = Number(lad.dataset.lo), hi = Number(lad.dataset.hi);
-          const dx = (clamp((old - lo) / (hi - lo) * 100, 0, 100) - parseFloat(bead.style.left)) / 100 * trk.clientWidth;
-          if (Math.abs(dx) >= 1) { bead.classList.add('ps-nt'); bead.style.setProperty('--dx', dx.toFixed(1) + 'px'); void bead.offsetWidth; bead.classList.remove('ps-nt'); bead.style.setProperty('--dx', '0px'); }
-        }
-        const big = el && $('[data-ps-r]', el);
-        if (big) countUp(big, n, { from: old, fmt: v => fmt.R(v), ms: 800 });
-      }
-      lsSet('ex.r.' + id, n);
-    }
-    try {                                                    // forget positions that are no longer open
-      const drop = [];
-      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('ex.r.') === 0 && !ids.has(k.slice(5))) drop.push(k); }
-      drop.forEach(k => localStorage.removeItem(k));
-    } catch (e) {}
-  }
-  VIEWS.positions = {
-    title: 'Positions',
-    render() {
-      const b = S.b || {};
-      return '<div class="stack ps">' + safe(() => cardsSection(b), 'Positions') + safe(() => riskCard(b), 'Risk budget') + safe(() => booksCard(b), 'Books')
-        + safe(() => approvalCard(b), 'Waiting for approval') + '</div>';
-    },
-    after(root) {
-      const b = S.b || {};
-      bindResize();
-      fitAll(root);
-      animate(root);
-      const list = posOf(b);
-      if (list) call(lastSeen, root, list);
-      fillTrades(root, b);
-    },
-  };
-
   // ---------------------------------------------------------------------------------------- sheet ---
   SHEETS.pos = function (id) {
     const b = S.b || {}, f = findPos(id), p = f.p;
@@ -477,7 +225,7 @@
     const px = isObj(p.px) ? p.px : {}, h = [], asof = num(p.as_of), tin = num(p.t_in);
     h.push('<h2 class="ps-h2"><span class="ps-coin">' + esc(p.c) + '</span> <span class="ps-h2s">open position</span></h2>');
     h.push('<div class="ps-card ps-sc">' + body(p, { sheet: true, first: true }) + '</div>');
-    const F = rows => '<dl class="facts">' + rows.map(([k, v]) => '<dt>' + k + '</dt><dd>' + v + '</dd>').join('') + '</dl>';
+    const F = rows => '<dl class="facts">' + rows.filter(Boolean).map(([k, v]) => '<dt>' + k + '</dt><dd>' + v + '</dd>').join('') + '</dl>';
     const P = v => num(v) == null ? na() : fmt.px(v);
     h.push('<div class="sec"><h3>Prices</h3>' + F([['Entry', P(px.entry)], ['First stop' + tip('firstStop'), P(px.stop0)], ['Current stop', P(px.stop)],
       ['Last mark', num(px.mark) == null ? na() : fmt.px(px.mark) + (asof != null ? ' <span class="sub">at ' + fmt.when(asof) + '</span>' : '')]]) + '<p class="cap">Market prices, not your money.</p></div>');
@@ -491,7 +239,7 @@
       ['Held', tin != null && asof != null ? fmt.dur(Math.max(0, asof - tin)) + (bars != null ? ' · ' + word.plural(bars, 'bar') : '') : na()],
       ['Costs so far', num(p.cost_R) == null ? na() : fmt.R(p.cost_R) + ' <span class="sub">fees and funding</span>'],
       ['Exposure' + tip('exposure'), sz == null ? na() : fmt.pctu(sz, sz >= 10 ? 0 : 1) + ' of pot · ' + (num(p.lev) == null ? '—' : fmt.lev(p.lev) + ' isolated')],
-      ['At risk at entry', rk == null ? na() : fmt.pctu(rk, 2) + ' of pot'],
+      p.kind === 'target' ? null : ['At risk at entry', rk == null ? na() : fmt.pctu(rk, 2) + ' of pot'],
       ['Stop at entry', sp ? fmt.pctu(sp, 1) + ' below' : na()],
       ['Bitcoin at entry', btc ? esc(btc) : na()],
     ]) + '</div>');

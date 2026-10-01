@@ -1,0 +1,1012 @@
+{
+ "_note": "COMMAND_CENTER_SPEC fixture: a v2 exec:agents envelope (sections 6.3, 6.4) built from the 2026-10-01 06:42Z snapshot. Overlay it on kv.json: node cloud/dev/preview.mjs cloud/dev/kv.json 8788 --overlay cloud/dev/fx_agents_v2.json",
+ "exec:agents": {
+  "v": 2,
+  "gen": "2026-10-01T06:42:54.874Z",
+  "fleet": {
+   "halt": false,
+   "reason": null,
+   "since": null
+  },
+  "host": {
+   "name": "alwaysdata",
+   "t": 1790834826,
+   "fails": 0,
+   "ok": true
+  },
+  "order": [
+   "core",
+   "wide-4h",
+   "fast-1h",
+   "trend-1d",
+   "carry-1h",
+   "arena-01"
+  ],
+  "agents": [
+   {
+    "id": "core",
+    "name": "Core",
+    "desc": "12-14 names, 4h flips, Bitcoin gate. The original rules; best backtested edge, fewest trades.",
+    "tf": "4h",
+    "mode": "paper",
+    "gen": "2026-10-01T06:42:54.134Z",
+    "last_t": 1790827545,
+    "rec": {
+     "n": 0,
+     "tot_R": 0,
+     "avg_R": null,
+     "rel_R_avg": null,
+     "open_R": 0,
+     "win": null,
+     "w": 0,
+     "l": 0,
+     "closed_R": 0
+    },
+    "pot_chg_pct": 0,
+    "n_open": 0,
+    "used_pct": 0,
+    "halt": false,
+    "thr": "normal",
+    "failed": false,
+    "alerts": 0,
+    "enabled": true,
+    "kind": "flip",
+    "bar_s": 14400,
+    "n_names": 14,
+    "arena": null,
+    "twin_of": null,
+    "sb": {
+     "clock": {
+      "last_t": 1790827545,
+      "last_slot": 1790827200,
+      "late_min": 6,
+      "lag_med_min": 17,
+      "lag_rng": [
+       6,
+       27
+      ],
+      "lag_n": 41,
+      "limit_min": 45,
+      "sched_min": 5,
+      "bar_s": 14400
+     },
+     "state": {
+      "halt": {
+       "set": false,
+       "reason": null,
+       "since": null
+      },
+      "thr": {
+       "state": "normal",
+       "mult": 1,
+       "dd_pct": 0
+      },
+      "last": {
+       "t": 1790827545,
+       "fresh": true,
+       "failed": false,
+       "late_min": 6,
+       "abort": null
+      }
+     },
+     "cfg": {
+      "thr": [
+       10,
+       20
+      ],
+      "late_min": 45
+     },
+     "mode": {
+      "eff": "paper",
+      "req": "paper",
+      "note": ""
+     },
+     "alerts": [],
+     "risk": {
+      "n_open": 0
+     }
+    },
+    "since": 1790203756,
+    "wk_pct": 0,
+    "spark": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "spark_t": [
+     1790496866,
+     1790827545
+    ],
+    "last24": {
+     "slots": 6,
+     "on_time": 6,
+     "late": 0,
+     "missed": 0,
+     "failed": 0,
+     "signals": 2,
+     "bought": 0,
+     "sold": 0
+    },
+    "beat": {
+     "s0": 1790582400,
+     "n": 18,
+     "k": "oooooooooooooooooo"
+    },
+    "act": null,
+    "recent": [],
+    "held": [],
+    "deployed_pct": 0
+   },
+   {
+    "id": "wide-4h",
+    "name": "Wide",
+    "desc": "31 liquid names, 4h flips, no Bitcoin gate. About 1.7x the trades, smaller edge.",
+    "tf": "4h",
+    "mode": "paper",
+    "gen": "2026-10-01T06:42:54.282Z",
+    "last_t": 1790827559,
+    "rec": {
+     "n": 0,
+     "tot_R": 0,
+     "avg_R": null,
+     "rel_R_avg": null,
+     "open_R": 0,
+     "win": null,
+     "w": 0,
+     "l": 0,
+     "closed_R": 0
+    },
+    "pot_chg_pct": 0,
+    "n_open": 0,
+    "used_pct": 0,
+    "halt": false,
+    "thr": "normal",
+    "failed": false,
+    "alerts": 0,
+    "enabled": true,
+    "kind": "flip",
+    "bar_s": 14400,
+    "n_names": 31,
+    "arena": null,
+    "twin_of": null,
+    "sb": {
+     "clock": {
+      "last_t": 1790827559,
+      "last_slot": 1790827200,
+      "late_min": 6,
+      "lag_med_min": 16,
+      "lag_rng": [
+       6,
+       23
+      ],
+      "lag_n": 31,
+      "limit_min": 45,
+      "sched_min": 5,
+      "bar_s": 14400
+     },
+     "state": {
+      "halt": {
+       "set": false,
+       "reason": null,
+       "since": null
+      },
+      "thr": {
+       "state": "normal",
+       "mult": 1,
+       "dd_pct": 0
+      },
+      "last": {
+       "t": 1790827559,
+       "fresh": true,
+       "failed": false,
+       "late_min": 6,
+       "abort": null
+      }
+     },
+     "cfg": {
+      "thr": [
+       10,
+       20
+      ],
+      "late_min": 45
+     },
+     "mode": {
+      "eff": "paper",
+      "req": "paper",
+      "note": ""
+     },
+     "alerts": [],
+     "risk": {
+      "n_open": 0
+     }
+    },
+    "since": 1790396047,
+    "wk_pct": 0,
+    "spark": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "spark_t": [
+     1790496878,
+     1790827559
+    ],
+    "last24": {
+     "slots": 6,
+     "on_time": 6,
+     "late": 0,
+     "missed": 0,
+     "failed": 0,
+     "signals": 6,
+     "bought": 0,
+     "sold": 0
+    },
+    "beat": {
+     "s0": 1790582400,
+     "n": 18,
+     "k": "oooooooooooooooooo"
+    },
+    "act": null,
+    "recent": [],
+    "held": [],
+    "deployed_pct": 0
+   },
+   {
+    "id": "fast-1h",
+    "name": "Fast",
+    "desc": "31 names, 1h flips inside 4h/daily/weekly. Most trades; no edge proven in backtest. Paper experiment.",
+    "tf": "1h",
+    "mode": "paper",
+    "gen": "2026-10-01T06:42:54.413Z",
+    "last_t": 1790834745,
+    "rec": {
+     "n": 4,
+     "tot_R": -0.14,
+     "avg_R": -0.21,
+     "rel_R_avg": -0.07,
+     "open_R": 0.72,
+     "win": 0.25,
+     "w": 1,
+     "l": 3,
+     "closed_R": -0.86
+    },
+    "pot_chg_pct": -0.15,
+    "n_open": 1,
+    "used_pct": 1.01,
+    "halt": false,
+    "thr": "normal",
+    "failed": false,
+    "alerts": 0,
+    "enabled": true,
+    "kind": "flip",
+    "bar_s": 3600,
+    "n_names": 31,
+    "arena": null,
+    "twin_of": null,
+    "sb": {
+     "clock": {
+      "last_t": 1790834745,
+      "last_slot": 1790834400,
+      "late_min": 6,
+      "lag_med_min": 15,
+      "lag_rng": [
+       6,
+       24
+      ],
+      "lag_n": 42,
+      "limit_min": 35,
+      "sched_min": 5,
+      "bar_s": 3600
+     },
+     "state": {
+      "halt": {
+       "set": false,
+       "reason": null,
+       "since": null
+      },
+      "thr": {
+       "state": "normal",
+       "mult": 1,
+       "dd_pct": 2.68
+      },
+      "last": {
+       "t": 1790834745,
+       "fresh": true,
+       "failed": false,
+       "late_min": 6,
+       "abort": null
+      }
+     },
+     "cfg": {
+      "thr": [
+       10,
+       20
+      ],
+      "late_min": 35
+     },
+     "mode": {
+      "eff": "paper",
+      "req": "paper",
+      "note": ""
+     },
+     "alerts": [],
+     "risk": {
+      "n_open": 1
+     }
+    },
+    "since": 1790392390,
+    "wk_pct": -0.15,
+    "spark": [
+     -0.12,
+     0,
+     0.27,
+     0.26,
+     0.14,
+     0.23,
+     0.23,
+     -0.27,
+     -0.3,
+     -0.18,
+     -0.17,
+     -0.29,
+     -0.33,
+     -0.23,
+     -0.1,
+     -0.21,
+     -0.13,
+     -0.13,
+     -0.09,
+     -0.08,
+     -0.04,
+     -0.03,
+     -0.11,
+     -0.15
+    ],
+    "spark_t": [
+     1790752600,
+     1790834745
+    ],
+    "last24": {
+     "slots": 24,
+     "on_time": 24,
+     "late": 0,
+     "missed": 0,
+     "failed": 0,
+     "signals": 15,
+     "bought": 0,
+     "sold": 1
+    },
+    "beat": {
+     "s0": 1790751600,
+     "n": 24,
+     "k": "oooooooOoooooooooooooooo"
+    },
+    "act": {
+     "t": 1790777875,
+     "ty": "sold",
+     "cs": [
+      "AVAX"
+     ],
+     "n": 1,
+     "R": -0.2,
+     "cap_pct": null
+    },
+    "recent": [
+     [
+      1790831145,
+      "trail",
+      "CRV",
+      null,
+      null,
+      2,
+      null,
+      0.38,
+      null
+     ],
+     [
+      1790827590,
+      "trail",
+      "CRV",
+      null,
+      null,
+      2,
+      null,
+      0.38,
+      null
+     ],
+     [
+      1790823945,
+      "trail",
+      "CRV",
+      null,
+      null,
+      2,
+      null,
+      0.37,
+      null
+     ]
+    ],
+    "held": [
+     "CRV"
+    ],
+    "deployed_pct": 8.5
+   },
+   {
+    "id": "trend-1d",
+    "name": "Trend",
+    "desc": "Doctrine bot 2: BTC+ETH long while above the 50-day average, vol-targeted, daily. Frozen rule; judged yearly, sized as tuition.",
+    "tf": "1d",
+    "mode": "paper",
+    "gen": "2026-10-01T06:42:54.578Z",
+    "last_t": 1790820401,
+    "rec": {
+     "n": 0,
+     "tot_R": -0.09,
+     "avg_R": null,
+     "rel_R_avg": null,
+     "open_R": -0.09,
+     "win": null,
+     "w": 0,
+     "l": 0,
+     "closed_R": 0
+    },
+    "pot_chg_pct": -0.35,
+    "n_open": 2,
+    "used_pct": 10.15,
+    "halt": false,
+    "thr": "normal",
+    "failed": false,
+    "alerts": 0,
+    "enabled": true,
+    "kind": "target",
+    "bar_s": 86400,
+    "n_names": 2,
+    "arena": null,
+    "twin_of": null,
+    "sb": {
+     "clock": {
+      "last_t": 1790820401,
+      "last_slot": 1790812800,
+      "late_min": 127,
+      "lag_med_min": 75,
+      "lag_rng": [
+       8,
+       135
+      ],
+      "lag_n": 15,
+      "limit_min": 180,
+      "sched_min": 5,
+      "bar_s": 86400
+     },
+     "state": {
+      "halt": {
+       "set": false,
+       "reason": null,
+       "since": null
+      },
+      "thr": {
+       "state": "normal",
+       "mult": 1,
+       "dd_pct": 0.67
+      },
+      "last": {
+       "t": 1790820401,
+       "fresh": true,
+       "failed": false,
+       "late_min": 127,
+       "abort": null
+      }
+     },
+     "cfg": {
+      "thr": [
+       25,
+       45
+      ],
+      "late_min": 180
+     },
+     "mode": {
+      "eff": "paper",
+      "req": "paper",
+      "note": ""
+     },
+     "alerts": [],
+     "risk": {
+      "n_open": 2
+     }
+    },
+    "since": 1790468548,
+    "wk_pct": -0.35,
+    "spark": [
+     0,
+     0.1,
+     0.2,
+     0.32,
+     -0.43,
+     -0.6,
+     -0.44,
+     -0.78,
+     -0.84,
+     -0.62,
+     -0.57,
+     -0.56,
+     -0.44,
+     -0.39,
+     -0.35
+    ],
+    "spark_t": [
+     1790468548,
+     1790820401
+    ],
+    "last24": {
+     "slots": 1,
+     "on_time": 1,
+     "late": 0,
+     "missed": 0,
+     "failed": 0,
+     "signals": 0,
+     "bought": 0,
+     "sold": 0
+    },
+    "beat": {
+     "s0": 1789689600,
+     "n": 14,
+     "k": ".........Ooooo"
+    },
+    "act": {
+     "t": 1790468548,
+     "ty": "bought",
+     "cs": [
+      "BTC",
+      "ETH"
+     ],
+     "n": 2,
+     "R": null,
+     "cap_pct": null
+    },
+    "recent": [
+     [
+      1790468548,
+      "bought",
+      "BTC",
+      "target",
+      "T",
+      2,
+      "stop 15",
+      null,
+      null
+     ],
+     [
+      1790468548,
+      "bought",
+      "ETH",
+      "target",
+      "T",
+      2,
+      "stop 15",
+      null,
+      null
+     ]
+    ],
+    "held": [
+     "BTC",
+     "ETH"
+    ],
+    "deployed_pct": 67.7
+   },
+   {
+    "id": "carry-1h",
+    "name": "Carry",
+    "desc": "Doctrine bot 1: short perp + long spot on HYPE, PUMP, XPL, BTC, ETH, ZEC; collects funding. Paper until testnet-validated; gate = capture efficiency >= 80%.",
+    "tf": "1h",
+    "mode": "paper",
+    "gen": "2026-10-01T06:42:54.762Z",
+    "last_t": 1790834800,
+    "rec": {
+     "n": 0,
+     "tot_R": 0,
+     "avg_R": null,
+     "rel_R_avg": null,
+     "open_R": 0,
+     "win": null,
+     "w": 0,
+     "l": 0,
+     "closed_R": 0
+    },
+    "pot_chg_pct": -1.11,
+    "n_open": 6,
+    "used_pct": 0,
+    "halt": false,
+    "thr": "normal",
+    "failed": false,
+    "alerts": 0,
+    "enabled": true,
+    "kind": "carry",
+    "bar_s": 3600,
+    "n_names": 6,
+    "arena": null,
+    "twin_of": null,
+    "sb": {
+     "clock": {
+      "last_t": 1790834800,
+      "last_slot": 1790834400,
+      "late_min": 7,
+      "lag_med_min": 16,
+      "lag_rng": [
+       7,
+       25
+      ],
+      "lag_n": 42,
+      "limit_min": 50,
+      "sched_min": 5,
+      "bar_s": 3600
+     },
+     "state": {
+      "halt": {
+       "set": false,
+       "reason": null,
+       "since": null
+      },
+      "thr": {
+       "state": "normal",
+       "mult": 1,
+       "dd_pct": 1.42
+      },
+      "last": {
+       "t": 1790834800,
+       "fresh": true,
+       "failed": false,
+       "late_min": 7,
+       "abort": null
+      }
+     },
+     "cfg": {
+      "thr": [
+       5,
+       10
+      ],
+      "late_min": 50
+     },
+     "mode": {
+      "eff": "paper",
+      "req": "paper",
+      "note": ""
+     },
+     "alerts": [],
+     "risk": {
+      "n_open": 6
+     }
+    },
+    "since": 1790475253,
+    "wk_pct": -1.11,
+    "spark": [
+     -0.41,
+     -0.52,
+     -0.48,
+     -0.45,
+     -0.46,
+     -0.44,
+     -0.45,
+     -0.51,
+     -0.42,
+     -0.46,
+     -0.46,
+     -0.53,
+     -0.7,
+     -0.65,
+     -0.83,
+     -0.94,
+     -0.98,
+     -0.96,
+     -0.95,
+     -1.14,
+     -1.15,
+     -1.14,
+     -1.12,
+     -1.11
+    ],
+    "spark_t": [
+     1790752644,
+     1790834800
+    ],
+    "last24": {
+     "slots": 24,
+     "on_time": 24,
+     "late": 0,
+     "missed": 0,
+     "failed": 0,
+     "signals": 0,
+     "bought": 0,
+     "sold": 0
+    },
+    "beat": {
+     "s0": 1790751600,
+     "n": 24,
+     "k": "oooooooooOoooooooooooooo"
+    },
+    "act": {
+     "t": 1790785140,
+     "ty": "carry_out",
+     "cs": [
+      "HYPE"
+     ],
+     "n": 1,
+     "R": null,
+     "cap_pct": null
+    },
+    "recent": [
+     [
+      1790785140,
+      "carry_out",
+      "HYPE",
+      "carry",
+      null,
+      2,
+      "-0.2",
+      null,
+      null
+     ],
+     [
+      1790540118,
+      "bought",
+      "BTC",
+      "carry",
+      null,
+      2,
+      null,
+      null,
+      null
+     ],
+     [
+      1790511555,
+      "bought",
+      "HYPE",
+      "carry",
+      null,
+      2,
+      null,
+      null,
+      null
+     ]
+    ],
+    "held": [
+     "BTC",
+     "ETH",
+     "HYPE",
+     "PUMP",
+     "XPL",
+     "ZEC"
+    ],
+    "deployed_pct": 138.1,
+    "carry": {
+     "pairs": 6,
+     "open": 5,
+     "entering": 0,
+     "exiting": 1,
+     "stuck": 2,
+     "stuck_t": 1790827620,
+     "fix_h": 3,
+     "gate_pct": 80,
+     "cap_pct": 138.1,
+     "apr": 14.6,
+     "fund_pct": 0.14,
+     "cost_pct": 0.09,
+     "net_pct": -1.39,
+     "capture_pct": 34
+    }
+   },
+   {
+    "id": "arena-01",
+    "name": "A01 Rotation",
+    "desc": "Arena · rs_rotation · bull specialist · 13 coins · backtest Sharpe 1.13, max drawdown 18% · recipe rot-e335df0b (AiFi Lab). Paper; demoted automatically if it stops matching its backtest.",
+    "tf": "1d",
+    "mode": "paper",
+    "gen": "2026-10-01T06:42:54.874Z",
+    "last_t": 1790820430,
+    "rec": {
+     "n": 0,
+     "tot_R": 0.34,
+     "avg_R": null,
+     "rel_R_avg": null,
+     "open_R": 0.34,
+     "win": null,
+     "w": 0,
+     "l": 0,
+     "closed_R": 0
+    },
+    "pot_chg_pct": 0.5,
+    "n_open": 3,
+    "used_pct": 5.21,
+    "halt": false,
+    "thr": "normal",
+    "failed": false,
+    "alerts": 0,
+    "enabled": true,
+    "kind": "target",
+    "bar_s": 86400,
+    "n_names": 13,
+    "arena": {
+     "recipe": "rot-e335df0b",
+     "family": "rs_rotation",
+     "tag": "bull specialist",
+     "enrolled": "2026-09-29"
+    },
+    "twin_of": null,
+    "sb": {
+     "clock": {
+      "last_t": 1790820430,
+      "last_slot": 1790812800,
+      "late_min": 127,
+      "lag_med_min": 71.5,
+      "lag_rng": [
+       8,
+       135
+      ],
+      "lag_n": 6,
+      "limit_min": 180,
+      "sched_min": 5,
+      "bar_s": 86400
+     },
+     "state": {
+      "halt": {
+       "set": false,
+       "reason": null,
+       "since": null
+      },
+      "thr": {
+       "state": "normal",
+       "mult": 1,
+       "dd_pct": 0.21
+      },
+      "last": {
+       "t": 1790820430,
+       "fresh": true,
+       "failed": false,
+       "late_min": 127,
+       "abort": null
+      }
+     },
+     "cfg": {
+      "thr": [
+       14,
+       22
+      ],
+      "late_min": 180
+     },
+     "mode": {
+      "eff": "paper",
+      "req": "paper",
+      "note": ""
+     },
+     "alerts": [],
+     "risk": {
+      "n_open": 3
+     }
+    },
+    "since": 1790727802,
+    "wk_pct": 0.5,
+    "spark": [
+     0,
+     0.35,
+     0.24,
+     0.72,
+     0.7,
+     0.5
+    ],
+    "spark_t": [
+     1790727802,
+     1790820430
+    ],
+    "last24": {
+     "slots": 1,
+     "on_time": 1,
+     "late": 0,
+     "missed": 0,
+     "failed": 0,
+     "signals": 0,
+     "bought": 0,
+     "sold": 0
+    },
+    "beat": {
+     "s0": 1789689600,
+     "n": 14,
+     "k": "............Oo"
+    },
+    "act": {
+     "t": 1790727802,
+     "ty": "bought",
+     "cs": [
+      "LTC",
+      "NEAR",
+      "UNI"
+     ],
+     "n": 3,
+     "R": null,
+     "cap_pct": null
+    },
+    "recent": [
+     [
+      1790727802,
+      "bought",
+      "LTC",
+      "target",
+      "T",
+      2,
+      "stop 20",
+      null,
+      null
+     ],
+     [
+      1790727802,
+      "bought",
+      "NEAR",
+      "target",
+      "T",
+      2,
+      "stop 20",
+      null,
+      null
+     ],
+     [
+      1790727802,
+      "bought",
+      "UNI",
+      "target",
+      "T",
+      2,
+      "stop 20",
+      null,
+      null
+     ]
+    ],
+    "held": [
+     "UNI",
+     "LTC",
+     "NEAR"
+    ],
+    "deployed_pct": 26.0
+   }
+  ]
+ }
+}

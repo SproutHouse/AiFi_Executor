@@ -54,7 +54,7 @@
   }
 
   // ====================================================================== slots (heartbeat + strip) ==
-  // Cells are keyed by UTC 4-hour slot and only labelled in local time, so a DST change never shifts them.
+  // Cells are keyed by UTC slot (one per bar) and only labelled in local time, so a DST change never shifts them.
   // N is the slot the engine owes a check for next (clock C, or the current slot once C has passed by 4 h).
   function slotModel(b, now) {
     now = now == null ? nowS() : now;
@@ -103,8 +103,9 @@
     const x = runCounts(r, EV);
     let s = 'checked ' + fmt.time(r.t) + ', ' + word.run(r).s;
     if (r.x) { const f = (EV.get(r.t) || []).find(e => e[1] === 'failed'); return s + (f && f[6] ? ' (' + f[6] + ')' : ''); }
-    s += ', ' + (x.sig ? word.plural(x.sig, 'signal') : 'no signals');
-    if (x.buy) s += ', bought ' + x.buy; else if (x.sig) s += ', nothing bought';
+    const flip = kindOf(S.b) === 'flip';                               // rebalancers and collectors have no signals
+    if (flip) s += ', ' + (x.sig ? word.plural(x.sig, 'signal') : 'no signals');
+    if (x.buy) s += ', bought ' + x.buy; else if (x.sig && flip) s += ', nothing bought';
     if (x.sold) s += ', sold ' + x.sold;
     return s;
   }
@@ -141,7 +142,7 @@
   function hbGrid(b, fresh) {
     const SM = slotModel(b), H = hbRows(SM);
     M.hbKey = hbKeyOf(SM);
-    let h = '<div class="ac-hb" role="group" aria-label="Heartbeat: one cell per 4-hour close for the last 7 days, newest row first"><span aria-hidden="true"></span>';
+    let h = '<div class="ac-hb" role="group" aria-label="Heartbeat: one cell per ' + bw() + ' close for the last 7 days, newest row first"><span aria-hidden="true"></span>';
     for (let j = 0; j < 6; j++) h += '<span class="ac-hcol" aria-hidden="true">' + esc(colLabel(H.r0 + j * BAR)) + '</span>';
     for (const row of H.rows) {
       h += '<span class="ac-hrow" aria-hidden="true">' + esc(rowDay(row.s0)) + '</span>';
@@ -152,19 +153,36 @@
   const HBL = [['ok', 'On time'], ['sig', 'Signals, none bought'], ['act', 'Bought or sold'], ['late', 'Ran late'], ['fail', 'Failed'], ['halt', 'Halted'], ['miss', 'Missed'], ['next', 'Next check']];
   function legend(items) { return items.length ? '<ul class="ac-leg" aria-label="Legend">' + items.map(([sw, w]) => '<li><i class="ac-sw ' + sw + '" aria-hidden="true"></i>' + esc(w) + '</li>').join('') + '</ul>' : ''; }
   function last24(b) {
-    const x = b.last24;
+    const x = b.last24, bt = beatOf(b);
     if (!x || typeof x !== 'object') return 'Last 24 h: ' + na();
-    const p = [fmt.int(x.on_time) + ' of ' + fmt.int(x.slots) + ' on time'];
-    if (x.late) p.push(fmt.int(x.late) + ' late');
-    if (x.missed) p.push(fmt.int(x.missed) + ' missed');
-    if (x.failed) p.push(fmt.int(x.failed) + ' failed');
-    p.push(x.signals ? word.plural(x.signals, 'signal') : 'no signals');
+    // checks counted on the strip's own extended beat, so a close missed since the push already counts (fleet.js)
+    const k = (bt && typeof COMP.beat24 === 'function' && safe(() => COMP.beat24(bt, { bar: BAR, lim: limit(b) }), 'Beat')) || { on: x.on_time, slots: x.slots, late: x.late, missed: x.missed, failed: x.failed };
+    const p = [fmt.int(k.on) + ' of ' + fmt.int(k.slots) + ' on time'];
+    if (k.late) p.push(fmt.int(k.late) + ' late');
+    if (k.missed) p.push(fmt.int(k.missed) + ' missed');
+    if (k.failed) p.push(fmt.int(k.failed) + ' failed');
+    if (kindOf(b) === 'flip') p.push(x.signals ? word.plural(x.signals, 'signal') : 'no signals');   // rebalancers and collectors have none
     p.push(x.bought ? 'bought ' + fmt.int(x.bought) : 'nothing bought');
     if (x.sold) p.push('sold ' + fmt.int(x.sold));
     return 'Last 24 h: ' + esc(p.join(' · '));
   }
+  // The 7-day grid above is 4-hour geometry (six closes a day). An hourly or daily bot shows the heartbeat strip of the
+  // Command Center instead (COMP.beatStrip, fleet.js), from its bundle's beat or its exec:agents row's.
+  function beatOf(b) { const r = rowOf(AGENT); return (b && isObj(b.beat) && b.beat) || (r && isObj(r.beat) && r.beat) || null; }
+  function stripHtml(b) {
+    const bt = beatOf(b);
+    if (!bt || typeof COMP.beatStrip !== 'function') return '<p class="note">' + (bt ? '' : 'The heartbeat strip appears after its next check.') + '</p>';
+    return safe(() => COMP.beatStrip(bt, { big: true, nextT: clock(b).next, bar: BAR, lim: limit(b) }), 'Heartbeat strip');
+  }
   function hbCard(b, rise, fresh) {
     const hd = head('Heartbeat' + tip('heartbeat'), last24(b), '<button type="button" class="btn small" data-health>Health</button>');
+    if (BAR !== 14400) {
+      const punct = word.punct(b);
+      M.hbKey = hbKeyOf(slotModel(b));
+      return sec('activity-heartbeat', 'ac-hbc', rise, hd + '<div class="ac-hbw"><div id="ac-hbg">' + stripHtml(b) + '</div><div class="ac-hbs">'
+        + (punct ? '<p class="ac-punct">' + esc(punct) + '</p>' : '')
+        + '<p class="cap">One bead per ' + esc(bw()) + ' close; the hollow one is the next check. Late = started more than ' + limit(b) + ' min after the close, so buys were skipped.' + tip('late') + '</p></div></div>');
+    }
     if (!Array.isArray(b.runs)) return sec('activity-heartbeat', 'ac-hbc', rise, hd + '<p class="empty">Checks: ' + na() + '</p>');
     const G = hbGrid(b, fresh), ks = new Set();
     G.H.rows.forEach(r => r.cells.forEach(x => ks.add(x.k)));
@@ -196,7 +214,7 @@
       const h = lm == null ? 1 : Math.min(1, Math.max(0.04, lm / top));
       return '<i class="ac-psb ac-p-' + k + (lm != null && lm > top ? ' ac-p-over' : '') + '" style="--h:' + h.toFixed(3) + '"></i>';
     });
-    const lab = 'Punctuality over the last 42 four-hour closes: ' + c.ok + ' on time, ' + c.late + ' late, ' + c.fail + ' failed, ' + c.miss
+    const lab = 'Punctuality over the last 42 ' + bw() + ' closes: ' + c.ok + ' on time, ' + c.late + ' late, ' + c.fail + ' failed, ' + c.miss
       + ' missed. Bars show the minutes after the close on a 0 to ' + top + ' scale; the limit is ' + lim + ' minutes.';
     return '<div class="ac-ps" role="img" aria-label="' + esc(lab) + '"><div class="ac-psg" style="--y:' + (lim / top).toFixed(3) + '">' + bars.join('')
       + '<i class="ac-psl"></i><span class="ac-psll">limit ' + lim + '</span><span class="ac-psy">' + top + ' min</span></div>'
@@ -208,7 +226,15 @@
   const TF = { trade: ['bought', 'sold', 'trail', 'sweep', 'notfilled'], blocked: ['blocked'], rec: ['recorded', 'proposed', 'expired'],
     health: ['late', 'failed', 'halt', 'resume', 'thr_halt', 'thr_half', 'recon', 'no_stop', 'close_failed', 'exit_failed', 'entry_failed', 'fallback', 'gap', 'not_on_exchange'] };
   const TFW = [['all', 'All'], ['trade', 'Bought & sold'], ['blocked', 'Blocked'], ['rec', 'Recorded'], ['health', 'Health']];
-  const ACTED = new Set(['bought', 'sold', 'trail']);
+  // A rebalancer or a collector has no blocked or recorded signals: its own trade chip, and only All · trades · Health.
+  const TFK = { target: ['bought', 'sold', 'trail', 'resized'], carry: ['carry_in', 'carry_out', 'carry_closed', 'carry_fix'] };
+  const tfw = b => { const k = kindOf(b); return TFK[k] ? [TFW[0], ['trade', k === 'carry' ? 'Carry actions' : 'Trades & rebalances'], TFW[4]] : TFW; };
+  function tfSet(b) {
+    if (!tfw(b).some(x => x[0] === M.tf)) M.tf = 'all';
+    const l = M.tf === 'trade' && TFK[kindOf(b)] ? TFK[kindOf(b)] : TF[M.tf];
+    return l ? new Set(l) : null;
+  }
+  const ACTED = new Set(['bought', 'sold', 'trail', 'resized', 'carry_in', 'carry_out', 'carry_closed']);
   const WARNY = new Set(['blocked', 'late', 'gap', 'thr_half', 'entry_failed', 'not_on_exchange', 'fallback', 'notfilled']);
   function tlGroups(b) {
     const map = new Map();
@@ -235,7 +261,7 @@
     if (r.x) { const f = (M.EV.get(r.t) || []).find(e => e[1] === 'failed'); if (f && f[6]) s += ' (' + f[6] + ')'; }
     bits.push(s);
     if (!r.x && c[0] != null) bits.push(word.plural(c[0], 'name'));
-    if (!r.x) bits.push(c[1] ? word.plural(c[1], 'signal') : 'no signals');
+    if (!r.x && kindOf(S.b) === 'flip') bits.push(c[1] ? word.plural(c[1], 'signal') : 'no signals');
     const eff = modeOf(S.b).eff === 'live' ? 'l' : 'p';
     if (r.m && r.m !== eff) bits.push(r.m === 'l' ? 'live' : 'paper');
     return '<button type="button" class="ac-chkh" data-cycle="' + r.t + '"><span class="ac-ct">' + esc(fmt.time(r.t)) + '</span><span class="ac-cs">'
@@ -252,15 +278,16 @@
     return '<div class="ac-fold"><button type="button" class="ac-foldb" data-ac="fold" data-k="' + key + '" aria-expanded="' + open + '">' + ICON.right
       + '<span>' + esc(lab) + '</span></button>' + (open ? '<div class="ac-foldx">' + list.map(g => chkHtml(g, isNew, fresh, hasRuns, true)).join('') + '</div>' : '') + '</div>';
   }
-  function tlFilters() {
-    return '<div class="fchips" role="group" aria-label="Show">' + TFW.map(([k, w]) => '<button type="button" class="fchip" data-ac-tf="' + k + '" aria-pressed="' + (M.tf === k) + '">' + w + '</button>').join('') + '</div>'
+  function tlFilters(b) {
+    tfSet(b);                                                           // a chip this kind lacks falls back to All
+    return '<div class="fchips" role="group" aria-label="Show">' + tfw(b).map(([k, w]) => '<button type="button" class="fchip" data-ac-tf="' + k + '" aria-pressed="' + (M.tf === k) + '">' + w + '</button>').join('') + '</div>'
       + (M.coin ? '<div class="ac-coinf"><button type="button" class="fchip" data-ac="coin-x" aria-pressed="true" aria-label="Remove the ' + esc(M.coin) + ' filter">'
         + esc(M.coin) + ' ✕</button><button type="button" class="btn small ghost" data-name="' + esc(M.coin) + '">' + esc(M.coin) + ' details ›</button></div>' : '');
   }
   function tlBody(b, fresh) {
     const hasRuns = Array.isArray(b.runs);
     if (!hasRuns && !Array.isArray(b.events)) return '<p class="empty">Timeline: ' + na() + '</p>';
-    const set = TF[M.tf] ? new Set(TF[M.tf]) : null, coin = M.coin, filt = !!(set || coin);
+    const set = tfSet(b), coin = M.coin, filt = !!(set || coin);
     const keep = e => (!set || set.has(e[1])) && (!coin || e[2] === coin);
     const G = tlGroups(b).map(g => ({ t: g.t, run: g.run, ev: g.ev.filter(keep).sort((a, z) => (z[5] || 0) - (a[5] || 0)) })).filter(g => !filt || g.ev.length);
     if (!G.length) return '<p class="empty">' + (filt ? 'Nothing matches this filter in the last 7 days.' : 'Nothing recorded yet.') + '</p>';
@@ -290,7 +317,7 @@
   }
   function tlCard(b, rise, fresh) {
     return sec('activity-timeline', 'ac-tlc', rise, head('Timeline', 'Every check and what it did, newest first. Tap a coin to filter.')
-      + '<div class="ac-tlf">' + tlFilters() + '</div><div class="ac-tlb" id="ac-tlb">' + tlBody(b, fresh) + '</div>');
+      + '<div class="ac-tlf">' + tlFilters(b) + '</div><div class="ac-tlb" id="ac-tlb">' + tlBody(b, fresh) + '</div>');
   }
 
   // ========================================================================================= signals ==
@@ -302,7 +329,7 @@
     fresh: 'Check ran late (data too old)', recon: 'Reconciliation mismatch', sizing: 'Sizing not accepted', dup: 'Already held',
     maxpos: 'At max positions', equity: 'Equity check', cap: 'Open-risk cap reached', gross: 'Gross exposure cap reached',
     bookcap: 'Book risk cap reached', sanity: 'Price outside the sanity band', drift: 'Price ran above the signal', recheck: 'Re-check failed' };
-  const EMPTY_SIG = 'No signals yet. Signals appear when a 4-hour cloud flips or pulls back while weekly and daily agree.';
+  const EMPTY_SIG = () => 'No signals yet. Signals appear when ' + aBw('a') + ' cloud flips or pulls back while weekly and daily agree.';
   const TINT = 'color-mix(in srgb,var(--accent) 45%,transparent)';     // magenta tint tier: "the funnel bar at Bought"
   // A funnel or reason row on the shared .bar (label, track, count). The fill grows by scaleX from the last drawn
   // value (0 on first view); a nonzero count always keeps a visible sliver.
@@ -376,7 +403,7 @@
   }
   function noSignals(b) { const Fa = b.funnel && b.funnel.all; return !!Fa && num(Fa.signals) === 0 && !arr(b.pinned).length; }
   function sigCard(b, rise) {
-    if (noSignals(b)) return sec('activity-signals', 'ac-sig', rise, head('Signals' + tip('signal'), 'What every signal became') + '<p class="empty">' + EMPTY_SIG + '</p>');
+    if (noSignals(b)) return sec('activity-signals', 'ac-sig', rise, head('Signals' + tip('signal'), 'What every signal became') + '<p class="empty">' + EMPTY_SIG() + '</p>');
     return sec('activity-signals', 'ac-sig', rise, head('Signals' + tip('signal'), 'What every signal became', sigSeg())
       + '<div id="ac-fun">' + funnelHtml(b) + whyHtml(b) + '</div><div id="ac-pin">' + pinHtml(b) + '</div>');
   }
@@ -635,18 +662,18 @@
     const ns = b.names.filter(n => n && n.c);
     if (!ns.length) return '<p class="empty">The last check read no names.</p>';
     const u = (b.cfg && b.cfg.uni) || {};
-    const intro = '<p class="note ac-rdi">Line distance: “needs”' + tip('needs') + ' is how far the next 4-hour close must rise to cross the line; “cushion”' + tip('cushion')
+    const intro = '<p class="note ac-rdi">Line distance: “needs”' + tip('needs') + ' is how far the next ' + bw() + ' close must rise to cross the line; “cushion”' + tip('cushion')
       + ' is how far it sits above. Range only matters for watch-only pullbacks. Tradeable coins need volume of at least the minimum'
       + (u.fund_pct != null ? ', funding under ' + esc(u.fund_pct) + '%/yr' : '') + (u.days != null ? ' and ' + esc(u.days) + ' days of history' : '') + ' (market figures, not your money).'
       + (!M.wide && ns.some(n => n.ox == null) ? ' Open interest is checked when a signal fires.' : '') + '</p>';
-    if (M.wide) return intro + '<div class="tbl"><table><thead><tr><th class="l">Coin</th><th class="l">Stage</th><th class="l">Weekly</th><th class="l">Daily</th><th class="l">4-hour</th>'
+    if (M.wide) return intro + '<div class="tbl"><table><thead><tr><th class="l">Coin</th><th class="l">Stage</th><th class="l">Weekly</th><th class="l">Daily</th><th class="l">' + esc(cap1(bw())) + '</th>'
       + '<th class="l">Line</th><th class="l">Volume</th><th class="l">Funding</th><th class="l">History</th><th class="l">Open interest</th><th class="l">Range</th></tr></thead><tbody>'
       + ns.map(n => { const held = n.st === 'h', f = rdFields(n); return '<tr class="' + stage(n.st).cls + '"><td class="l ac-rdc">' + chip(n.c) + '</td><td class="l"><span class="stg-word">' + esc(stage(n.st).w) + '</span></td>'
         + '<td class="l">' + dirHtml(n.w, held) + '</td><td class="l">' + dirHtml(n.d, held) + '</td><td class="l">' + dirHtml(n.h4, held) + '</td>'
         + f.map(([, x]) => '<td class="l">' + x + '</td>').join('') + '</tr>'; }).join('') + '</tbody></table></div>';
     return intro + '<ul class="ac-rdl">' + ns.map(n => {
       const held = n.st === 'h', unread = held && n.w == null && n.d == null && n.h4 == null;
-      const items = (unread ? [] : [['Weekly', dirHtml(n.w, held)], ['Daily', dirHtml(n.d, held)], ['4-hour', dirHtml(n.h4, held)]]).concat(rdFields(n, true));
+      const items = (unread ? [] : [['Weekly', dirHtml(n.w, held)], ['Daily', dirHtml(n.d, held)], [cap1(bw()), dirHtml(n.h4, held)]]).concat(rdFields(n, true));
       return '<li class="ac-rd ' + stage(n.st).cls + '"><div class="ac-rdh">' + chip(n.c) + '<span class="stg-word">' + esc(stage(n.st).w) + '</span><span class="sub">' + esc(n.b || '') + '</span></div>'
         + (unread ? '<p class="ac-rdn">Not read while held: each check manages its exit instead.</p>' : '')
         + '<ul class="ac-rdf">' + items.map(([k, x]) => '<li><span class="ac-dl">' + k + '</span> ' + x + '</li>').join('') + '</ul></li>';
@@ -671,7 +698,7 @@
     fn();
     if (key && M.root) { const el = $(key, M.root) || (key.indexOf('coin-x') >= 0 ? $('[data-ac-tf="all"]', M.root) : null); if (el) try { el.focus({ preventScroll: true }); } catch (e) {} }
   }
-  function repaintTimeline() { const r = M.root; if (!r || !S.b) return; keepFocus(() => { const f = $('.ac-tlf', r), x = $('#ac-tlb', r); if (f) f.innerHTML = tlFilters(); if (x) x.innerHTML = tlBody(S.b, null); }); }
+  function repaintTimeline() { const r = M.root; if (!r || !S.b) return; keepFocus(() => { const f = $('.ac-tlf', r), x = $('#ac-tlb', r); if (f) f.innerHTML = tlFilters(S.b); if (x) x.innerHTML = tlBody(S.b, null); }); }
   function repaintFunnel() { const r = M.root, x = r && $('#ac-fun', r); if (!x || !S.b) return; x.innerHTML = funnelHtml(S.b) + whyHtml(S.b); growBars(x); }
   function repaintPins() { const r = M.root, x = r && $('#ac-pin', r); if (!x || !S.b) return; keepFocus(() => { x.innerHTML = pinHtml(S.b); }); }
   function repaintList() {
@@ -754,13 +781,16 @@
       M.EV = evIndex(b); M.wide = WIDE.matches; if (!arrive) M.sn = 30;
       M.L = S.ledgerGen != null && S.ledgerGen === b.gen ? S.ledger : undefined;
       const fresh = arrive ? newRuns(S.prev, b) : null;                 // a recorded check arrived: its cell and rows enter
+      // Kind-aware (COMMAND_CENTER_SPEC §2.2): rebalancers and funding collectors have no signals, so their Activity is
+      // the heartbeat and the timeline only (no funnel, signals, tape or readings, never "0 signals").
+      const sig = kindOf(b) === 'flip';
       return '<div class="ac">'
         + safe(() => hbCard(b, rise, fresh), 'Heartbeat')
         + safe(() => tlCard(b, rise, fresh), 'Timeline')
-        + safe(() => sigCard(b, rise), 'Signals')
-        + safe(() => listCard(b, rise), 'Every signal')
-        + safe(() => tapeCard(b, rise), 'The board over time')
-        + safe(() => readCard(b, rise), 'All readings')
+        + (sig ? safe(() => sigCard(b, rise), 'Signals')
+          + safe(() => listCard(b, rise), 'Every signal')
+          + safe(() => tapeCard(b, rise), 'The board over time')
+          + safe(() => readCard(b, rise), 'All readings') : '')
         + '</div>';
     },
     after(root) {
@@ -797,7 +827,9 @@
   hook('tick30s', () => {
     if (S.tab !== 'activity' || !M.root || !S.b || !Array.isArray(S.b.runs)) return;
     if (hbKeyOf(slotModel(S.b)) === M.hbKey) return;
-    const el = $('#ac-hbg', M.root); if (el) { el.innerHTML = hbGrid(S.b, null).html; paintCursor(); }
+    const el = $('#ac-hbg', M.root); if (!el) return;
+    if (BAR !== 14400) { M.hbKey = hbKeyOf(slotModel(S.b)); el.innerHTML = stripHtml(S.b); return; }
+    el.innerHTML = hbGrid(S.b, null).html; paintCursor();
   });
   hook('hide', playStop);
 }

@@ -16,8 +16,8 @@ agents run the same engine code; what differs is their configuration. The dashbo
 
 **Arena agents** (`arena-NN`, from 2026-09-29) are added and retired by the AiFi Lab, not by hand. Each is one recipe
 that survived the lab's frozen gates and a locked holdout. It runs in paper with a $1,000 pot, and it is retired
-automatically if its paper stops matching its backtest (specs/FACTORY.md). Their `desc` carries the recipe id and the
-backtest numbers.
+automatically if its paper stops matching its backtest (specs/FACTORY.md). Their `desc` says in plain words what the
+recipe holds and carries the recipe id; the backtest numbers live in the Lab's record (the bot page's Strategy section).
 
 **Twins** (`<agent>-twin`) are started by the go-live workflow. When an agent goes live, its twin keeps running the same rules
 in paper with the same pot; the gap between the two is the real cost of execution. A twin never goes live itself.
@@ -51,8 +51,11 @@ and trip each other's reconciliation.
 1. Pick an id: lowercase letters, digits and dashes, 2–24 characters.
 2. `mkdir agents/<id>` and copy a `settings.json` and `books.json` from an existing agent; change what differs
    (`trigger_tf` "4h" or "1h", `btc_gate`, `universe` floors, books). Keep `"mode": "paper"`.
-3. Add `{"id", "name", "enabled": true, "desc"}` to `agents/index.json`.
-4. Backtest the idea first (`docs/backtests/variants.py` shows how) and write the result into `desc`.
+3. Add `{"id", "name", "enabled": true, "desc"}` to `agents/index.json`. `desc` is the first sentence under the bot's
+   name on its page, read by the owner, who is not a developer: one or two plain sentences on what it does and how it
+   is judged ("Trades 31 coins every hour when the bigger trend agrees. No proven edge yet, so paper only."). No engine
+   terms (flips, books, grades, recipe families) and at most about 170 characters (the exec:agents row budget).
+4. Backtest the idea first (`docs/backtests/variants.py` shows how) and record the result in this file's table above.
 5. Before it can go live, add its two secret names (`HL_AGENT_KEY_<ID>`, `HL_ACCOUNT_ADDRESS_<ID>`) to the env blocks of
    `.github/workflows/cycle.yml`, `control.yml` and `approve.yml`. Secrets are listed by name on purpose: passing all of
    them at once (`toJSON(secrets)`) makes GitHub hold the workflow as possibly malicious.

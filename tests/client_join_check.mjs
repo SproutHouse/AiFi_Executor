@@ -2,8 +2,11 @@
 // Run by tests/test_dashboard_client.py (node required); prints one JSON line {ok, problems[], facts{}}.
 // It loads cloud/worker.js exactly as cloud/dev/preview.mjs does (ui/*.js and *.css imported as text) against an
 // in-memory KV, then checks: the ui/ module contract (core declares the names, every other module is one block,
-// no template literals), that the joined page script compiles, the app shell's one h1 and mounts, that doc and
-// login pages never carry the app bundle, and that /api/ledger turns the review markdown into html.
+// no template literals), that the joined page script compiles, both app shells (the Command Center at "/" and a bot
+// page at "/?a=<id>": one h1, every mount, one aria-live, data-view), the shell's ETag and 304, the redirect of a bad
+// ?a, that doc and login pages never carry the app bundle, and that /api/ledger turns the review markdown into html.
+// Then a clock harness runs ui/core.js in a vm context with DOM stubs and checks the per-bar clock rule
+// (COMMAND_CENTER_SPEC §6.7 and §10 items 1–3, 5, 6) at bars of 1 h, 4 h and 1 d.
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -18,7 +21,7 @@ const facts = {};
 const bad = (m) => problems.push(m);
 
 // ------------------------------------------------------------------ module contract (source files) --
-const ORDER = ["core", "gaterun", "dial", "now", "activity", "positions", "results", "rules", "arrival", "factory", "boot"];
+const ORDER = ["core", "gaterun", "now", "activity", "positions", "results", "rules", "arrival", "factory", "fleet", "bot", "boot"];
 const code = (src) => src.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n").replace(/\/\*[\s\S]*?\*\//g, "").trim();
 for (const n of ORDER) {
   const p = path.join(cloud, "ui", n + ".js");
@@ -56,14 +59,41 @@ const KV = {
 const env = { DASHBOARD_PASSWORD: PW, EXEC: { get: async (k) => (k in KV ? KV[k] : null), put: async () => {} } };
 const get = async (p, auth = true) => W.fetch(new Request("http://localhost" + p, { headers: auth ? { cookie } : {} }), env);
 
-const app = await get("/");
-const page = await app.text();
-if (app.status !== 200) bad(`/ returned ${app.status}`);
+const get2 = async (p, headers = {}) => W.fetch(new Request("http://localhost" + p, { headers: { cookie, ...headers } }), env);
+const shells = {};
+for (const [p, view] of [["/", "fleet"], ["/?a=core", "bot"], ["/?a=fast-1h", "bot"]]) {
+  const r = await get(p);
+  const t = await r.text();
+  shells[p] = { r, t };
+  if (r.status !== 200) { bad(`${p} returned ${r.status}`); continue; }
+  const h1s = (t.match(/<h1[\s>]/g) || []).length;
+  if (h1s !== 1) bad(`${p}: the app page has ${h1s} h1 elements, not 1`);
+  for (const id of ["capsule", "railstat", "modepill", "ttl", "roster", "alerts", "view", "sheet", "sheetbg", "toast", "app"]) if (!t.includes(`id="${id}"`)) bad(`${p}: the app shell has no #${id}`);
+  if ((t.match(/aria-live=/g) || []).length !== 1) bad(`${p}: the capsule must be the only aria-live region`);
+  if (!t.includes(`data-view="${view}"`) || t.includes(`data-view="${view === "bot" ? "fleet" : "bot"}"`)) bad(`${p}: data-view is not "${view}"`);
+  if (view === "bot" && !/<a[^>]*id="back"[^>]*data-back/.test(t)) bad(`${p}: the bot page has no "‹ All bots" (#back[data-back])`);
+  if (view === "bot" && (t.match(/data-tab="/g) || []).length !== 8) bad(`${p}: expected the 4 tabs in the rail and the tab bar`);
+  if (view === "fleet" && /class="tabbar/.test(t)) bad("/: the Command Center has no tab bar");
+  if (r.headers.get("cache-control") !== "private, no-cache") bad(`${p}: cache-control is ${r.headers.get("cache-control")}, not "private, no-cache"`);
+  if (!/^"[0-9a-f]{64}"$/.test(r.headers.get("etag") || "")) bad(`${p}: no sha-256 ETag`);
+}
+if (shells["/"].r.headers.get("etag") === shells["/?a=core"].r.headers.get("etag")) bad("the two shells share one ETag");
+if (shells["/?a=core"].t !== shells["/?a=fast-1h"].t) bad("bot pages for different bots should share one shell");
+const page = shells["/"].t, app = shells["/"].r;
 facts.page_bytes = Buffer.byteLength(page);
-const h1s = (page.match(/<h1[\s>]/g) || []).length;
-if (h1s !== 1) bad(`the app page has ${h1s} h1 elements, not 1`);
-for (const id of ["capsule", "railstat", "modepill", "ttl", "alerts", "view", "sheet", "sheetbg", "toast", "app"]) if (!page.includes(`id="${id}"`)) bad(`the app shell has no #${id}`);
-if ((page.match(/aria-live=/g) || []).length !== 1) bad("the capsule must be the only aria-live region");
+const etag = app.headers.get("etag");
+const r304 = await get2("/", { "if-none-match": etag });
+if (r304.status !== 304) bad(`a matching If-None-Match on / returned ${r304.status}, not 304`);
+const r304b = await get2("/?a=wide-4h", { "if-none-match": 'W/' + shells["/?a=core"].r.headers.get("etag") });
+if (r304b.status !== 304) bad(`a matching (weak) If-None-Match on a bot page returned ${r304b.status}, not 304`);
+const r200 = await get2("/", { "if-none-match": '"nope"' });
+if (r200.status !== 200) bad(`a stale If-None-Match returned ${r200.status}, not 200`);
+const r401 = await W.fetch(new Request("http://localhost/", { headers: { "if-none-match": etag } }), env);
+if (r401.status === 304) bad("a 304 was answered before the auth check");
+const badA = await get("/?a=Bad!");
+if (badA.status !== 302 || badA.headers.get("location") !== "http://localhost/") bad(`/?a=Bad! returned ${badA.status} → ${badA.headers.get("location")}, not a 302 to /`);
+const ag = await get("/api/agents");
+if (ag.headers.get("cache-control") !== "no-store") bad(`/api/agents cache-control is ${ag.headers.get("cache-control")}, not no-store`);
 const scripts = [...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 const client = scripts.find((s) => s.startsWith('(function(){"use strict";'));
 if (!client) bad("the app page carries no joined client script");
@@ -82,6 +112,7 @@ for (const p of ["/doc/how_it_works", "/login"]) {
   const r = await get(p, p !== "/login");
   const t = await r.text();
   if (t.includes('(function(){"use strict";')) bad(`${p} carries the app bundle`);
+  if (p === "/doc/how_it_works" && !t.includes('<a class="btn" href="/">Dashboard</a>')) bad("the doc page's Dashboard button does not point to /");
   if (p === "/doc/how_it_works" && !/<ol>\s*<li>first still first<\/li>\s*<li>second<\/li>\s*<li>third<\/li>\s*<\/ol>/.test(t)) bad("md(): a wrapped list line did not stay in its item");
 }
 const L = await (await get("/api/ledger")).json();
@@ -94,4 +125,97 @@ const st = await (await get("/api/stamp")).text();
 if (st !== "{}") bad(`/api/stamp without data returned ${st}, not {}`);
 for (const gone of ["/api/dates", "/api/day"]) if ((await get(gone)).status !== 404) bad(`${gone} still answers`);
 fs.rmSync(out, { recursive: true, force: true });
+
+// ------------------------------------------------------------------ the clock harness (core.js in a vm) --
+function coreContext(search) {
+  const store = {}, ls = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+  const el = { dataset: {}, classList: { add() {}, remove() {}, toggle() {} }, style: {} };
+  const ctx = {
+    console, URLSearchParams, setTimeout, clearTimeout, setInterval, clearInterval,
+    document: { documentElement: el, querySelector: () => null, querySelectorAll: () => [], getElementById: () => null, addEventListener() {} },
+    location: { search, hash: "", pathname: "/", href: "http://localhost/" + search, replace() {} },
+    matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
+    localStorage: ls, sessionStorage: ls, history: { replaceState() {}, back() {} }, addEventListener() {},
+    getComputedStyle: () => ({ getPropertyValue: () => "" }),
+  };
+  ctx.window = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(cloud, "ui", "core.js"), "utf8"), ctx, { filename: "ui/core.js" });
+  return ctx;
+}
+try {
+  const C = coreContext("?a=fast-1h");
+  const run = (src) => vm.runInContext(src, C);
+  const T = (iso) => Date.parse(iso) / 1000;
+  const bundle = (o) => ({ v: 2, gen: "2026-10-01T06:42:54Z", clock: o.clock, cfg: { late_min: o.lim, thr: [10, 20] },
+    state: { halt: { set: false, reason: null, since: null }, thr: { state: "normal", mult: 1, dd_pct: 0 }, last: { t: o.clock.last_t, fresh: true, failed: false, late_min: 6, abort: null } },
+    mode: { eff: "paper", req: "paper", note: "" }, alerts: o.alerts || [], risk: { n_open: o.n_open || 0 }, runs: [] });
+  C.__b = null;
+  const at = (b, iso) => { C.__b = b; C.__t = T(iso); return run("(function(){ const s = status(__b, __t); return { word: s.word, lvl: s.lvl, phase: s.K.phase, next: s.K.next }; })()"); };
+  const expect = (what, got, want) => { if (got !== want) bad(`clock: ${what}: got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`); };
+  // §10.2 Fast: bar 1 h, last slot 06:00Z, lag 15, limit 35
+  const fast = bundle({ clock: { last_t: T("2026-10-01T06:05:45Z"), last_slot: T("2026-10-01T06:00:00Z"), late_min: 6, lag_med_min: 15, lag_rng: [6, 24], lag_n: 42, limit_min: 35, sched_min: 5, bar_s: 3600 }, lim: 35, n_open: 1 });
+  expect("Fast next", at(fast, "2026-10-01T06:42:54Z").next, T("2026-10-01T07:15:00Z"));
+  expect("Fast at 06:42Z", at(fast, "2026-10-01T06:42:54Z").word, "On schedule");
+  expect("Fast at 07:20Z", at(fast, "2026-10-01T07:20:00Z").word, "Due now");
+  expect("Fast at 07:40Z", at(fast, "2026-10-01T07:40:00Z").word, "Late");
+  expect("Fast at 08:00Z", at(fast, "2026-10-01T08:00:00Z").word, "Stale");
+  // §10.1 Trend: bar 1 d, last slot 10-01 00:00Z, lag 75, limit 180, 2 open
+  const trend = bundle({ clock: { last_t: T("2026-10-01T02:06:41Z"), last_slot: T("2026-10-01T00:00:00Z"), late_min: 127, lag_med_min: 75, lag_rng: [8, 135], lag_n: 15, limit_min: 180, sched_min: 5, bar_s: 86400 }, lim: 180, n_open: 2 });
+  expect("Trend at 07:30Z", at(trend, "2026-10-01T07:30:00Z").word, "On schedule");
+  expect("Trend at 23:00Z", at(trend, "2026-10-01T23:00:00Z").word, "On schedule");
+  expect("Trend next", at(trend, "2026-10-01T23:00:00Z").next, T("2026-10-02T01:15:00Z"));
+  const ex = at(trend, "2026-10-02T03:30:00Z");
+  expect("Trend at 10-02 03:30Z", ex.word + "/" + ex.lvl, "Exits unchecked/bad");
+  expect("Trend at 10-02 04:30Z", at(trend, "2026-10-02T04:30:00Z").word, "Stale");
+  // §10.3 Core and Wide (4 h): byte-identical to the clock before the per-bar rule, for any now
+  run("function __oldClock(b, now) { const k = clockOf(b), lim = limOf(b); if (!k || k.last_slot == null || k.last_t == null) return { phase: 'none', now, lim, lag: 20, C: null, next: null, nOpen: nOpen(b), exits: false };"
+    + " const lag = (k.lag_n != null && k.lag_n < 3) ? 20 : (numv(k.lag_med_min) ?? 20); const C = k.last_slot + 14400, next = Math.round(C + lag * 60), lateAt = C + lim * 60, staleAt = C + 14400, exitsAt = C + 7200;"
+    + " const phase = now < next ? 'countdown' : now < lateAt ? 'due' : now < staleAt ? 'late' : 'stale'; const n = nOpen(b);"
+    + " return { phase, now, C, lag, lim, next, lateAt, staleAt, exitsAt, sched: C + (numv(k.sched_min) ?? 5) * 60, lastT: k.last_t, lastSlot: k.last_slot,"
+    + " age: now - k.last_t, over: now - C, toNext: next - now, rng: Array.isArray(k.lag_rng) ? k.lag_rng : null, lagN: k.lag_n ?? null, nOpen: n, exits: phase === 'late' && now >= exitsAt && n > 0 }; }");
+  const core4 = bundle({ clock: { last_t: T("2026-10-01T04:05:45Z"), last_slot: T("2026-10-01T04:00:00Z"), late_min: 6, lag_med_min: 17, lag_rng: [6, 27], lag_n: 41, limit_min: 45, sched_min: 5, bar_s: 14400 }, lim: 45, n_open: 2 });
+  const wide4 = JSON.parse(JSON.stringify(core4)); delete wide4.clock.bar_s; wide4.cfg.late_min = 200; wide4.clock.lag_n = 2;
+  const v1 = { last_run: { t: "2026-10-01T04:05:45Z", fresh: true, failed: false }, positions: { BTC: {} } };
+  let diff = 0, n = 0;
+  C.__AG = [{ id: "fast-1h", tf: "4h" }];                             // the row fallback must say 4 h here, not 1 h
+  run("AGENTS = __AG");
+  for (const b of [core4, wide4, v1]) for (let t = T("2026-10-01T03:00:00Z"); t < T("2026-10-02T03:00:00Z"); t += 397) {
+    C.__b = b; C.__t = t; n++;
+    if (run("JSON.stringify(clock(__b, __t))") !== run("JSON.stringify(__oldClock(__b, __t))")) diff++;
+  }
+  if (diff) bad(`clock: ${diff} of ${n} 4-hour clocks differ from the clock before the per-bar rule`);
+  facts.clock_4h_compared = n;
+  // barOf fallback chain: clock.bar_s → cfg.tf → the exec:agents row's tf → 4 h
+  C.__AG = [{ id: "fast-1h", tf: "1h" }]; run("AGENTS = __AG");
+  C.__b = { clock: { last_t: 1, last_slot: 0 }, cfg: { tf: "1d" } }; expect("barOf(cfg.tf)", run("barOf(__b)"), 86400);
+  C.__b = { clock: { last_t: 1, last_slot: 0 }, cfg: {} }; expect("barOf(row tf)", run("barOf(__b)"), 3600);
+  run("AGENTS = []"); expect("barOf(default)", run("barOf(__b)"), 14400);
+  // A v1 row never reads "On schedule"; a fleet halt makes every row "Halted" (§3.9, §10.6, §10.12)
+  expect("rowBundle(v1 row)", run("rowBundle({ id: 'core', tf: '4h', halt: true })"), null);
+  C.__row = { id: "fast-1h", tf: "1h", gen: "x", sb: { clock: fast.clock, state: fast.state, cfg: fast.cfg, mode: fast.mode, alerts: [], risk: { n_open: 1 } } };
+  C.__E = { fleet: { halt: true, reason: "drawdown", since: 1790830000 } };
+  C.__t = T("2026-10-01T06:42:54Z");
+  expect("fleet halt", run("status(rowBundle(__row, __E), __t).word"), "Halted");
+  expect("row status = bundle status", run("status(rowBundle(__row, {}), __t).word"), at(fast, "2026-10-01T06:42:54Z").word);
+  // The unhedged warn alert reads "Legs uneven" (§7)
+  const carry = bundle({ clock: { ...fast.clock }, lim: 50, n_open: 6, alerts: [{ lv: "warn", k: "unhedged", t: T("2026-10-01T04:07:00Z"), c: "ZEC", text: "ZEC: legs out of balance since {time}, past the 3 h safety limit." }] });
+  expect("unhedged warn", at(carry, "2026-10-01T06:42:54Z").word, "Legs uneven");
+  // §10.5: no "4-hour" in the words a 1 h bot's page is built from (glossary, gate labels, kinds, exits)
+  C.__b = fast;
+  run("S.b = __b; BAR = barOf(__b); barWords()");
+  const words = run("JSON.stringify([Object.keys(GLOSS).map(k => { const g = gloss(k); return g.t + ' ' + g.d; }), STAGE.n.w, GATES.map(g => g.label), KIND.flip, EXIT.h4, word.bar(), word.every(), word.kindName('flip', 3600)])");
+  if (/4-hour|4 hours/.test(words)) bad("clock: a 1 h bot's vocabulary still says 4-hour: " + (words.match(/[^"]{0,40}4.hour[^"]{0,40}/) || [""])[0]);
+  expect("word.bar(1 h)", run("word.bar()"), "hourly");
+  expect("word.every(1 d)", run("word.every({ clock: { bar_s: 86400 } })"), "every day");
+  expect("word.kindName", run("word.kindName('carry', 3600)"), "Funding collector · hourly");
+  // routing helpers
+  expect("PAGE on ?a=", run("PAGE + '/' + AGENT"), "bot/fast-1h");
+  expect("botHref", run("botHref('trend-1d', '#overview/holding')"), "/?a=trend-1d#overview/holding");
+  const M = coreContext("");
+  expect("PAGE on /", vm.runInContext("PAGE + '/' + AGENT", M), "fleet/null");
+  facts.clock_harness = "ran";
+} catch (e) {
+  bad("the clock harness threw: " + (e && e.stack || e));
+}
 console.log(JSON.stringify({ ok: problems.length === 0, problems, facts }));

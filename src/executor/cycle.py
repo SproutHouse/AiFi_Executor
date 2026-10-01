@@ -622,7 +622,7 @@ class Cycle:
         if not pos:
             return
         if decision == "exit" and pos["state"] != "exiting":
-            pos["state"], pos["orders"], pos["exit_reason"] = "exiting", {}, "funding below exit"
+            pos["state"], pos["orders"], pos["exit_reason"], pos["exit_ts"] = "exiting", {}, "funding below exit", self.now
             self.say(f"{coin}: carry EXITING · funding {apr * 100 if apr is not None else 0:.1f}%/yr below exit")
         self.carry_orders(coin, pos, spot_mid, perp_mid, pair, cfg)
         if pos["state"] == "exiting" and pos["legs"]["spot"]["sz"] <= 1e-12 and pos["legs"]["perp"]["sz"] <= 1e-12:
@@ -644,8 +644,15 @@ class Cycle:
         goal_spot = 0.0 if pos["state"] == "exiting" else pos["target_n"] / spot_mid
         goal_perp = 0.0 if pos["state"] == "exiting" else pos["target_n"] / perp_mid
         band = cfg["delta_band"]
+        szds = {"spot": pair["szd"], "perp": szd_perp}
         for leg, goal, mid, szd in (("spot", goal_spot, spot_mid, pair["szd"]), ("perp", goal_perp, perp_mid, szd_perp)):
             have = pos["legs"][leg]["sz"]
+            if pos["state"] == "exiting" and have > 0 and H.round_sz(have, szd) <= 0:
+                # dust no order can sell (below the size precision): written off at the mark so the close can finish
+                CA.apply_fill(pos, leg, "sell" if leg == "spot" else "buy", mid, have, 0.0)
+                pos["orders"].pop(leg, None)
+                self.say(f"{coin}: carry dust · {leg} remainder below the exchange's size step, written off at the mark")
+                continue
             gap = goal - have
             if abs(gap) * mid <= band * max(pos["target_n"], 1e-9) and not (pos["state"] == "exiting" and have > 0):
                 pos["orders"].pop(leg, None)
@@ -671,15 +678,23 @@ class Cycle:
             if self.now - pos["stuck_since"] >= cfg["max_unhedged_hours"] * 3600:
                 s_n, p_n = pos["legs"]["spot"]["sz"] * spot_mid, pos["legs"]["perp"]["sz"] * perp_mid
                 slip = self.s["paper_slippage_pct"] / 100
-                if s_n > p_n:     # perp short lags: sell perp now
-                    sz = (s_n - p_n) / perp_mid
-                    CA.apply_fill(pos, "perp", "sell", perp_mid * (1 - slip), sz, cfg["fees"]["perp_taker"])
+                if pos["state"] == "exiting":     # closing: trim the LEADING leg toward 0, never re-buy the one already closed
+                    if s_n > p_n:
+                        leg, side, px, sz = "spot", "sell", spot_mid * (1 - slip), H.round_sz((s_n - p_n) / spot_mid, szds["spot"])
+                    else:
+                        leg, side, px, sz = "perp", "buy", perp_mid * (1 + slip), H.round_sz((p_n - s_n) / perp_mid, szds["perp"])
+                    what = "leading leg trimmed"
+                elif s_n > p_n:   # perp short lags: sell perp now
+                    leg, side, px, sz = "perp", "sell", perp_mid * (1 - slip), H.round_sz((s_n - p_n) / perp_mid, szds["perp"])
+                    what = "lagging leg completed"
                 else:             # spot lags: buy spot now
-                    sz = (p_n - s_n) / spot_mid
-                    CA.apply_fill(pos, "spot", "buy", spot_mid * (1 + slip), sz, cfg["fees"]["spot_taker"])
+                    leg, side, px, sz = "spot", "buy", spot_mid * (1 + slip), H.round_sz((p_n - s_n) / spot_mid, szds["spot"])
+                    what = "lagging leg completed"
+                if sz > 0:        # sized on the exchange's step, like the maker path, so the override leaves no dust
+                    CA.apply_fill(pos, leg, side, px, sz, cfg["fees"][leg + "_taker"])
                 pos.pop("stuck_since", None)
-                self.say(f"{coin}: carry safety override · legs out of balance for {cfg['max_unhedged_hours']}h, lagging leg completed at market")
-                C.notify("Executor: carry safety override", f"{coin}: legs were out of balance for {cfg['max_unhedged_hours']}h; the lagging leg was completed with a taker order")
+                self.say(f"{coin}: carry safety override · legs out of balance for {cfg['max_unhedged_hours']}h, {what} at market")
+                C.notify("Executor: carry safety override", f"{coin}: legs were out of balance for {cfg['max_unhedged_hours']}h; {what} with a taker order")
         else:
             pos.pop("stuck_since", None)
 

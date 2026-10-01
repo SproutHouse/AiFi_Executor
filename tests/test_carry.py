@@ -129,6 +129,44 @@ class Lifecycle(TC.Base):
         self.assertTrue(any("safety override" in x for x in cy.summary))
 
 
+    def test_exiting_dust_is_written_off_and_the_close_finishes(self):
+        # owner-10: a spot remainder below the size step (HYPE 0.0013, szd 2) can never be sold; it must not pin the pair open
+        t0 = 1790000000
+        pos = {"HYPE": {"coin": "HYPE", "kind": "carry", "side": "carry", "mode": "paper", "state": "exiting", "target_n": 200.0, "capital": 300.0,
+                        "book": "carry", "opened": C.iso(t0), "opened_ts": t0, "exit_ts": t0 + 3600, "last_funding_ts": t0 * 1000,
+                        "funding_income": 1.0, "fees": 0.3, "spot_pnl": -2.0, "perp_pnl": 1.5,
+                        "legs": {"spot": {"pair": "@107", "sz": 0.0013, "entry": 30.0, "mark": 30.0}, "perp": {"sz": 0.0, "entry": 31.0}}, "orders": {}}}
+        cy = self.setup_cycle(pos, -0.00001, [], [], t0 + 30 * 3600)
+        cy.manage_carry()
+        self.assertNotIn("HYPE", cy.positions)
+        self.assertEqual(L.trades()[-1]["kind"], "carry")
+        self.assertTrue(any("carry dust" in x for x in cy.summary))
+        self.assertTrue(any("carry CLOSED" in x for x in cy.summary))
+
+    def test_exit_records_its_time(self):
+        t0 = 1790000000
+        cy = self.setup_cycle({}, 0.00002, [], [], t0)
+        cy.manage_carry()
+        bars = [{"t": t0 + 100, "o": 30, "h": 30.2, "l": 29.8, "c": 30}]
+        cy2 = self.setup_cycle(cy.positions, 0.00002, bars, bars, t0 + 3700)
+        cy2.manage_carry()
+        cy3 = self.setup_cycle(cy2.positions, -0.00001, [], [], t0 + 7300)
+        cy3.manage_carry()
+        self.assertEqual((cy3.positions["HYPE"]["state"], cy3.positions["HYPE"]["exit_ts"]), ("exiting", t0 + 7300))
+
+    def test_override_while_exiting_trims_the_leading_leg(self):
+        # the spot leg sold, the perp short lags: the override buys the perp back, it never re-buys the spot
+        t0 = 1790000000
+        pos = {"HYPE": {"coin": "HYPE", "kind": "carry", "side": "carry", "mode": "paper", "state": "exiting", "target_n": 200.0, "capital": 300.0,
+                        "book": "carry", "opened": C.iso(t0), "opened_ts": t0, "last_funding_ts": t0 * 1000, "stuck_since": t0,
+                        "legs": {"spot": {"pair": "@107", "sz": 0.0, "entry": 30.0, "mark": 30.0}, "perp": {"sz": 6.66, "entry": 30.0}}, "orders": {}}}
+        cy = self.setup_cycle(pos, -0.00001, [], [], t0 + 3 * 3600 + 60)
+        cy.manage_carry()
+        self.assertTrue(any("leading leg trimmed" in x for x in cy.summary))
+        self.assertNotIn("HYPE", cy.positions)                     # perp bought back to 0, spot never re-bought: the close finished
+        self.assertEqual(L.trades()[-1]["kind"], "carry")
+
+
 class LiveGuard(unittest.TestCase):
     def test_live_carry_falls_back_to_paper(self):
         s = dict(C.settings(), mode="live", strategy="carry")

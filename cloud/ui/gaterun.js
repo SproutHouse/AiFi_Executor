@@ -4,7 +4,7 @@
 //     card or a sheet host). runOrT: a runs[] item, a run t, or null/undefined = follow the shared cursor (§5).
 //     opts: {autoplay = true (the §4.5 rules), play (play once when in view: an explicit open), sheet (compact: no h2,
 //     no "Back to latest"), bar = true (the cycle bar), follow (default: runOrT is null)}.
-//     The Now card should carry id="now-gaterun"; gateRun sets it when the host has no id and none exists yet.
+//     The Overview disclosure carries id="overview-gaterun"; gateRun sets it when the host has no id and none exists yet.
 //   COMP.cycleBar(el?) → html. With el it fills el and follows the cursor; the Gate Run embeds the same bar.
 //   SHEETS.cycle(t) and SHEETS.name(coin, el) (el.dataset.at = run t → "as at …, recorded").
 // Stage codes, words and colours come from core's STAGE / GATES / word.* and mission.js's .st-<code> classes.
@@ -56,11 +56,11 @@
   }
   function firstRd(b) { return runsOf(b).find(r => r.rd != null) || null; }
   function bookOf(c, b) { for (const k of (b && Array.isArray(b.books) ? b.books : [])) if ((k.names || []).some(n => (Array.isArray(n) ? n[0] : n) === c)) return k.b; return null; }
-  // "on time, 20 min after the 4-hour close" · "ran late, 169 min after the 4-hour close · buys skipped" · "stopped early"
+  // "on time, 20 min after the hourly close" · "ran late, 169 min after the daily close · buys skipped" · "stopped early"
   function runWords(r) {
     if (!r) return '';
     if (r.x) return 'stopped early';
-    const lm = r.lm != null ? ', ' + r.lm + ' min after the 4-hour close' : '';
+    const lm = r.lm != null ? ', ' + r.lm + ' min after the ' + bw() + ' close' : '';
     return (r.h ? 'halted · ' : '') + (r.ok === 0 ? 'ran late' + lm + ' · buys skipped' : 'on time' + lm);
   }
 
@@ -87,7 +87,7 @@
         const n = run === lastRun(b) && b === S.b ? nameOf(c) : null, why = n && Array.isArray(n.elig) && n.elig.length ? word.reasons(n.elig) : '';
         s = 'too thin'; l = c + ', no signal: one flip away but too thin' + (why ? ' (' + why + ')' : '') + (d != null ? ', ' + word.dist(d) : ''); break;
       }
-      case 'n': case 'g': case 'm': l = c + ', stopped at the 4-hour signal: ' + st.w.toLowerCase() + (st.note ? ' (' + st.note + ')' : ''); break;
+      case 'n': case 'g': case 'm': l = c + ', stopped at the ' + bw() + ' signal: ' + st.w.toLowerCase() + (st.note ? ' (' + st.note + ')' : ''); break;
       case 'r': {
         let list = run.rx && Array.isArray(run.rx[c]) ? run.rx[c] : [];
         if (!list.length && ev) list = word.codes(ev[6]);
@@ -175,7 +175,7 @@
           row.ctx = sigLine(act.filter(n => n.gate > 4 || n.code === 'm'), run);
           if (M.counts) {
             const p = [];
-            if (M.unrec) p.push(M.unrec + ' stopped at weekly, daily or 4-hour (names not recorded)');
+            if (M.unrec) p.push(M.unrec + ' stopped at weekly, daily or ' + bw() + ' (names not recorded)');
             if (M.unknown) p.push('outcome not logged ' + M.unknown);
             row.cap = p.join(' · ');
           } else if (here.length) {
@@ -191,7 +191,7 @@
         if (G.g === 6) {
           row.loud = here; row.cap = listCap(here);
           const w = String(run.btc || '').charAt(0);
-          row.ctx = w === 'B' ? 'Bitcoin weekly bullish: a 4-hour flip is auto grade' : w === 'b' ? 'Bitcoin weekly not bullish: every signal is watch-only' : 'Bitcoin weekly: no reading at this check';
+          row.ctx = w === 'B' ? 'Bitcoin weekly bullish: ' + aBw('a') + ' flip is auto grade' : w === 'b' ? 'Bitcoin weekly not bullish: every signal is watch-only' : 'Bitcoin weekly: no reading at this check';
         }
         if (G.g === 7 || G.g === 8) { row.loud = here; if (G.g === 7) row.cap = listCap(here); }
         if (row.cnt != null) prev = row.cnt;
@@ -246,7 +246,7 @@
     const rs = runsOf(b); if (!rs.length) return [];
     const have = new Set(rs.map(r => r.s)), items = rs.map(r => ({ run: r, t: r.t, s: r.s }));
     const first = Math.min(...rs.map(r => r.s)), last = Math.max(...rs.map(r => r.s));
-    const end = Math.max(last, Math.floor((nowS() - BAR) / BAR) * BAR);            // slots whose whole 4-hour window passed
+    const end = Math.max(last, Math.floor((nowS() - BAR) / BAR) * BAR);            // slots whose whole bar passed
     for (let s = first + BAR; s <= end; s += BAR) if (!have.has(s)) items.push({ miss: true, s, t: s });
     items.sort((x, y) => x.t - y.t);
     const at = items.findIndex(it => !it.miss && it.t === selT);                  // keep an older selection in the window
@@ -466,7 +466,7 @@
     inst.fixed = inst.follow ? null : x;
     el.classList.add('gr');
     if (opts.sheet) el.classList.add('gr-insheet');
-    else if (!el.id && !document.getElementById('now-gaterun')) el.id = 'now-gaterun';
+    else if (!el.id && !document.getElementById('overview-gaterun')) el.id = 'overview-gaterun';
     prune(); LIVE.add(inst); observe(inst);
     draw(inst, opts.play ? 'explicit' : null);
     return control(inst);
@@ -527,11 +527,11 @@
   // =================================================================================== name sheet ==
   // As at a recorded run, the stage says what the engine saw; the directions that stage implies are words, not guesses.
   const IMPLIED = {
-    w: 'weekly not bullish (daily and 4-hour not needed)', d: 'weekly bullish · daily not bullish', n: 'weekly and daily bullish · 4-hour not ready',
-    a: 'weekly and daily bullish · 4-hour bearish', t: 'weekly and daily bullish · 4-hour bearish', u: 'weekly, daily and 4-hour bullish',
-    g: 'weekly and daily bullish · 4-hour signal', m: 'weekly and daily bullish · 4-hour signal', r: 'weekly and daily bullish · 4-hour signal',
-    p: 'weekly and daily bullish · 4-hour signal', P: 'weekly and daily bullish · 4-hour signal', e: 'weekly and daily bullish · 4-hour signal', E: 'weekly and daily bullish · 4-hour signal',
-  };
+    w: 'weekly not bullish (daily and {bar} not needed)', d: 'weekly bullish · daily not bullish', n: 'weekly and daily bullish · {bar} not ready',
+    a: 'weekly and daily bullish · {bar} bearish', t: 'weekly and daily bullish · {bar} bearish', u: 'weekly, daily and {bar} bullish',
+    g: 'weekly and daily bullish · {bar} signal', m: 'weekly and daily bullish · {bar} signal', r: 'weekly and daily bullish · {bar} signal',
+    p: 'weekly and daily bullish · {bar} signal', P: 'weekly and daily bullish · {bar} signal', e: 'weekly and daily bullish · {bar} signal', E: 'weekly and daily bullish · {bar} signal',
+  };                                                                // {bar} is this bot's bar in words (word.bar())
   function mark(ok) { return ok ? ' <span class="gr-ok">✓<span class="vh"> passes</span></span>' : ' <span class="gr-no">✕<span class="vh"> fails</span></span>'; }
   function filtersHtml(nm, b) {
     if (!nm || !Array.isArray(nm.elig)) return '<p class="note">Filters: ' + na() + (nm && nm.grp === 'held' ? ' (not read while held)' : '') + '</p>';
@@ -543,7 +543,7 @@
     if (fail.has('lev')) li.push(esc(cap1(word.reason('lev', fail.get('lev'), true))) + mark(false));
     return '<ul class="list gr-filt">' + li.map(s => '<li>' + s + '</li>').join('') + '</ul>';
   }
-  // The name's tape row, enlarged: the last 7 local days × the 6 four-hour closes, one 44px button per recorded check.
+  // The name's tape row, enlarged: the last 7 local days × six 4 h blocks of the day, one 44px button per recorded check.
   function tapeHtml(c, b, selT) {
     const rs = runsOf(b); if (!rs.length) return '<p class="note">' + (Array.isArray(b.runs) ? 'No checks in this data yet.' : 'Recorded checks: ' + na()) + '</p>';
     const order = orderOf(b), i = order.indexOf(c), per = new Map();
@@ -618,7 +618,7 @@
     if (asAt) {
       const d = asAt.dx && i >= 0 && asAt.dx[i] != null ? asAt.dx[i] / 10 : null;
       sx.push('<p class="gr-stage"><i class="stg-dot ' + st.cls + '"></i><b>' + esc(st.w) + '</b>' + (st.note ? ' <span class="sub">(' + esc(st.note) + ')</span>' : '') + '</p>');
-      if (IMPLIED[code]) sx.push('<p class="ink2">' + esc(cap1(IMPLIED[code])) + '<span class="sub"> · from the recorded stage</span></p>');
+      if (IMPLIED[code]) sx.push('<p class="ink2">' + esc(cap1(IMPLIED[code].replace(/\{bar\}/g, bw()))) + '<span class="sub"> · from the recorded stage</span></p>');
       if (d != null) sx.push('<p class="ink2">' + esc(cap1(word.dist(d))) + ' <span class="sub">(from the close then)</span></p>');
       if (asAt.rd == null) sx.push('<p class="note">Names were not recorded for this check; only signals and their outcomes were.</p>');
     } else if (nm && nm.grp === 'held') {
@@ -627,10 +627,10 @@
       if (p) sx.push('<p class="ink2">' + (p.to_stop_pct == null ? 'Stop distance ' + na(true) : p.to_stop_pct < 0 ? 'At or through the stop; checked next cycle' : esc(cap1(word.dist(p.to_stop_pct, true)))) + ' <button type="button" class="btn small" data-pos="' + esc(p.id) + '">Open position ›</button></p>');
     } else if (nm) {
       const dir = (k, v) => '<span class="pill ' + (v === 1 ? 'bull' : v === 0 ? 'bear' : 'mute') + '">' + k + ' ' + esc(word.dir(v)) + '</span>';
-      sx.push('<p class="gr-dirs">' + dir('Weekly', nm.w) + dir('Daily', nm.d) + dir('4-hour', nm.h4) + '</p>');
+      sx.push('<p class="gr-dirs">' + dir('Weekly', nm.w) + dir('Daily', nm.d) + dir(cap1(bw()), nm.h4) + '</p>');
       const d = num(nm.dist);
-      if (d != null && d > 0) sx.push('<p>Needs a 4-hour close up to <b>' + esc(fmt.pctu(d, 1)) + '</b> higher to flip' + tip('needs') + '</p>');
-      else if (d != null && d < 0) sx.push('<p>Cushion <b>' + esc(fmt.pctu(d, 1)) + '</b>: the last 4-hour close sits that far above the line' + tip('cushion') + '</p>');
+      if (d != null && d > 0) sx.push('<p>Needs a ' + esc(bw()) + ' close up to <b>' + esc(fmt.pctu(d, 1)) + '</b> higher to flip' + tip('needs') + '</p>');
+      else if (d != null && d < 0) sx.push('<p>Cushion <b>' + esc(fmt.pctu(d, 1)) + '</b>: the last ' + esc(bw()) + ' close sits that far above the line' + tip('cushion') + '</p>');
       else if (d == null) sx.push('<p>Distance to the line ' + na() + '</p>');
       if (nm.h4 === 1) sx.push('<p class="ink2">Range: ' + esc(word.range(nm.rg)) + ' <span class="sub">(matters only for a watch-only pullback)</span>' + tip('pullback') + '</p>');
       if (nm.sig) { const sp = String(nm.sig).split(' '); sx.push('<p class="ink2">Signal at this check: ' + esc(word.kind(sp[0], true)) + ', ' + esc(word.tier(sp[1]).toLowerCase()) + '</p>'); }
@@ -651,7 +651,7 @@
     }
     const mine = evsOf(b).filter(e => e[2] === c).slice(0, 12);
     x.push('<div class="sec"><h3>Its events</h3>' + (mine.length ? evList(mine) : '<p class="note">No events for ' + esc(c) + ' in the last 7 days.</p>') + '</div>');
-    if (nm && nm.px && (nm.px.line != null || nm.px.close != null)) x.push('<div class="sec"><h3>Market prices</h3><p class="gr-px">4-hour line ' + esc(fmt.px(nm.px.line)) + ' · last close ' + esc(fmt.px(nm.px.close))
+    if (nm && nm.px && (nm.px.line != null || nm.px.close != null)) x.push('<div class="sec"><h3>Market prices</h3><p class="gr-px">' + esc(cap1(bw())) + ' line ' + esc(fmt.px(nm.px.line)) + ' · last close ' + esc(fmt.px(nm.px.close))
       + ' <span class="cap">(market prices, not your money' + (asAt && last ? '; from the ' + esc(fmt.when(last.t)) + ' check' : '') + ')</span></p></div>');
     return {
       html: x.join(''), cls: 'gr-sh',

@@ -91,7 +91,8 @@ class Synthetic(unittest.TestCase):
     def test_no_raw_passthrough(self):
         L = self.L
         self.assertEqual(sorted(L), sorted(["v", "gen", "mode", "origin", "cfg", "order", "books", "clock", "state", "alerts", "pot", "rec",
-                                            "risk", "pos", "names", "runs", "events", "funnel", "pinned", "last24", "proposals", "diag"]))
+                                            "risk", "pos", "names", "runs", "events", "funnel", "pinned", "last24", "proposals", "diag",
+                                            "beat", "act"]))           # carry / carry_sum / tw ship only for those kinds
         self.assertEqual(L["v"], 2)
         self.assertRegex(L["gen"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$")
         self.assertEqual(set(self.b["stamp"]), {"v", "gen", "t"})
@@ -242,7 +243,7 @@ class Synthetic(unittest.TestCase):
             return {"success": True}
         env = {"CLOUDFLARE_API_TOKEN": "t", "CLOUDFLARE_ACCOUNT_ID": "a"}
         with mock.patch.object(DP, "api", fake_api), mock.patch.object(DP, "kv_get", return_value=json.dumps(index)) as get, \
-                mock.patch.dict("os.environ", env), contextlib.redirect_stdout(io.StringIO()):
+                mock.patch.object(DP, "kv_get_strict", get), mock.patch.dict("os.environ", env), contextlib.redirect_stdout(io.StringIO()):
             DP.main(["--state", str(self.st), "--config", str(self.cfg), "--now", str(S.NOW)])
         want = [("ns1", "doc:index"), ("ns1", "exec:agents")] + ([("ns1", "exec:factory")] if DP.factory_payload() else [])
         self.assertEqual([c.args for c in get.call_args_list], want)       # exec:factory is read to write it only on change
@@ -374,7 +375,7 @@ class Real(unittest.TestCase):
 
     def test_clock_and_last24(self):
         self.assertEqual(self.L["clock"], {"last_t": 1790310000, "last_slot": 1790308800, "late_min": 20, "lag_med_min": 21,
-                                           "lag_rng": [20, 27], "lag_n": 7, "limit_min": 45, "sched_min": 5})
+                                           "lag_rng": [20, 27], "lag_n": 7, "limit_min": 45, "sched_min": 5, "bar_s": 14400})
         self.assertEqual(self.L["last24"], {"slots": 6, "on_time": 6, "late": 0, "missed": 0, "failed": 0, "signals": 5, "bought": 0, "sold": 0})
         self.assertEqual(self.L["origin"], {"t": 1790203756, "mode": "paper"})
         self.assertEqual(self.b["stamp"], {"v": 2, "gen": "2026-09-25T04:47:26.060Z", "t": 1790310000})

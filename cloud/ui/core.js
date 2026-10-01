@@ -1,11 +1,14 @@
-// cloud/ui/core.js — the client core (spec §2, §3, §4.1, §5, §9, §12, §14, §15). Joined FIRST into the page's one
-// IIFE (see ui/README.md) and the only module that declares top-level names. Nothing here runs at load except
-// building constants; boot.js starts everything last.
+// cloud/ui/core.js — the client core (spec §2, §3, §4.1, §5, §9, §12, §14, §15; COMMAND_CENTER_SPEC §2, §6.7, §9 B).
+// Joined FIRST into the page's one IIFE (see ui/README.md) and the only module that declares top-level names. Nothing
+// here runs at load except building constants; boot.js starts everything last.
 /* ================================================ CORE API ================================================
  Module builders: everything below is in scope for every ui/*.js block. Times in the bundle are unix SECONDS and
  every fmt time function takes seconds. Helpers that return HTML escape their own input.
 
- DOM + misc      esc(s) · $(sel, root?) → Element · $$(sel, root?) → Element[] · HTML (documentElement) · BAR = 14400
+ DOM + misc      esc(s) · $(sel, root?) → Element · $$(sel, root?) → Element[] · HTML (documentElement)
+                 BAR: this bot's bar in seconds (3600 | 14400 | 86400), set from barOf(S.b) in start(); 14400 on the master
+                 TF = {'1h': 3600, '4h': 14400, '1d': 86400} · barOf(b?) → seconds: b.clock.bar_s → TF[b.cfg.tf] →
+                 TF[rowOf(AGENT).tf] → 14400
                  nowMs() → ms, nowS() → s (tests: window.__exNow = ms number or function, or override Date.now)
                  reduced (live boolean, prefers-reduced-motion) · lsGet(key, fallback) / lsSet(key, value) (JSON, never
                  throw) · call(fn, ...args) (try/catch) · report(err, where) · isoS(iso|num) → s|null
@@ -35,15 +38,18 @@
                    due stale
                  word.kind(k, long?) · word.tier(t) · word.dir(1|0|null) · word.range(rg) · word.dist(d, held?)
                  word.reason(code, v, long?) · word.reasons([[code, v]…], long?) · word.codes("vol 0.73,fund 68")
-                 word.exit(rsn) · word.outcome(o) · word.stage(code) · word.run(run) → {k, w, s} · word.lag(min, ok)
+                 word.exit(rsn, tradeRow?) · word.outcome(o) · word.stage(code) · word.run(run) → {k, w, s} · word.lag(min, ok)
                  word.event(eventsRow) → {html, ic, lv, t, type, c} · word.alert(alert) → html
                  word.punct(b) the punctuality sentence · word.list([…]) · word.plural(n, one, many?)
+                 word.bar(b?) 'hourly' | '4-hour' | 'daily' · word.every(b?) 'every hour' | 'every 4 hours' | 'every day'
+                 word.kindName(kind, bar_s?) "Signal trader · hourly" ("—" for an unknown kind)
                  chip(coin, runT?) → a .tk button that opens the name sheet · ICON[name] / icon(name) → inline SVG
                    ICON names: x warn bad info ok left right up down raise block rec clock pause play flag eye doc
                    swap refresh
  Registries      VIEWS[tab] = {title, render(root, why) → html | nothing, after?(root) → cleanup fn?, leave?()}
-                   tabs: now activity positions results rules · why: 'route' | 'arrival' | 'redraw'. A missing VIEWS entry
-                   renders a quiet placeholder. A cleanup returned by after() runs before the next render.
+                   bot-page tabs: overview results activity rules; the master renders VIEWS.fleet · why: 'route' |
+                   'arrival' | 'redraw'. A missing VIEWS entry renders a quiet placeholder. A cleanup returned by after()
+                   runs before the next render.
                  COMP[name] = fn: shared components. Always guard: COMP.x ? COMP.x(…) : … . Core itself reads
                    COMP.punctuality(b) → html, for the Health sheet, when a module provides it.
                  SHEETS[kind] = (arg, el) → html | {html, after?(sheetEl) → cleanup fn?, cls?}. Opened by ONE
@@ -51,10 +57,21 @@
                    [data-trade] [data-sheet="kind:arg"]. data-at on a [data-name] is the run t. Core ships a default
                    SHEETS.health (replaceable). A click whose default is already prevented is left alone, so a
                    module claims a click with e.preventDefault().
-                 HOOKS: hook(name, fn) registers; runHooks(name, ...args). arrival(prev, next) · tick1s() ·
+                 HOOKS: hook(name, fn) registers; runHooks(name, ...args). arrival(prev, next) (bot page) · tick1s() ·
                    tick30s() · route(tab, sub) · theme(theme) · hide() · show() · status(st) (after every
-                   refreshShell(): the 30 s tick, a landed bundle, or a module that saw the phase flip)
- State           S = {b, ledger, ledgerGen, ledgerErr, cursor, tab, sub, prev, st, net, seenAt, seenEv, sheet}
+                   refreshShell(): the 30 s tick, a landed bundle, or a module that saw the phase flip) ·
+                   agents(rows, envelope) after every /api/agents (re)load (boot, each bot arrival, each master poll)
+ Pages           PAGE 'fleet' (the Command Center, "/") | 'bot' ("/?a=<id>") · AGENT the bot id, null on the master
+                 AGENTS rows of exec:agents (null until loaded) · S.E the exec:agents envelope · rowOf(id) → row | null
+                 rowBundle(row, env?) → a status pseudo-bundle (§6.7) or null for a v1 row · kindOf(b?) → 'flip' |
+                 'target' | 'carry' (cfg.kind → row.kind → inference) · kindInfo(b?) → {kind, inferred}
+                 loadAgents() → Promise<rows> (never rejects) · loadFactory(force?) → Promise<factory | null> (5 min cache)
+                 botHref(id, hash?) "/?a=<id>#<hash>" · goFleet() back to the master (history.back() when we came from it)
+                 botStep(±1) → the previous / next bot in exec:agents.order, replacing the history entry
+                 switchAgent(id) → botHref(id), a replace on a bot page (a shim; ex.agent is never written) · ready() → the page has
+                 its data · navHash('#tab/sub') (bot page: replaceState + route) · legacyHash() (boot.js, before boot)
+                 ssGet(k) / ssSet(k, v | null) sessionStorage, never throw
+ State           S = {b, ledger, ledgerGen, ledgerErr, cursor, tab, sub, prev, st, net, seenAt, seenEv, sheet, E}
                    S.b exec:latest · S.prev the bundle before the last arrival · S.st = status(S.b), refreshed on the
                    30 s tick · S.net 'ok'|'checking'|'offline'|'signedout' · S.seenEv = ex.seenEv as it was when
                    Activity opened (the "new since your last visit" marker) · S.sheet {kind, arg} of the open sheet
@@ -78,7 +95,8 @@
                  refreshShell() → recompute S.st and repaint the capsule, rail mirror, mode pill, alert rail and the
                    Activity dot, then run the 'status' hooks. Call it when a module sees the clock phase flip.
  Anchors         route() scrolls to id="<tab>-<sub>" when present (#activity/signals → id="activity-signals";
-                 #refused redirects there). setCursor(t, {scroll:true}) on Now scrolls to id="now-gaterun".
+                 #refused redirects there). setCursor(t, {scroll:true}) on Overview scrolls to id="overview-gaterun".
+                 On a bot page every same-page hash link is history.replaceState + route(): tabs add no history entry.
  Clicks          [data-cursor="<t>" | ""] sets the cursor ([data-scroll] also scrolls to the Gate Run) ·
                  [data-refresh] checks for new data · [data-retry] reboots · [data-top] scrolls to the top ·
                  .tip / [data-tip="text"] / [data-g="glossKey"] open a tip (or set el._tip = html | fn(el));
@@ -86,7 +104,8 @@
  ========================================================================================================== */
 
 // ============================================================================================ basics ==
-const BAR = 14400;
+let BAR = 14400;
+const TF = { '1h': 3600, '4h': 14400, '1d': 86400 };
 const HTML = document.documentElement;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
@@ -101,7 +120,7 @@ function nowS() { return Math.floor(nowMs() / 1000); }
 const MQ_RM = matchMedia('(prefers-reduced-motion: reduce)');
 let reduced = MQ_RM.matches;
 // A change of the OS setting redraws the open tab and sheet, so Replay/Step, Play and the pings follow it at once.
-function onMotion(e) { reduced = e.matches; if (S.b && document.getElementById('app')) { redraw(); refreshSheet(); } }
+function onMotion(e) { reduced = e.matches; if (ready() && document.getElementById('app')) { redraw(); refreshSheet(); } }
 if (MQ_RM.addEventListener) MQ_RM.addEventListener('change', onMotion);
 else if (MQ_RM.addListener) MQ_RM.addListener(onMotion);
 function report(e, where) { try { console.error('[executor] ' + (where || 'error'), e); } catch (_) {} }
@@ -275,16 +294,18 @@ function chip(c, at) { return '<button type="button" class="tk" data-name="' + e
 // One or two plain sentences each. Thresholds come from the bundle's cfg at render time, never from this file.
 function cfgOf(b) { return ((b || S.b || {}).cfg) || {}; }
 function q(v, unit, alt) { return v == null ? alt : v + (unit || ''); }
+const bw = () => word.bar();                                        // this bot's bar in words, read at render time
+const aBw = (a = 'a') => a + (bw() === 'hourly' ? 'n ' : ' ') + bw();   // with its article: "an hourly", "a daily"
 const GLOSS = {
-  auto: { t: 'Auto grade', d: 'A 4-hour flip while the coin’s weekly and daily and Bitcoin’s weekly are all bullish. It is the only signal the bot buys on its own, and only after every safety check passes.' },
+  auto: { t: 'Auto grade', d: () => aBw('A') + ' flip while the coin’s weekly and daily and Bitcoin’s weekly are all bullish. It is the only signal the bot buys on its own, and only after every safety check passes.' },
   watch: { t: 'Watch-only grade', d: 'Every other signal: a pullback into the band, or a flip while Bitcoin’s weekly is not bullish. It is recorded, never traded.' },
-  signal: { t: 'Signal', d: 'A coin’s 4-hour Momentum Cloud flips bullish, or its price pulls back into the band, while its weekly and daily are bullish. A signal is not a buy: it still needs the auto grade and every safety check.' },
-  flip: { t: '4-hour flip', d: 'A 4-hour close above the Momentum Cloud line, which turns the 4-hour trend bullish.' },
-  pullback: { t: 'Pullback into the band', d: 'The price dips back into its band while the 4-hour trend is already bullish. Always watch-only.' },
-  oneflip: { t: 'One flip away', d: 'Weekly and daily are bullish and the 4-hour is bearish, so one 4-hour close above the line would be a flip.' },
+  signal: { t: 'Signal', d: () => 'A coin’s ' + bw() + ' Momentum Cloud flips bullish, or its price pulls back into the band, while its weekly and daily are bullish. A signal is not a buy: it still needs the auto grade and every safety check.' },
+  flip: { t: () => cap1(bw()) + ' flip', d: () => aBw('A') + ' close above the Momentum Cloud line, which turns the ' + bw() + ' trend bullish.' },
+  pullback: { t: 'Pullback into the band', d: () => 'The price dips back into its band while the ' + bw() + ' trend is already bullish. Always watch-only.' },
+  oneflip: { t: 'One flip away', d: () => 'Weekly and daily are bullish and the ' + bw() + ' is bearish, so one ' + bw() + ' close above the line would be a flip.' },
   thin: { t: 'Too thin', d: c => { const u = c.uni || {}; return 'One flip away, but the coin fails a market check today (volume under ' + q(u.vol_m, 'M a day', 'the minimum') + ', funding above ' + q(u.fund_pct, '%/yr', 'the limit') + ' or less than ' + q(u.days, ' days', 'the minimum') + ' of history), so a signal would be blocked. Market figures, not your money.'; } },
-  cushion: { t: 'Cushion', d: 'How far the last 4-hour close sits above the Momentum Cloud line. The 4-hour stays bullish until a close falls below the line.' },
-  needs: { t: 'Needs (an upper bound)', d: 'How far the next 4-hour close must rise to cross the line. While a 4-hour cloud is bearish its line can only step down, so this is the most it must rise. Not a prediction.' },
+  cushion: { t: 'Cushion', d: () => 'How far the last ' + bw() + ' close sits above the Momentum Cloud line. The ' + bw() + ' stays bullish until a close falls below the line.' },
+  needs: { t: 'Needs (an upper bound)', d: () => 'How far the next ' + bw() + ' close must rise to cross the line. While ' + aBw('a') + ' cloud is bearish its line can only step down, so this is the most it must rise. Not a prediction.' },
   openR: { t: 'Open R', d: 'What the position would bring if it were closed at the last mark, after costs, in units of its first risk.' },
   lockedR: { t: 'Locked R', d: 'What the position would still bring if its current stop were hit now, after costs. Positive once the stop is above entry.' },
   firstStop: { t: 'First stop', d: 'The stop set at entry. Hitting it loses 1 R, the planned risk of the trade.' },
@@ -293,36 +314,44 @@ const GLOSS = {
   drawdown: { t: 'Drawdown gauge', d: c => { const t = c.thr || []; return 'How far the pot is below its peak. At ' + q(t[0], '%', 'the first limit') + ' risk per trade halves; at ' + q(t[1], '%', 'the second') + ' the bot stops buying until reviewed.'; } },
   slot: { t: 'Slot', d: c => 'One of the ' + q(c.max_pos, '', 'few') + ' positions the bot may hold at once.' },
   gateRun: { t: 'Gate Run', d: 'A replay of one recorded check: every name moves down the engine’s gates in order and stops where the record says it stopped.' },
-  heartbeat: { t: 'Heartbeat', d: 'One cell per 4-hour close for the last 7 days. Each cell is a recorded check: on time, late, failed or missed.' },
-  late: { t: 'Late check', d: c => 'A check that started more than ' + q(c.late_min, ' minutes', 'the late limit') + ' after the 4-hour close. Its data is too old to buy on, so buys are skipped for that bar; exits still run.' },
+  heartbeat: { t: 'Heartbeat', d: () => 'One cell per ' + bw() + ' close' + (BAR === 14400 ? ' for the last 7 days' : '') + '. Each cell is a recorded check: on time, late, failed or missed.' },
+  late: { t: 'Late check', d: c => 'A check that started more than ' + q(c.late_min, ' minutes', 'the late limit') + ' after the ' + bw() + ' close. Its data is too old to buy on, so buys are skipped for that bar; exits still run.' },
   vsHolding: { t: 'vs holding', d: 'A trade’s R minus what simply holding the book’s benchmark over the same hours would have made, in the same R. Positive means the trade beat holding.' },
   pf: { t: 'Profit factor', d: 'Total R won divided by total R lost. Above 1 the wins outweigh the losses; with no losing trade yet it has no value.' },
   goLive: { t: 'Go-live gates', d: c => { const g = c.gates || {}; return 'What the paper record must show before real money: ' + q(g.n, ' closed trades', 'enough closed trades') + ', ' + (g.avg_R != null ? 'an average above +' + g.avg_R + ' R' : 'a positive average R') + ', a worst drawdown under ' + q(g.dd_pct, '%', 'the limit') + ', and costs of at most ' + q(g.cost_R, ' R', 'the cost limit') + ' per trade.'; } },
   paper: { t: 'Paper', d: 'The bot runs every rule on real market data, but no order reaches the exchange. Fills and costs are simulated.' },
   R: { t: 'R', d: c => 'One unit of planned risk: what a trade loses if its first stop is hit, ' + q(c.risk_pct, '% of the pot', 'a fixed share of the pot') + '. Results are counted in R so they compare across coins.' },
-  stop: { t: 'Stop', d: 'The price that closes the position. It follows the 4-hour line up, never down.' },
+  stop: { t: 'Stop', d: () => 'The price that closes the position. It follows the ' + bw() + ' line up, never down.' },
   book: { t: 'Book', d: 'A group of coins judged against one benchmark, with its own share of the pot and its own risk cap.' },
   checks: { t: 'Safety checks', d: c => 'The checks every signal must pass before a buy' + (Array.isArray(c.checks) && c.checks.length ? ', in order: ' + c.checks.join(', ') + '.' : '.') },
-  line: { t: 'Momentum Cloud line', d: 'The 4-hour trend line. A close above it turns the 4-hour bullish; a close below it turns it bearish.' },
-  due: { t: 'Due', d: 'The check for the last 4-hour close should land about now. It is not late until the limit passes.' },
-  stale: { t: 'Stale', d: 'No check for 4 hours or more: a whole bar was missed. The runner may be down.' },
+  line: { t: 'Momentum Cloud line', d: () => 'The ' + bw() + ' trend line. A close above it turns the ' + bw() + ' bullish; a close below it turns it bearish.' },
+  due: { t: 'Due', d: () => 'The check for the last ' + bw() + ' close should land about now. It is not late until the limit passes.' },
+  stale: { t: 'Stale', d: c => 'No check within ' + fmt.dur(staleGap(BAR, num(c.late_min) || 45)) + ' of ' + aBw('a') + ' close. The runner may be down.' },
 };
 function gloss(k) {
   const g = GLOSS[k]; if (!g) return null;
   let d = ''; try { d = typeof g.d === 'function' ? g.d(cfgOf()) : g.d; } catch (e) { report(e, 'gloss ' + k); }
-  return { t: g.t, d };
+  return { t: typeof g.t === 'function' ? g.t() : g.t, d };
 }
-function tip(k) { const g = GLOSS[k]; return '<button class="tip" type="button" data-g="' + esc(k) + '" aria-label="What is ' + esc(g ? g.t : k) + '?">?</button>'; }
+function tip(k) { const g = gloss(k); return '<button class="tip" type="button" data-g="' + esc(k) + '" aria-label="What is ' + esc(g ? g.t : k) + '?">?</button>'; }
 
 // ========================================================================================== words ==
 const KIND = { flip: ['flip', '4-hour flip'], pullback: ['pullback', 'pullback into the band'] };
-const EXIT = { stop: 'stop hit', h4: '4-hour turn', d: 'daily turn', w: 'weekly turn', flatten: 'manual flatten', nostop: 'no stop possible', exch: 'exchange stop', other: 'exit' };
+const EXIT = { stop: 'stop hit', h4: '4-hour turn', d: 'daily turn', w: 'weekly turn', flatten: 'manual flatten', nostop: 'no stop possible', exch: 'exchange stop', fund: 'funding fell below its exit rate', other: 'exit' };
 const OUTCOME = { blocked: 'Blocked by a check', recorded: 'Recorded, not traded', expired: 'Expired (old approval model)', notfilled: 'Order not filled', bought: 'Bought' };
 const EV_IC = { bought: 'up', sold: 'down', trail: 'raise', blocked: 'block', recorded: 'rec', proposed: 'rec', expired: 'clock', notfilled: 'x',
   late: 'clock', failed: 'bad', halt: 'pause', resume: 'play', thr_halt: 'pause', thr_half: 'warn', recon: 'bad', no_stop: 'bad', close_failed: 'bad',
-  exit_failed: 'bad', fallback: 'warn', regime: 'flag', gap: 'warn', entry_failed: 'warn', not_on_exchange: 'warn', sweep: 'swap', review: 'doc', board: 'eye' };
+  exit_failed: 'bad', fallback: 'warn', regime: 'flag', gap: 'warn', entry_failed: 'warn', not_on_exchange: 'warn', sweep: 'swap', review: 'doc', board: 'eye',
+  resized: 'swap', carry_in: 'up', carry_out: 'down', carry_closed: 'ok', carry_fix: 'swap' };
+// A bar in words: [adjective, cadence, the tile's short form]
+const BARW = { 3600: ['hourly', 'every hour', 'hourly'], 14400: ['4-hour', 'every 4 hours', 'every 4 h'], 86400: ['daily', 'every day', 'daily'] };
+function barw(s, i) { const w = BARW[s]; if (w) return w[i]; const h = Math.round(s / 3600); return [h + '-hour', 'every ' + h + ' hours', 'every ' + h + ' h'][i]; }
+const KINDW = { flip: 'Signal trader', target: 'Rebalancer', carry: 'Funding collector' };
 const DIRW = { B: 'bullish', b: 'bearish', n: 'no reading', 1: 'bullish', 0: 'bearish' };
 const word = {
+  bar: b => barw(barOf(b === undefined ? S.b : b), 0),
+  every: b => barw(barOf(b === undefined ? S.b : b), 1),
+  kindName: (k, bar) => KINDW[k] ? KINDW[k] + (num(bar) ? ' · ' + barw(num(bar), 2) : '') : '—',
   kind: (k, long) => KIND[k] ? KIND[k][long ? 1 : 0] : (k ? String(k) : 'signal'),
   tier: t => t === 'A' ? 'Auto grade' : t === 'B' ? 'Watch-only grade' : 'grade not recorded',
   dir: v => v === 1 || v === true ? 'bullish' : v === 0 || v === false ? 'bearish' : 'no reading',
@@ -364,7 +393,8 @@ const word = {
   },
   reasons: (list, long) => (Array.isArray(list) ? list : []).map(p => Array.isArray(p) ? word.reason(p[0], p[1], long) : word.reason(p, null, long)).join(' · '),
   codes: det => String(det || '').split(',').map(s => s.trim()).filter(Boolean).map(s => { const m = s.match(/^(\S+)(?:\s+(\S+))?$/); return m ? [m[1], m[2] != null ? numv(m[2]) : null] : [s, null]; }),
-  exit: r => EXIT[r] || 'exit',
+  // a stop exit above the entry price locked in a gain (owner-13); with no prices, the plain reason
+  exit: (r, row) => r === 'stop' && row && num(row.exit) != null && num(row.entry) != null && num(row.exit) > num(row.entry) ? 'trailing stop, locked in gain' : EXIT[r] || 'exit',
   outcome: o => OUTCOME[o] || (o ? String(o) : '—'),
   stage: c => stage(c).w,
   lag: (min, ok) => (ok === false || ok === 0 ? 'ran late' : 'on time') + (min != null ? ' (' + min + ' min after the close)' : ''),
@@ -401,11 +431,11 @@ const word = {
       if (x === 'a in') return 'now one flip away';
       if (x === 'a out') return 'no longer one flip away';
       const m = x.match(/^(w|d|h4) (\S+)>(\S+)$/); if (!m) return esc(x);
-      return ({ w: 'weekly', d: 'daily', h4: '4-hour' })[m[1]] + (m[3] === 'n' ? ' lost its reading' : ' turned ' + (DIRW[m[3]] || esc(m[3])));
+      return ({ w: 'weekly', d: 'daily', h4: bw() })[m[1]] + (m[3] === 'n' ? ' lost its reading' : ' turned ' + (DIRW[m[3]] || esc(m[3])));
     }).join(', ');
     let s;
     switch (ty) {
-      case 'bought': { const sp = (String(det || '').match(/stop ([\d.]+)/) || [])[1]; s = 'Bought ' + C + (kind ? ' on a ' + word.kind(kind, true) : '') + (tier ? ' (' + word.tier(tier).toLowerCase() + ')' : '') + (sp ? ', stop ' + fmt.pctu(sp, 1) + ' below' : ''); break; }
+      case 'bought': { const sp = (String(det || '').match(/stop ([\d.]+)/) || [])[1]; s = 'Bought ' + C + (KIND[kind] ? ' on a ' + word.kind(kind, true) : kind === 'carry' ? ' (a carry pair)' : '') + (tier === 'A' || tier === 'B' ? ' (' + word.tier(tier).toLowerCase() + ')' : '') + (sp ? ', stop ' + fmt.pctu(sp, 1) + ' below' : ''); break; }
       case 'sold': s = 'Sold ' + C + ' ' + Rs(R) + ' (' + word.exit(det) + ')' + (rel != null ? ' · ' + Rs(rel) + ' vs holding' : ''); break;
       case 'trail': s = C + ' stop raised' + (R != null ? (rz(R, 2) < 0 ? ', still risks ' : ', locks ') + Rs(R) : ''); break;
       case 'blocked': {
@@ -438,6 +468,11 @@ const word = {
       case 'sweep': { const m = String(det || '').match(/^(\S+) ([\d.]+)$/); s = C + ' gain earmarked for ' + (m ? esc(m[1]) + ' (' + fmt.pctu(m[2], 2) + ' of pot)' : 'its benchmark') + ' · recorded, not executed'; break; }
       case 'review': s = 'Sunday review written'; break;
       case 'board': s = C + ': ' + (dirs(det) || 'reading changed'); break;
+      case 'resized': s = 'Resized ' + C + (D ? ' to ' + D + '% of pot' : ''); break;
+      case 'carry_in': s = 'Started collecting on ' + C + (numv(det) != null ? ' · funding ' + fmt.num(det, 1) + '%/yr' : ''); break;
+      case 'carry_out': s = 'Started closing ' + C + ' carry' + (numv(det) != null ? ' · funding ' + fmt.num(det, 1) + '%/yr' : ''); break;
+      case 'carry_closed': { const [r, cp] = String(det || '').split(','); s = 'Closed ' + C + ' carry' + (numv(r) != null ? ' · <span class="' + fmt.cls(r) + '">' + fmt.pct(r) + '</span> of pot' : '') + (cp ? ' · kept ' + esc(cp) + ' of its funding' : ''); break; }
+      case 'carry_fix': s = C + ': evened its legs at market'; break;
       default: s = (C ? C + ' ' : '') + esc(ty || 'event');
     }
     return { html: s, ic: EV_IC[ty] || 'info', lv: numv(lv) || 0, t, type: ty, c };
@@ -448,16 +483,19 @@ const word = {
 const VIEWS = {};
 const COMP = {};
 const SHEETS = {};
-const HOOKS = { arrival: [], tick1s: [], tick30s: [], route: [], theme: [], hide: [], show: [], status: [] };
+const HOOKS = { arrival: [], tick1s: [], tick30s: [], route: [], theme: [], hide: [], show: [], status: [], agents: [] };
 function hooksOf(name) { const h = HOOKS[name]; return h == null ? [] : Array.isArray(h) ? h : [h]; }
 function hook(name, fn) { HOOKS[name] = hooksOf(name); HOOKS[name].push(fn); }
 function runHooks(name, ...a) { hooksOf(name).forEach(fn => call(fn, ...a)); }
 
 // ============================================================================================ state ==
-const TABS = ['now', 'activity', 'positions', 'results', 'rules'];
-const TITLE = { now: 'Now', activity: 'Activity', positions: 'Positions', results: 'Results', rules: 'Rules' };
-const S = { b: null, ledger: null, ledgerGen: null, ledgerErr: null, cursor: null, tab: 'now', sub: null, prev: null,
-            st: null, net: 'checking', seenAt: 0, seenEv: 0, sheet: null, bootErr: null, booting: false };
+// The bot page's tabs (COMMAND_CENTER_SPEC §2.2), in key order 1–4. The master has one view, 'fleet'.
+const TABS = ['overview', 'results', 'activity', 'rules'];
+const TITLE = { overview: 'Overview', results: 'Trades', activity: 'Activity', rules: 'Rules', fleet: 'Command center' };
+const S = { b: null, ledger: null, ledgerGen: null, ledgerErr: null, cursor: null, tab: 'overview', sub: null, prev: null,
+            st: null, net: 'checking', seenAt: 0, seenEv: 0, sheet: null, bootErr: null, booting: false, E: null, prevE: null, agentsErr: null };
+// Whether the page has its data: the bundle on a bot page, the exec:agents envelope on the master.
+function ready() { return PAGE === 'fleet' ? !!S.E : !!S.b; }
 function runsOf(b) { b = b || S.b; return b && Array.isArray(b.runs) ? b.runs : []; }
 function modeOf(b) {
   const m = b && b.mode;
@@ -475,7 +513,7 @@ function nameOf(c) { return ((S.b && S.b.names) || []).find(n => n.c === c) || n
 const CURSOR = [];
 function onCursor(fn) { CURSOR.push(fn); }
 // Shared cycle cursor (§5), null = the latest run. With the cycle sheet open, moving the cursor redraws that sheet;
-// off the Now tab it opens it; on Now the followers replay, and {scroll:true} brings the Gate Run into view.
+// off Overview it opens it; on Overview the followers replay, and {scroll:true} opens and shows the Gate Run.
 function setCursor(t, opts) {
   opts = opts || {};
   let v = t == null || t === '' ? null : Number(t);
@@ -487,8 +525,9 @@ function setCursor(t, opts) {
   if (opts.sheet === false) return;
   const tt = v != null ? v : last && last.t;
   if (S.sheet && S.sheet.kind === 'cycle' && tt != null) return openSheet(sheetContent('cycle', tt), { kind: 'cycle', arg: tt, replace: true });
-  if (S.tab !== 'now') { if (tt != null) showSheet('cycle', tt); return; }
-  if (opts.scroll) into(document.getElementById('now-gaterun'), true);
+  if (S.tab !== 'overview') { if (tt != null) showSheet('cycle', tt); return; }
+  const gr = document.getElementById('overview-gaterun');
+  if (opts.scroll && gr) { if (gr.tagName === 'DETAILS') gr.open = true; into(gr, true); }
 }
 
 // ======================================================================== the status engine (§3) ==
@@ -498,7 +537,8 @@ function clockOf(b) {
   if (b.clock && b.clock.last_t != null) return b.clock;
   const t = b.last_run && isoS(b.last_run.t);
   if (t == null) return b.clock || null;
-  return { last_t: t, last_slot: Math.floor(t / BAR) * BAR, late_min: null, lag_med_min: 20, lag_rng: null, lag_n: 0, limit_min: null, sched_min: 5 };
+  const bar = barOf(b);
+  return { last_t: t, last_slot: Math.floor(t / bar) * bar, late_min: null, lag_med_min: 20, lag_rng: null, lag_n: 0, limit_min: null, sched_min: 5 };
 }
 function stateOf(b) {
   if (b && b.state) return b.state;
@@ -515,13 +555,27 @@ function nOpen(b) {
   if (b && b.positions && typeof b.positions === 'object') return Object.keys(b.positions).length;
   return 0;
 }
-// clock(b, now): §3.1. C is the next 4-hour close the engine owes a check for; every time is recomputed from now.
+// barOf(b): the bot's bar in seconds (COMMAND_CENTER_SPEC §9 B0). The bundle says it (clock.bar_s); an older bundle
+// is read from cfg.tf, then from its exec:agents row's tf (a v1 field), and only then assumed to be 4 hours.
+function barOf(b) {
+  const x = b && b.clock && num(b.clock.bar_s);
+  if (x > 0) return x;
+  const tf = b && b.cfg && b.cfg.tf;
+  if (TF[tf]) return TF[tf];
+  const r = rowOf(AGENT);
+  return (r && (num(r.bar_s) || TF[r.tf])) || 14400;
+}
+// How long after its close a check counts as missed for good: a whole bar, but never under 4 h nor under the late
+// limit plus an hour (so an hourly bot is stale at the next close, a daily one 4 h after its close).
+function staleGap(bar, lim) { return Math.min(bar, Math.max(14400, lim * 60 + 3600)); }
+// clock(b, now): §3.1 with the per-bar rule (COMMAND_CENTER_SPEC §6.7). C is the next close the engine owes a check
+// for; every time is recomputed from now. A 4-hour bot gives exactly the same output as before the rule.
 function clock(b, now) {
   b = b === undefined ? S.b : b; now = now == null ? nowS() : now;
-  const k = clockOf(b), lim = limOf(b);
+  const k = clockOf(b), lim = limOf(b), bar = barOf(b);
   if (!k || k.last_slot == null || k.last_t == null) return { phase: 'none', now, lim, lag: 20, C: null, next: null, nOpen: nOpen(b), exits: false };
   const lag = (k.lag_n != null && k.lag_n < 3) ? 20 : (numv(k.lag_med_min) ?? 20);
-  const C = k.last_slot + BAR, next = Math.round(C + lag * 60), lateAt = C + lim * 60, staleAt = C + BAR, exitsAt = C + 7200;
+  const C = k.last_slot + bar, next = Math.round(C + lag * 60), lateAt = C + lim * 60, staleAt = C + staleGap(bar, lim), exitsAt = C + Math.min(7200, bar);
   const phase = now < next ? 'countdown' : now < lateAt ? 'due' : now < staleAt ? 'late' : 'stale';
   const n = nOpen(b);
   return { phase, now, C, lag, lim, next, lateAt, staleAt, exitsAt, sched: C + (numv(k.sched_min) ?? 5) * 60, lastT: k.last_t, lastSlot: k.last_slot,
@@ -531,7 +585,9 @@ function clock(b, now) {
 const DOT = { ok: 'ok', info: 'due', warn: 'gap', bad: 'bad' };
 const LVCLS = { ok: '', info: '', warn: 'warn', bad: 'bad' };
 const COVERED = new Set(['failed', 'halt', 'thr_halt', 'thr_half', 'fallback', 'late']);     // alerts the state already speaks for
-// status(b, now): one truth for the capsule, rail mirror, verdict, alert rail and dial centre. The first item marked
+const AWORD = { unhedged: 'Legs uneven', exit_slow: 'Closing slow' };                                                    // a warn alert's own word ("Check" otherwise)
+const HOLD = '#overview/holding';
+// status(b, now): one truth for the capsule, rail mirror, verdict, alert rail and the master's tiles. The first item marked
 // head sets the headline (§3.2 precedence); every item goes to the alert rail and the Health sheet.
 function status(b, now) {
   b = b === undefined ? S.b : b;
@@ -547,12 +603,12 @@ function status(b, now) {
   if (halt.set) add('bad', 'halt', 'Halted', '<b>Halted</b> since ' + (halt.since ? T(halt.since) : 'unknown') + ': ' + esc(halt.reason || 'manual halt') + '. No new buys; exits still run.',
     { act: RUNBOOK, wide: '· no new buys' });
   if (thr.state === 'halted') add('bad', 'thr_halt', 'Buying stopped', '<b>Buying stopped</b> · drawdown ' + (dd || '—') + ' reached the ' + (lims[1] != null ? esc(lims[1]) + '% ' : '') + 'limit.',
-    { act: { label: 'Positions', href: '#positions' }, wide: dd ? '· drawdown ' + dd : '' });
+    { act: { label: 'Positions', href: HOLD }, wide: dd ? '· drawdown ' + dd : '' });
   if (K.phase === 'stale') add('bad', 'stale', 'Stale', '<b>Stale</b> · no check for ' + esc(fmt.age(K.age)) + '. The runner may be down.', { act: RUNBOOK, wide: '· the runner may be down' });
   if (K.exits) add('bad', 'exits', 'Exits unchecked', '<b>Needs you</b> · exits not checked since ' + T(K.lastT) + '.',
-    { act: { label: 'See positions', href: '#positions' }, age: fmt.age(K.over), wide: '· since ' + fmt.when(K.lastT) });
+    { act: { label: 'See positions', href: HOLD }, age: fmt.age(K.over), wide: '· since ' + fmt.when(K.lastT) });
   const alerts = Array.isArray(b.alerts) ? b.alerts.filter(a => a && typeof a === 'object') : [];
-  const actOf = a => a.c && /^(gap|close_failed|exit_failed)$/.test(a.k) ? { label: 'See position', href: '#positions' } : a.k === 'entry_failed' ? { label: 'See check', cycle: a.t != null ? a.t : last.t } : RUNBOOK;
+  const actOf = a => a.c && /^(gap|close_failed|exit_failed|unhedged|exit_slow)$/.test(a.k) ? { label: 'See position', href: HOLD } : a.k === 'entry_failed' ? { label: 'See check', cycle: a.t != null ? a.t : last.t } : RUNBOOK;
   for (const a of alerts) if (a.lv === 'bad' && !COVERED.has(a.k)) add('bad', a.k, 'Needs you', word.alert(a), { act: actOf(a), wide: '· see the alert' });
   if (K.phase === 'late' && !K.exits) add('warn', 'late_now', 'Late', '<b>Late</b> · no check yet for the ' + T(K.C) + ' close. After ' + T(K.lateAt) + ' it skips buys.',
     { act: RUNBOOK, age: fmt.age(K.over), wide: '· no check for the ' + fmt.time(K.C) + ' close' });
@@ -563,12 +619,12 @@ function status(b, now) {
       { act: { label: 'See check', cycle: last.t }, wide: lm != null ? '· ' + lm + ' min after the close' : '' });
   }
   if (thr.state === 'halved') add('warn', 'thr_half', 'Risk halved', '<b>Risk halved</b> · drawdown ' + (dd || '—') + ' (halves at ' + esc(lims[0] ?? '—') + '%, stops at ' + esc(lims[1] ?? '—') + '%).',
-    { act: { label: 'Positions', href: '#positions' }, wide: dd ? '· drawdown ' + dd : '' });
-  for (const a of alerts) if (a.lv === 'warn' && !COVERED.has(a.k)) add('warn', a.k, 'Check', word.alert(a), { act: actOf(a) });
+    { act: { label: 'Positions', href: HOLD }, wide: dd ? '· drawdown ' + dd : '' });
+  for (const a of alerts) if (a.lv === 'warn' && !COVERED.has(a.k)) add('warn', a.k, AWORD[a.k] || 'Check', word.alert(a), { act: actOf(a) });
   if (K.phase === 'due') add('info', 'due', 'Due now', '<b>Due now</b> · checks usually land ' + (K.rng ? esc(K.rng[0]) + '–' + esc(K.rng[1]) : 'about ' + Math.round(K.lag)) + ' min after the close.',
     { age: '', wide: '· usually by ' + fmt.time(K.C + (K.rng ? K.rng[1] : K.lag) * 60) });
   for (const a of alerts) if (a.lv === 'info' && !COVERED.has(a.k))
-    add('info', a.k, 'Note', word.alert(a), { head: false, act: a.k === 'proposals' ? { label: 'See them', href: '#positions' } : null });
+    add('info', a.k, 'Note', word.alert(a), { head: false, act: a.k === 'proposals' ? { label: 'See them', href: HOLD } : /^(unhedged|exit_slow)$/.test(a.k) ? actOf(a) : null });
   let head = items.find(i => i.head);
   if (!head) head = K.phase === 'none'
     ? { lvl: 'info', k: 'none', word: 'No checks yet', age: '', wide: '', sentence: '<b>No checks yet</b> · the first check after deployment writes here.' }
@@ -579,52 +635,91 @@ function status(b, now) {
 }
 
 // ================================================================================= fetch + ledger ==
-// ---- agents: one dashboard, several strategy agents. ?a=<id> in the page URL (or the last one picked) selects whose
-// payloads every /api call reads. Switching reloads the page so no state from one agent can bleed into another.
+// ---- pages and agents (COMMAND_CENTER_SPEC §2). "/" is the Command Center (PAGE 'fleet', AGENT null); "/?a=<id>" is
+// one bot's page (PAGE 'bot'). Every bot page is a full page load, so nothing from one bot's numbers can carry into
+// another's. ex.agent is read once, by the legacy-hash redirect, and never written.
+const AGENT_RE = /^[a-z][a-z0-9-]{1,23}$/;
 const AGENT = (function () {
   let a = null;
   try { a = new URLSearchParams(location.search).get('a'); } catch (e) {}
-  if (!a) a = lsGet('ex.agent', 'core');
-  return /^[a-z][a-z0-9-]{1,23}$/.test(a || '') ? a : 'core';
+  return AGENT_RE.test(a || '') ? a : null;
 })();
-AGENT_NS = AGENT === 'core' ? '' : AGENT;
-function api(path) { return AGENT === 'core' ? path : path + (path.indexOf('?') < 0 ? '?' : '&') + 'a=' + encodeURIComponent(AGENT); }
-function switchAgent(id) {
-  lsSet('ex.agent', id);
-  const u = new URL(location.href);
-  if (id === 'core') u.searchParams.delete('a'); else u.searchParams.set('a', id);
-  location.href = u.toString();
+const PAGE = AGENT ? 'bot' : 'fleet';
+AGENT_NS = AGENT && AGENT !== 'core' ? AGENT : '';
+function api(path) { return !AGENT || AGENT === 'core' ? path : path + (path.indexOf('?') < 0 ? '?' : '&') + 'a=' + encodeURIComponent(AGENT); }
+function botHref(id, hash) { const h = hash == null ? '' : String(hash).replace(/^#/, ''); return '/?a=' + encodeURIComponent(id) + (h ? '#' + h : ''); }
+function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+function ssSet(k, v) { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, String(v)); } catch (e) {} }
+// Back to the master: when the master opened this page (ex.fl.from), history.back() lets the bfcache restore it at its
+// scroll position; tabs and ‹ › never add history entries, so that entry is always the fleet. Otherwise load "/".
+function goFleet() {
+  if (ssGet('ex.fl.from') === '1') { ssSet('ex.fl.from', null); history.back(); return; }
+  location.href = '/';
+}
+function switchAgent(id) { if (PAGE === 'bot') location.replace(botHref(id)); else location.href = botHref(id); }   // factory.js "Open"; bot → bot replaces (§2.4)
+// The pre-boot redirect of an old "/#tab" bookmark or alert link to that tab on a bot page (§2.5).
+const LEGACY = { now: 'overview', overview: 'overview', positions: 'overview/holding', book: 'overview/holding', results: 'results',
+                 trades: 'results', refused: 'activity/signals', activity: 'activity', logic: 'rules', rules: 'rules' };
+function legacyHash() {
+  if (PAGE !== 'fleet') return false;
+  const raw = (location.hash || '').slice(1); if (!raw) return false;
+  let h; try { h = decodeURIComponent(raw); } catch (e) { h = raw; }
+  const parts = h.split('/'), to = LEGACY[parts[0]]; if (!to) return false;
+  const sub = parts.slice(1).join('/'), stored = lsGet('ex.agent', null), id = AGENT_RE.test(stored || '') ? stored : 'core';
+  location.replace(botHref(id, to + (sub && to.indexOf('/') < 0 ? '/' + sub : '')));
+  return true;
 }
 let AGENTS = null;
-async function loadAgents() {
-  try { const r = await getJSON('/api/agents', 8000); AGENTS = (r && Array.isArray(r.agents)) ? r.agents : []; } catch (e) { AGENTS = []; }
-  const btn = $('#agentbtn');
-  if (btn) {
-    const me = AGENTS.find(x => x.id === AGENT);
-    btn.textContent = (me && me.name) || AGENT;
-    btn.hidden = AGENTS.length < 2 && AGENT === 'core';
-    btn.title = 'Agent: ' + btn.textContent + ' · tap to switch or compare';
-  }
-  return AGENTS;
+function rowOf(id) { return (id && Array.isArray(AGENTS) && AGENTS.find(r => r && r.id === id)) || null; }
+function orderOf(E) { E = E || S.E || {}; const o = Array.isArray(E.order) && E.order.length ? E.order : (AGENTS || []).map(r => r && r.id); return o.filter(Boolean); }
+// ‹ › on a bot page: the neighbour in exec:agents.order, replacing this history entry so Back still means "All bots".
+function botStep(d) {
+  const o = orderOf(), i = o.indexOf(AGENT); if (i < 0 || o.length < 2) return;
+  location.replace(botHref(o[(i + d + o.length) % o.length], location.hash));
 }
-SHEETS.agents = function () {
-  const rows = AGENTS || [];
-  const R = v => v == null ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(2) + ' R';
-  const P = v => v == null ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(2) + '%';
-  const ago = t => t ? fmt.when(t) : '—';
-  const status = a => a.failed ? '<span class="pill bad">failed</span>' : a.halt ? '<span class="pill bad">halted</span>'
-    : a.thr === 'halved' ? '<span class="pill warn">risk halved</span>' : a.alerts ? '<span class="pill warn">' + a.alerts + ' alert' + (a.alerts > 1 ? 's' : '') + '</span>' : '<span class="pill good">ok</span>';
-  const body = rows.length ? rows.map(a => '<tr class="' + (a.id === AGENT ? 'on' : '') + '"><td class="l"><button class="btn small' + (a.id === AGENT ? ' primary' : '') + '" type="button" data-agent-go="' + esc(a.id) + '">' + esc(a.name || a.id) + '</button><div class="sub">' + esc(a.desc || '') + '</div></td>'
-    + '<td class="l">' + (a.mode === 'live' ? '<span class="pill accent">Live</span>' : '<span class="pill pt">Paper</span>') + ' <span class="sub">' + esc(a.tf || '') + '</span></td>'
-    + '<td class="num">' + (a.rec && a.rec.n != null ? a.rec.n : '—') + '</td><td class="num">' + R(a.rec && a.rec.avg_R) + '</td><td class="num">' + R(a.rec && a.rec.tot_R) + '</td>'
-    + '<td class="num">' + R(a.rec && a.rec.rel_R_avg) + '</td><td class="num">' + P(a.pot_chg_pct) + '</td><td class="num">' + (a.n_open != null ? a.n_open : '—') + '</td>'
-    + '<td class="l">' + status(a) + '</td><td class="l sub">' + ago(a.last_t) + '</td></tr>').join('')
-    : '<tr><td colspan="10" class="empty">No agent has pushed yet. Each agent appears here after its first check.</td></tr>';
-  return { html: '<div class="doc"><h2>Agents</h2><p class="sub">Each agent runs its own rules with its own key and its own pot. Tap one to switch the whole dashboard to it. Results are in R and % of each agent\'s own pot, so they compare fairly across pot sizes; judge nothing under 30 closed trades.</p>'
-    + '<p class="fx-line"><button class="btn small primary" type="button" data-sheet="shortlist">Shortlist</button> <button class="btn small" type="button" data-sheet="fleet">Fleet</button> <span class="sub">bots from the AiFi Lab, and how the whole fleet is split</span></p></div>'
-    + '<div class="tbl"><table><thead><tr><th class="l">Agent</th><th class="l">Mode</th><th>Trades</th><th>Avg</th><th>Total</th><th>vs hold</th><th>Pot</th><th>Open</th><th class="l">Status</th><th class="l">Last check</th></tr></thead><tbody>' + body + '</tbody></table></div>',
-    after(el) { $$('[data-agent-go]', el).forEach(b => b.onclick = () => switchAgent(b.dataset.agentGo)); } };
-};
+let agentsP = null;
+function loadAgents() {
+  if (agentsP) return agentsP;
+  agentsP = getJSON('/api/agents', 8000).then(r => {
+    const E = r && typeof r === 'object' && !Array.isArray(r) ? r : {};
+    S.E = E; AGENTS = Array.isArray(E.agents) ? E.agents.filter(isObj) : [];
+  }, e => { if (!AGENTS) AGENTS = []; S.agentsErr = (e && e.kind) || 'net'; })
+    .then(() => { agentsP = null; runHooks('agents', AGENTS, S.E); return AGENTS; });
+  return agentsP;
+}
+// A status pseudo-bundle from one exec:agents row (§6.7): status(rowBundle(row)) on the master gives the same word the
+// bot page computes from status(S.b). A fleet halt forces state.halt. A v1 row (no sb) has none: null.
+function rowBundle(A, E) {
+  if (!A || !isObj(A.sb)) return null;
+  E = E || S.E || {};
+  const sb = A.sb, ck = isObj(sb.clock) ? sb.clock : {}, st = isObj(sb.state) ? sb.state : {}, fl = isObj(E.fleet) ? E.fleet : {};
+  const halt = fl.halt && !(st.halt && st.halt.set)
+    ? Object.assign({}, st, { halt: { set: true, reason: 'fleet halt: ' + (fl.reason || 'no reason given'), since: fl.since } }) : st;
+  return { v: 2, gen: A.gen, clock: Object.assign({}, ck, { bar_s: ck.bar_s || A.bar_s || TF[A.tf] }), state: halt, cfg: isObj(sb.cfg) ? sb.cfg : {},
+           mode: sb.mode, alerts: Array.isArray(sb.alerts) ? sb.alerts : [], risk: sb.risk, runs: [] };
+}
+// The bot's kind: its bundle's cfg.kind, its row's kind, or inferred from what it holds and logs (said as inferred).
+const KINDS = { flip: 1, target: 1, carry: 1 };
+function kindInfo(b) {
+  b = b === undefined ? S.b : b;
+  const k = b && b.cfg && b.cfg.kind; if (KINDS[k]) return { kind: k, inferred: false };
+  const r = b && KINDS[b.kind] ? b : rowOf(AGENT);
+  if (r && KINDS[r.kind]) return { kind: r.kind, inferred: false };
+  const ev = b && Array.isArray(b.events) ? b.events : [];
+  if ((b && Array.isArray(b.pos) && b.pos.some(p => p && p.kind === 'target')) || ev.some(e => Array.isArray(e) && e[3] === 'target')) return { kind: 'target', inferred: true };
+  if (ev.some(e => Array.isArray(e) && e[3] === 'carry')) return { kind: 'carry', inferred: true };
+  return { kind: 'flip', inferred: true };
+}
+function kindOf(b) { return kindInfo(b).kind; }
+// /api/factory (exec:factory, the AiFi Lab), cached for 5 minutes; never rejects (null when unavailable).
+let fxCache = null, fxAt = 0, fxP = null;
+function loadFactory(force) {
+  if (!force && fxCache && Date.now() - fxAt < 300e3) return Promise.resolve(fxCache);
+  if (fxP) return fxP;
+  fxP = getJSON('/api/factory', 10000).then(d => { fxCache = isObj(d) && d.v === 1 ? d : null; fxAt = Date.now(); return fxCache; }, () => fxCache)
+    .finally(() => { fxP = null; });
+  return fxP;
+}
 async function getJSON(url, ms) {
   const ctl = typeof AbortController === 'function' ? new AbortController() : null;
   const tm = ctl ? setTimeout(() => ctl.abort(), ms || 10000) : 0;
@@ -783,7 +878,7 @@ function initTips() {
     if (!tipEl) return;
     const a = document.activeElement, inBox = !!(tipbox && a && tipbox.contains(a));
     // Keyboard reach into a tip that holds buttons ("Replay this check ›"): Tab from its trigger moves into the tip;
-    // Escape, or Tab out of either end, returns to the trigger without reopening it. The dial runs its own.
+    // Escape, or Tab out of either end, returns to the trigger without reopening it.
     const fs = tipbox ? $$('button,a[href]', tipbox) : [];
     if (e.key === 'Escape') { e.preventDefault(); const el = tipEl; hideTip(); if (inBox) tipFocus(el); return; }
     if (e.key !== 'Tab' || !fs.length || tipEl.closest('.dl')) return;
@@ -882,7 +977,7 @@ SHEETS.health = function () {
   const PH = { countdown: ['On schedule', ''], due: ['Due now', 'due'], late: [K.exits ? 'Late, exits unchecked' : 'Late', 'late'], stale: ['Stale', 'stale'] }[K.phase];
   if (PH) f.push(['Clock', esc(PH[0]) + (PH[1] ? ' ' + tip(PH[1]) : '')]);
   if (K.C != null) {
-    f.push(['Next 4-hour close', esc(fmt.when(K.C)) + ' <span class="sub">' + esc(fmt.utc(K.C)) + '</span>']);
+    f.push(['Next ' + word.bar(b) + ' close', esc(fmt.when(K.C)) + ' <span class="sub">' + esc(fmt.utc(K.C)) + '</span>']);
     f.push(['Check expected', '≈ ' + esc(fmt.when(K.next)) + ' <span class="sub">' + esc(fmt.rel(K.next)) + '</span>']);
     f.push(['Buys skipped after', esc(fmt.when(K.lateAt))]);
   }
@@ -913,6 +1008,11 @@ function capState() {
   if (S.net === 'signedout') return { dot: 'gap', cls: 'warn', word: 'Signed out', age: '', wide: '· tap to sign in' };
   if (S.net === 'checking') return { dot: 'mute', cls: 'mute', word: 'Checking…', age: '', wide: '' };
   if (S.net === 'offline') return { dot: 'mute', cls: 'mute', word: 'Offline', age: S.seenAt ? 'last seen ' + fmt.when(S.seenAt) : '', wide: '' };
+  if (PAGE === 'fleet') {                                           // the master: the worst fleet level, from fleet.js
+    if (!S.E) return S.bootErr ? { dot: 'gap', cls: 'warn', word: 'Data unreadable', age: '', wide: '' } : { dot: 'mute', cls: 'mute', word: 'Checking…', age: '', wide: '' };
+    const f = typeof COMP.fleetSummary === 'function' ? safe(() => COMP.fleetSummary(), 'Fleet status') : null;
+    return isObj(f) && f.cap ? f.cap : { dot: 'mute', cls: 'mute', word: word.plural((AGENTS || []).length, 'bot'), age: '', wide: '' };
+  }
   if (!S.b) return S.bootErr === 'missing' ? { dot: 'mute', cls: 'mute', word: 'No data yet', age: '', wide: '' }
     : S.bootErr ? { dot: 'gap', cls: 'warn', word: 'Data unreadable', age: '', wide: '' } : { dot: 'mute', cls: 'mute', word: 'Checking…', age: '', wide: '' };
   const st = S.st || (S.st = status(S.b));
@@ -942,17 +1042,31 @@ function paintCapsule() {
 }
 function paintMode() {
   const el = $('#modepill'); if (!el) return;
-  const e = modeOf(S.b).eff, cls = e === 'live' ? 'pill live' : e === 'paper' ? 'pill pt' : 'pill mute';
-  const h = e === 'live' ? 'Live' : e === 'paper' ? 'Paper<span class="wide-only"> · simulated</span>' : '—';
+  let cls, h;
+  if (PAGE === 'fleet') {                                           // "6 paper" or "2 live · 4 paper" (§3.0), retired bots left out
+    const on = (AGENTS || []).filter(r => r.enabled !== false), live = on.filter(r => r.mode === 'live').length, paper = on.filter(r => r.mode === 'paper').length;
+    cls = live ? 'pill live' : paper ? 'pill pt' : 'pill mute';
+    h = live || paper ? [live ? live + ' live' : '', paper ? paper + ' paper' : ''].filter(Boolean).join(' · ') : '—';
+  } else {
+    const e = modeOf(S.b).eff;
+    cls = e === 'live' ? 'pill live' : e === 'paper' ? 'pill pt' : 'pill mute';
+    h = e === 'live' ? 'Live' : e === 'paper' ? 'Paper<span class="wide-only"> · simulated</span>' : '—';
+  }
   if (el.className !== cls) el.className = cls;
   if (h !== modeMemo || !el.firstChild) { el.innerHTML = h; modeMemo = h; }
 }
-// Alert rail (§4.1): bad items and the paper fallback on every tab, other warn items on Now only; empty renders nothing.
+// Alert rail (§4.1): bad items and the paper fallback on every tab, other warn items on Overview only; empty renders
+// nothing. The master's rail (COMMAND_CENTER_SPEC §3.1) comes from fleet.js: a fleet halt, a runner that seems down.
 function paintAlerts() {
   const el = $('#alerts'); if (!el) return;
   let h = '';
+  if (PAGE === 'fleet') {
+    const f = S.E && typeof COMP.fleetSummary === 'function' ? safe(() => COMP.fleetSummary(), 'Fleet alerts') : null;
+    if (isObj(f) && Array.isArray(f.alerts)) for (const a of f.alerts) h += banner(a.lvl, a.html, a.act);
+    if (S.net === 'offline' && S.E && S.seenAt) h += banner('info', 'Offline · showing ' + esc(fmt.when(S.seenAt)));
+  }
   if (S.b && S.b.v !== 2) h += banner('info', 'Dashboard is newer than its data; some panels fill after the next check.');
-  if (S.b && S.st) for (const i of S.st.items) if (i.lvl === 'bad' || i.k === 'fallback' || (i.lvl === 'warn' && S.tab === 'now')) h += banner(i.lvl, i.sentence, i.act);
+  if (S.b && S.st) for (const i of S.st.items) if (i.lvl === 'bad' || i.k === 'fallback' || (i.lvl === 'warn' && S.tab === 'overview')) h += banner(i.lvl, i.sentence, i.act);
   if (h !== alertMemo) { el.innerHTML = h; alertMemo = h; }
 }
 function newestEv(b) { let n = 0; for (const e of (b && Array.isArray(b.events) ? b.events : [])) if (Array.isArray(e) && e[5] >= 1 && e[0] > n) n = e[0]; return n; }
@@ -961,27 +1075,44 @@ function paintNewDot() {
   $$('a[data-tab=activity]').forEach(a => a.classList.toggle('new', on));
 }
 function markEvSeen() { const n = newestEv(S.b); if (n) lsSet('ex.seenEv', Math.max(n, Number(lsGet('ex.seenEv', 0)) || 0)); paintNewDot(); }
-// One repaint of everything that shows the status engine; modules that show it too (Now's verdict) follow via hook('status').
-function refreshShell() { S.st = S.b ? status(S.b) : null; paintMode(); paintCapsule(); paintAlerts(); paintNewDot(); runHooks('status', S.st); }
+// One repaint of everything that shows the status engine; modules that show it too (the Overview verdict, the master's
+// tiles) follow via hook('status'). On the master S.st stays null: fleet.js reads every row's status itself.
+function refreshShell() { S.st = S.b ? status(S.b) : null; paintMode(); paintCapsule(); paintAlerts(); paintNewDot(); paintRoster(); runHooks('status', S.st); }
+// The rail's mini roster (§3.0, §2.4): COMP.roster from fleet.js, on both pages once exec:agents has loaded.
+let rosterMemo = null;
+function paintRoster() {
+  const el = $('#roster'); if (!el) return;
+  const h = AGENTS && AGENTS.length && typeof COMP.roster === 'function' ? safe(() => COMP.roster(), 'Roster') : '';
+  if (h !== rosterMemo) { el.innerHTML = h; rosterMemo = h; }
+}
 
 // ========================================================================================= routing ==
-// Ported from ~/aifi/cloud/client.js route() 391 and the digit keydown 401, plus the v2 redirects (§2).
-const REDIRECT = { overview: ['now'], book: ['positions'], trades: ['results'], refused: ['activity', 'signals'], logic: ['rules'] };
+// Ported from ~/aifi/cloud/client.js route() 391 and the digit keydown 401, plus the redirects of the old tabs
+// (COMMAND_CENTER_SPEC §2.3): Now → Overview, Positions → Overview › Holding now, #trades → Trades (#results).
+const REDIRECT = { now: ['overview'], positions: ['overview', 'holding'], book: ['overview', 'holding'], trades: ['results'],
+                   refused: ['activity', 'signals'], logic: ['rules'] };
 function parseHash() {
+  if (PAGE === 'fleet') return { tab: 'fleet', sub: null };
   const raw = (location.hash || '').slice(1);
   let h; try { h = decodeURIComponent(raw); } catch (e) { h = raw; }
   const parts = h.split('/');
-  let tab = parts[0] || 'now', sub = parts.slice(1).join('/') || null, moved = false;
+  let tab = parts[0] || 'overview', sub = parts.slice(1).join('/') || null, moved = false;
   if (REDIRECT[tab]) { const r = REDIRECT[tab]; tab = r[0]; sub = r[1] || sub; moved = true; }
-  if (!TABS.includes(tab)) { tab = 'now'; sub = null; moved = !!raw; }
+  if (!TABS.includes(tab)) { tab = 'overview'; sub = null; moved = !!raw; }
   if (moved) try { history.replaceState(null, '', '#' + tab + (sub ? '/' + sub : '')); } catch (e) {}
   return { tab, sub };
 }
-function go(tab, sub) { location.hash = tab + (sub ? '/' + sub : ''); }
+// Tab changes never add a history entry (§2.4), so Back always means "All bots".
+function go(tab, sub) { navHash('#' + tab + (sub ? '/' + sub : '')); }
+function navHash(h) {
+  if (PAGE !== 'bot') return;
+  try { history.replaceState(null, '', h); } catch (e) { location.hash = h; return; }
+  route();
+}
 let viewTab = null, viewClean = null;
 function placeholder(tab) { return '<div class="card rise"><div class="empty"><b>' + esc(TITLE[tab] || tab) + '</b> is not built yet. The status and alerts above are live.</div></div>'; }
 function renderView(why) {
-  const root = $('#view'); if (!root || !S.b) return;
+  const root = $('#view'); if (!root || !ready()) return;
   if (typeof viewClean === 'function') call(viewClean);
   viewClean = null;
   if (viewTab && viewTab !== S.tab && VIEWS[viewTab] && typeof VIEWS[viewTab].leave === 'function') call(VIEWS[viewTab].leave);
@@ -996,23 +1127,30 @@ function renderView(why) {
 }
 // Re-render the open tab in place (a layout breakpoint crossed, a module's own state changed): keeps the scroll
 // position and any open sheet; not an arrival, so nothing counts up and no card rises.
-function redraw() { if (!S.b) return; const y = scrollY; renderView('redraw'); jump(y); }
+function redraw() { if (!ready()) return; const y = scrollY; renderView('redraw'); jump(y); }
+function botName() { const r = rowOf(AGENT); return (r && r.name) || AGENT || ''; }
+function paintTitle() {
+  const h1 = $('#ttl');
+  if (PAGE === 'fleet') { document.title = 'Command center · AiFi Executor'; return; }
+  const n = botName(), tt = TITLE[S.tab] || (VIEWS[S.tab] && VIEWS[S.tab].title) || '';
+  if (h1 && h1.textContent !== n) h1.textContent = n;                // §5.0: the h1 is the bot's name
+  document.title = n + ' · ' + tt + ' · AiFi Executor';
+}
 function route() {
   const { tab, sub } = parseHash();
   S.tab = tab; S.sub = sub;
   $$('.rail nav a[data-tab], .tabbar a[data-tab]').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   movePill();
-  const title = (VIEWS[tab] && VIEWS[tab].title) || TITLE[tab], h1 = $('#ttl');
-  if (h1) h1.textContent = title;
-  document.title = title + ' · AiFi Executor';
+  paintTitle();
   closeSheet(); hideTip();
   if (tab === 'activity') S.seenEv = Number(lsGet('ex.seenEv', 0)) || 0;
   paintAlerts();
   renderView('route');
   if (tab === 'activity' && S.b) markEvSeen(); else paintNewDot();
   runHooks('route', tab, sub);
+  if (PAGE === 'fleet') return;                                     // fleet.js restores the master's own scroll
   const a = sub && document.getElementById(tab + '-' + sub);
-  if (a) { into(a, false); holdAnchor(a); } else jump(0);
+  if (a) { if (a.tagName === 'DETAILS') a.open = true; into(a, false); holdAnchor(a); } else jump(0);
 }
 // A deep link lands while cards still rise and lazy panels (the ledger, a chart) fill in above it, which moves the
 // section after the first scroll. Keep it 72px below the top for two seconds, measured from layout (offsetTop, which
@@ -1034,12 +1172,20 @@ function holdAnchor(el) {
 
 // ======================================================================= polling and timers (§3.3) ==
 const P = { t: 0, err: 0, busy: false, at: 0, due: 0, pull: 0, tok: 0, gaveUp: null };
+// Bot page: every 60 s from 5 min before the expected check until it is stale, else every 10 min. Master (§3.10): every
+// 60 s while any bot's clock is in [next − 5 min, lateAt + 10 min], else every 5 min. Both back off to 5 min after 3 errors.
 function pollEvery() {
-  if (P.err >= 3) return 300e3;                                    // back off to 5 min after 3 consecutive errors
-  if (!S.b) return 60e3;
-  const K = clock(S.b); if (K.C == null) return 600e3;
+  if (P.err >= 3) return 300e3;
   const n = nowS();
-  return n >= K.C + 600 && n < K.C + BAR ? 60e3 : 600e3;            // every 60 s only inside the due window
+  if (PAGE === 'fleet') {
+    if (!S.E) return 60e3;
+    const hot = (AGENTS || []).some(r => { if (r.enabled === false) return false; const b = rowBundle(r); if (!b) return false;
+      const K = clock(b, n); return K.next != null && n >= K.next - 300 && n < K.lateAt + 600; });
+    return hot ? 60e3 : 300e3;
+  }
+  if (!S.b) return 60e3;
+  const K = clock(S.b, n); if (K.C == null) return 600e3;
+  return n >= K.next - 300 && n < K.staleAt ? 60e3 : 600e3;
 }
 function schedulePoll(ms) {
   clearTimeout(P.t); P.t = 0;
@@ -1057,9 +1203,16 @@ async function poll(user) {
   P.busy = true; clearTimeout(P.t); P.t = 0;
   if (user) { S.net = 'checking'; paintCapsule(); }
   try {
-    const st = await getJSON(api('/api/stamp'), 10000);
-    P.err = 0; S.net = 'ok'; S.seenAt = nowS();
-    if (st && st.gen && (!S.b || st.gen !== S.b.gen) && P.gaveUp !== st.gen) await pull(st.gen, 0);
+    if (PAGE === 'fleet') {                                         // the master reads one KV key: exec:agents
+      const E = await getJSON('/api/agents', 10000);
+      P.err = 0; S.net = 'ok'; S.seenAt = nowS();
+      if (isObj(E) && (!S.E || E.gen !== S.E.gen || user)) landFleet(E);
+      loadFactory();
+    } else {
+      const st = await getJSON(api('/api/stamp'), 10000);
+      P.err = 0; S.net = 'ok'; S.seenAt = nowS();
+      if (st && st.gen && (!S.b || st.gen !== S.b.gen) && P.gaveUp !== st.gen) await pull(st.gen, 0);
+    }
   } catch (e) {
     if (e && e.kind === 'auth') S.net = 'signedout';
     else { P.err++; S.net = e && e.kind === 'net' ? 'offline' : (S.net === 'checking' ? 'ok' : S.net); }
@@ -1067,7 +1220,7 @@ async function poll(user) {
   P.at = Date.now(); P.busy = false;
   if (S.b) S.st = status(S.b);
   paintCapsule(); paintAlerts();
-  if (S.sheet && S.sheet.kind === 'health') refreshSheet();
+  if (S.sheet && (S.sheet.kind === 'health' || S.sheet.kind === 'fleethealth')) refreshSheet();
   schedulePoll();
 }
 function newer(nb) { return !S.b || (!!nb.gen && nb.gen !== S.b.gen && (!S.b.gen || nb.gen > S.b.gen)); }
@@ -1083,9 +1236,10 @@ async function pull(gen, tries) {
   if (!document.hidden) P.pull = setTimeout(() => pull(gen, tries + 1), 20e3);
 }
 // A new bundle landed: re-render in place (scroll position and any open sheet kept), then the arrival hook plays.
+// The bot's exec:agents row is reloaded after it (the roster, the prev/next order, the row's extras).
 function land(nb) {
   if (!S.b) { S.bootErr = null; return start(nb); }
-  const prev = S.b; S.prev = prev; S.b = nb;
+  const prev = S.b; S.prev = prev; S.b = nb; BAR = barOf(nb);
   refreshShell();
   const y = scrollY;
   renderView('arrival');
@@ -1093,8 +1247,21 @@ function land(nb) {
   refreshSheet();
   if (S.tab === 'activity') markEvSeen();
   runHooks('arrival', prev, nb);
+  loadAgents();
 }
-// The 1 s tick runs only while a registered element is on screen and the page is visible (the dial countdown).
+// A new exec:agents envelope landed on the master: fleet.js updates its tiles in place (they never reorder here).
+function setFleet(E) { S.E = E; AGENTS = Array.isArray(E.agents) ? E.agents.filter(isObj) : []; }
+function landFleet(E) {
+  if (!S.E) { S.bootErr = null; setFleet(E); runHooks('agents', AGENTS, S.E); return start(null); }
+  S.prevE = S.E; setFleet(E);
+  refreshShell();
+  const y = scrollY;
+  renderView('arrival');
+  jump(y);
+  refreshSheet();
+  runHooks('agents', AGENTS, S.E);
+}
+// The 1 s tick runs only while a registered element is on screen and the page is visible (the Next-check ticker).
 const ONE = []; let io1 = null, T1 = 0;
 function every1s(el, fn) {
   if (!el || typeof fn !== 'function') return;
@@ -1108,14 +1275,14 @@ function every1s(el, fn) {
 }
 function sync1s() {
   for (let i = ONE.length - 1; i >= 0; i--) if (!ONE[i].el.isConnected) { if (io1) io1.unobserve(ONE[i].el); ONE.splice(i, 1); }
-  const want = !document.hidden && !!S.b && (ONE.some(x => x.on) || hooksOf('tick1s').length > 0);
+  const want = !document.hidden && ready() && (ONE.some(x => x.on) || hooksOf('tick1s').length > 0);
   if (want && !T1) T1 = setTimeout(() => { tick1(); if (T1) T1 = setInterval(tick1, 1000); }, 1000 - (Date.now() % 1000) + 5);
   else if (!want && T1) { clearInterval(T1); T1 = 0; }
 }
 function tick1() { sync1s(); if (!T1) return; for (const x of ONE) if (x.on) call(x.fn); runHooks('tick1s'); }
 let T30 = 0;
 function tick30() {
-  if (!S.b) return;
+  if (!ready()) return;
   refreshShell();
   $$('[data-ago]').forEach(el => { const t = Number(el.dataset.ago); if (!isFinite(t)) return; const a = fmt.ago(t); if (el.textContent !== a) el.textContent = a; });
   runHooks('tick30s');
@@ -1123,7 +1290,7 @@ function tick30() {
 }
 function startTimers() {
   stopTimers();
-  if (document.hidden || !S.b) return;
+  if (document.hidden || !ready()) return;
   T30 = setTimeout(() => { tick30(); if (T30) T30 = setInterval(tick30, 30000); }, 30000 - (Date.now() % 30000) + 50);
   sync1s();
 }
@@ -1135,7 +1302,7 @@ function onVis() {
     runHooks('hide');
   } else {
     HTML.classList.remove('hid');
-    if (S.b) { tick30(); startTimers(); }
+    if (ready()) { tick30(); startTimers(); }
     runHooks('show');
     poll();
   }
@@ -1146,20 +1313,46 @@ function bootCard(title, text, btn) {
   return '<div class="card rise"><div class="empty"><h2 style="color:var(--ink);font-size:var(--fs-lg);margin-bottom:6px">' + esc(title) + '</h2>'
     + '<p style="margin:0 0 12px">' + esc(text) + '</p>' + (btn || '') + '</div></div>';
 }
+// The words that name this bot's bar in the shared vocabulary (gate labels, the flip, the exit on its line).
+function barWords() {
+  const w = word.bar();
+  STAGE.n.w = cap1(w) + ' not ready';
+  GATES[4].label = cap1(w) + ' signal';
+  KIND.flip[1] = w + ' flip';
+  EXIT.h4 = w + ' turn';
+}
 async function boot() {
-  loadAgents();
   if (S.booting) return;
   S.booting = true; S.net = 'checking'; paintCapsule();
+  if (PAGE === 'fleet') return bootFleet();
+  // The bot page reads its exec:agents row in parallel: barOf() falls back to the row's tf for an older bundle.
+  const ag = loadAgents();
   let b = null, err = null;
   try { b = await getJSON(api('/api/latest'), 10000); if (!b || typeof b !== 'object' || Array.isArray(b)) err = { kind: 'parse' }; }
   catch (e) { err = e && e.kind ? e : { kind: 'net' }; }
+  await ag;
   S.booting = false;
   if (err) return bootFail(err);
   S.net = 'ok'; S.seenAt = nowS(); S.bootErr = null; P.err = 0; P.at = Date.now();
   start(b);
 }
+async function bootFleet() {
+  loadFactory();
+  const v = $('#view');
+  if (v && typeof COMP.fleetLoading === 'function') v.innerHTML = safe(() => COMP.fleetLoading(), 'Loading');
+  let E = null, err = null;
+  try { E = await getJSON('/api/agents', 10000); if (!isObj(E)) err = { kind: 'parse' }; }
+  catch (e) { err = e && e.kind ? e : { kind: 'net' }; }
+  S.booting = false;
+  if (err && err.kind === 'missing') { E = { v: 1, agents: [] }; err = null; }   // no bot has reported: the empty state
+  if (err) return bootFail(err);
+  S.net = 'ok'; S.seenAt = nowS(); S.bootErr = null; P.err = 0; P.at = Date.now();
+  setFleet(E);
+  runHooks('agents', AGENTS, S.E);
+  start(null);
+}
 function start(b) {
-  S.b = b; S.prev = null;
+  if (PAGE === 'bot') { S.b = b; S.prev = null; BAR = barOf(b); barWords(); }
   refreshShell();
   route();
   startTimers(); schedulePoll();
@@ -1170,7 +1363,8 @@ async function bootFail(e) {
   S.bootErr = e.kind;
   if (e.kind === 'auth') { S.net = 'signedout'; h = bootCard('Signed out', 'Your session ended. Sign in again to see the executor.', '<a class="btn primary" href="/login">Sign in</a>'); }
   else if (e.kind === 'net') { S.net = 'offline'; h = bootCard('Can’t reach the dashboard', 'Check the connection, then try again.', retry); }
-  else if (e.kind === 'missing') { S.net = 'ok'; h = bootCard('No data yet', 'The first check after deployment pushes it.'); }
+  else if (PAGE === 'fleet') { S.net = 'ok'; h = bootCard('The fleet data couldn’t be read', 'The next check pushes a fresh copy.', retry); }
+  else if (e.kind === 'missing') { S.net = 'ok'; h = bootCard('No data yet', 'This bot appears after its first check.', '<a class="btn" href="/" data-back>All bots</a>'); }
   else {
     S.net = 'ok';
     let when = '';
@@ -1182,6 +1376,8 @@ async function bootFail(e) {
   P.err++; P.at = Date.now(); schedulePoll();
 }
 const TRIGGERS = '[data-cursor],[data-health],[data-cycle],[data-name],[data-pos],[data-trade],[data-sheet]';
+const mods = e => e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+function sheetOpen() { const s = $('#sheet'); return !!s && s.classList.contains('on'); }
 function onClick(e) {
   if (e.defaultPrevented || e.button > 0) return;
   const t = e.target; if (!(t instanceof Element)) return;
@@ -1191,11 +1387,17 @@ function onClick(e) {
   if (t.closest('[data-retry]')) { e.preventDefault(); return boot(); }
   if (t.closest('[data-refresh]')) { e.preventDefault(); return poll(true); }
   if (t.closest('[data-top]')) { e.preventDefault(); return scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); }
+  if ((el = t.closest('[data-back]')) && !mods(e)) { e.preventDefault(); return goFleet(); }
+  // Bot → bot (the rail roster, a sheet's "Open") replaces this history entry, so Back still means "All bots" (§2.4).
+  if (PAGE === 'bot' && (el = t.closest('a[href^="/?a="]')) && !el.target && !mods(e)) { e.preventDefault(); location.replace(el.href); return; }
   if ((el = t.closest(TRIGGERS))) {
     e.preventDefault(); hideTip();
     const d = el.dataset;
     if (d.cursor != null) return setCursor(d.cursor, { explicit: true, scroll: d.scroll != null });
-    if (d.health != null) { if (S.net === 'signedout') { location.href = '/login'; return; } showSheet('health'); return poll(true); }
+    if (d.health != null) {
+      if (S.net === 'signedout') { location.href = '/login'; return; }
+      showSheet(PAGE === 'fleet' && typeof SHEETS.fleethealth === 'function' ? 'fleethealth' : 'health'); return poll(true);
+    }
     if (d.cycle != null) { const n = Number(d.cycle); setCursor(n, { explicit: true, sheet: false }); return showSheet('cycle', n, el); }
     if (d.name != null) return showSheet('name', d.name, el);
     if (d.pos != null) return showSheet('pos', d.pos, el);
@@ -1205,18 +1407,26 @@ function onClick(e) {
   }
   if ((el = t.closest('.rail nav a[data-tab], .tabbar a[data-tab]')) && el.dataset.tab === S.tab && !S.sub) {
     e.preventDefault(); scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });       // tapping the open tab: back to the top
+    return;
   }
+  // Every same-page hash link on a bot page (tabs, status-item acts, in-page anchors) replaces the history entry (§2.4).
+  if (PAGE === 'bot' && (el = t.closest('a[href^="#"]')) && !el.target && !mods(e)) { e.preventDefault(); navHash(el.getAttribute('href')); }
 }
 function onKey(e) {
   if (e.defaultPrevented) return;
-  if (e.key === 'Escape') { if (tipEl) hideTip(); else closeSheet(); return; }
-  if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing) return;
-  if (e.target instanceof Element && e.target.closest('input,select,textarea,[contenteditable]')) return;
-  const i = '12345'.indexOf(e.key);
-  if (e.key.length === 1 && i >= 0) { e.preventDefault(); go(TABS[i]); }
+  const field = e.target instanceof Element && e.target.closest('input,select,textarea,[contenteditable]');
+  if (e.key === 'Escape') {
+    if (tipEl) hideTip(); else if (sheetOpen()) closeSheet();
+    else if (PAGE === 'bot' && !field && !mods(e)) { e.preventDefault(); goFleet(); }          // Esc returns to the fleet
+    return;
+  }
+  if (mods(e) || e.isComposing || field || PAGE !== 'bot') return;
+  const i = '1234'.indexOf(e.key);
+  if (e.key.length === 1 && i >= 0) { e.preventDefault(); go(TABS[i]); return; }
+  if (e.key === '[' || e.key === ']') { e.preventDefault(); botStep(e.key === ']' ? 1 : -1); }
 }
 function initShell() {
-  addEventListener('hashchange', route);
+  addEventListener('hashchange', () => { if (PAGE === 'fleet') legacyHash(); else route(); });
   document.addEventListener('keydown', onKey);
   document.addEventListener('click', onClick);
   const bg = $('#sheetbg'); if (bg) bg.addEventListener('click', closeSheet);
@@ -1227,9 +1437,10 @@ function initShell() {
   document.addEventListener('visibilitychange', onVis);
   addEventListener('pageshow', e => { if (e.persisted) onVis(); });
   addEventListener('online', () => { if (!document.hidden) poll(); });
-  addEventListener('offline', () => { S.net = 'offline'; paintCapsule(); });
+  addEventListener('offline', () => { S.net = 'offline'; paintCapsule(); paintAlerts(); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(movePill, () => {});
   if (document.hidden) HTML.classList.add('hid');
+  hook('agents', () => { paintTitle(); paintRoster(); if (PAGE === 'fleet') paintMode(); });
   paintCapsule();
   route();
 }

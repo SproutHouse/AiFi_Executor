@@ -3,8 +3,9 @@
 //                  #rules/glossary           every GLOSS entry as a details list (#rules/glossary/<key> opens one term)
 //                  #rules/<slug>             one of the 9 docs, fetched once from /api/doc/<slug> and kept for the session
 // A single-row .seg.quiet nav (sliding .ind, scrolls inside itself, centres the active item) swaps the pane in place and
-// keeps the hash in step with history.pushState, so Back walks the panes (the hashchange re-routes). Log out sits at the
-// foot on phones; the rail carries it on wider screens. Numbers come from cfg at render time, never from this file.
+// keeps the hash in step with history.replaceState, so a pane adds no history entry and Back means "All bots"
+// (COMMAND_CENTER_SPEC §2.4). Log out and the theme toggle sit at the foot on phones; the rail and topbar carry them on
+// wider screens. Numbers come from cfg at render time, never from this file.
 {
   const DOCS = [['how_it_works', 'How it works'], ['logic', 'Decision logic'], ['risk', 'Risk'], ['universe', 'Universe and books'],
     ['execution', 'Execution'], ['security', 'Security'], ['ledger', 'The ledger'], ['operations', 'Runbook'], ['decisions', 'Decisions']];
@@ -24,7 +25,7 @@
     return fmt.num(x, d);
   };
   const pos = v => { const x = num(v); return x != null && x > 0 ? cf(x) : null; };    // the push writes 0 for an unset filter
-  const SELLS = 'Sells on the stop (it follows the 4-hour line up, never down) or when the 4-hour, daily or weekly turns. No fixed target.';
+  const SELLS = () => 'Sells on the stop (it follows the ' + bw() + ' line up, never down) or when the ' + (bw() === 'daily' ? '' : bw() + ', ') + 'daily or weekly turns. No fixed target.';
 
   // ------------------------------------------------------------------------------------ settings ---
   // A v1 bundle carried the raw settings and books.json; read them into the v2 shape so the sentences still build.
@@ -53,7 +54,7 @@
     try { return JSON.stringify([b.cfg || b.settings || null, b.books || null, b.mode || null, b.origin || null, k.lag_med_min, k.lag_n, k.last_t, k.limit_min, fmt.md(nowS())]); }
     catch (e) { return String(Math.random()); }
   }
-  // The six 4-hour closes as the phone's clock reads them, earliest first ("12:00 am … 8:00 pm" in Toronto).
+  // A 4-hour bot's six closes as the phone's clock reads them, earliest first ("12:00 am … 8:00 pm" in Toronto).
   function closes() {
     const d0 = Math.floor(nowS() / 86400) * 86400, n = Math.round(86400 / BAR);
     return Array.from({ length: n }, (_, i) => d0 + i * BAR)
@@ -65,7 +66,7 @@
   // One row per rule: [label, sentence html]. A clause whose setting is missing is left out, never guessed.
   function ruleRows(b, c) {
     const R = [], u = isObj(c.uni) ? c.uni : {}, thr = Array.isArray(c.thr) ? c.thr : [], g = isObj(c.gates) ? c.gates : {};
-    const m = modeOf(b), K = clockOf(b) || {};
+    const m = modeOf(b), K = clockOf(b) || {}, k = kindOf(b);
     if (m.eff) {
       let s = m.eff === 'live' ? 'Runs ' + B('live') + ': orders reach the exchange, and every position keeps its stop on the exchange itself.'
         : 'Runs on ' + B('paper') + ': every rule on real market data, but no order reaches the exchange.' + tip('paper');
@@ -75,19 +76,25 @@
     {                                                                  // when it checks
       const lag = num(K.lag_med_min), n = num(K.lag_n), lim = num(c.late_min) != null ? num(c.late_min) : num(K.limit_min);
       const sch = num(c.sched_min) != null ? num(c.sched_min) : num(K.sched_min);
-      let s = 'Checks ' + B(Math.round(86400 / BAR) + ' times a day') + ', ';
-      s += lag != null && n != null && n >= 3 ? 'about ' + B(Math.max(5, Math.round(lag / 5) * 5) + ' minutes') + ' after each 4-hour close.'
-        : 'shortly after each 4-hour close' + (sch != null ? ' (it is scheduled ' + fmt.int(sch) + ' minutes after)' : '') + '.';
-      let x = 'Closes are at ' + and(closes()) + ' your time (every 4 hours from 00:00 UTC).';
-      if (lim != null) x += ' A check that starts more than ' + fmt.int(lim) + ' minutes after its close skips buys for that bar; exits still run.' + tip('late');
+      const per = Math.round(86400 / BAR);
+      let s = 'Checks ' + B(per === 1 ? 'once a day' : per + ' times a day') + ', ';
+      s += lag != null && n != null && n >= 3 ? 'about ' + B(Math.max(5, Math.round(lag / 5) * 5) + ' minutes') + ' after each ' + bw() + ' close.'
+        : 'shortly after each ' + bw() + ' close' + (sch != null ? ' (it is scheduled ' + fmt.int(sch) + ' minutes after)' : '') + '.';
+      let x = BAR === 3600 ? 'Closes are at the top of every hour.' : BAR === 86400 ? 'The daily close is at ' + fmt.time(Math.floor(nowS() / 86400) * 86400) + ' your time (00:00 UTC).'
+        : 'Closes are at ' + and(closes()) + ' your time (' + word.every() + ' from 00:00 UTC).';
+      if (lim != null && k !== 'carry') x += ' A check that starts more than ' + fmt.int(lim) + ' minutes after its close skips buys for that bar; exits still run.' + tip('late');
       R.push(['When', s + '<span class="ru-x">' + x + '</span>']);
     }
-    {                                                                  // what it buys
-      const auto = Array.isArray(c.auto) ? c.auto : null, ap = c.approval, ck = Array.isArray(c.checks) ? c.checks.filter(x => typeof x === 'string' && x) : [];
+    const ck = Array.isArray(c.checks) ? c.checks.filter(x => typeof x === 'string' && x) : [];
+    const ckH = w => ck.length ? '<details class="ru-more" data-k="checks"><summary><span>Every ' + w + ' first passes ' + B(ck.length + ' safety checks') + ', in this order</span></summary>'
+      + '<ol class="ru-ck">' + ck.map(x => '<li>' + esc(cap1(x)) + '</li>').join('') + '</ol></details>' : '';
+    if (k === 'target' || k === 'carry') kindRows(R, b, c, k, ckH);     // a rebalancer and a collector never buy on flips
+    if (k === 'flip') {                                                // what it buys
+      const auto = Array.isArray(c.auto) ? c.auto : null, ap = c.approval;
       let s = '';
       if (auto) {
         const A = auto.indexOf('A') >= 0, Bt = auto.indexOf('B') >= 0;
-        if (A && !Bt) s = 'Buys on its own only an ' + B('auto-grade') + tip('auto') + ' signal: a 4-hour flip' + tip('flip') + ' while the coin’s weekly and daily and Bitcoin’s weekly are bullish.';
+        if (A && !Bt) s = 'Buys on its own only an ' + B('auto-grade') + tip('auto') + ' signal: ' + aBw('a') + ' flip' + tip('flip') + ' while the coin’s weekly and daily' + (c.btc_gate === false ? ' are' : ' and Bitcoin’s weekly are') + ' bullish.';
         else if (A && Bt) s = 'Buys on its own every signal, auto grade and watch-only grade alike.' + tip('signal');
         else if (Bt) s = 'Buys on its own only a ' + B('watch-only-grade') + ' signal.' + tip('watch');
         else s = 'Buys nothing on its own.';
@@ -95,11 +102,10 @@
         if (ap === 'never') s += (rest ? ' Everything else is ' + B('recorded, not traded') + '.' + (A && !Bt ? tip('watch') : '') : '') + ' Nobody approves anything.';
         else if (ap && rest) s += ' Other signals are proposed for the owner’s approval during online hours (the earlier model), and a proposal nobody approves expires.';
       }
-      if (ck.length) s += '<details class="ru-more" data-k="checks"><summary><span>Every buy first passes ' + B(ck.length + ' safety checks') + ', in this order</span></summary>'
-        + '<ol class="ru-ck">' + ck.map(x => '<li>' + esc(cap1(x)) + '</li>').join('') + '</ol></details>';
+      s += ckH('buy');
       if (s) R.push(['Buys', s]);
     }
-    {                                                                  // how much it risks
+    if (k === 'flip') {                                                // how much it risks
       const rp = cf(c.risk_pct), oc = cf(c.open_cap_pct), mp = num(c.max_pos), gx = cf(c.gross_cap_x), lx = cf(c.lev_cap_x);
       const lim = [oc != null && B(oc + '%') + ' at once', mp != null && B(fmt.int(mp)) + ' positions', gx != null && B(gx + '×') + ' exposure'].filter(Boolean);
       let s = rp != null ? 'Risks ' + B(rp + '%') + ' of the pot per trade' + (lim.length ? '; at most ' + lim.join(', ') : '') + '.'
@@ -108,7 +114,7 @@
       if (lx != null) s += (s ? ' ' : '') + 'Leverage never above ' + B(lx + '×') + '.';
       if (s) R.push(['Risk', s]);
     }
-    R.push(['Sells', SELLS + tip('line')]);
+    if (k === 'flip') R.push(['Sells', SELLS() + tip('line')]);
     {                                                                  // drawdown limits
       const h = cf(thr[0]), hh = cf(thr[1]);
       const p = [h != null && 'halves risk at ' + B(h + '%') + ' drawdown', hh != null && 'stops buying at ' + B(hh + '%') + ' until reviewed'].filter(Boolean);
@@ -120,15 +126,16 @@
       const mk = [v != null && B(v + 'M') + ' a day of market volume', oi != null && B(oi + 'M') + ' open interest'].filter(Boolean);
       const all = [mk.length && 'at least ' + and(mk) + ' (market figures, not your money)', fu != null && 'funding under ' + B(fu + '%') + ' a year',
         dy != null && B(fmt.int(dy)) + ' days of history', lv != null && B(lv + '×') + ' leverage available'].filter(Boolean);
-      if (all.length) R.push(['Coins', 'Trades only coins with ' + and(all) + '.<span class="ru-x">Each book below lists the coins it may trade.</span>']);
+      if (all.length && k !== 'carry') R.push(['Coins', 'Trades only coins with ' + and(all) + '.<span class="ru-x">Each book below lists the coins it may trade.</span>']);
     }
     {                                                                  // costs and the smallest stop
       const fe = cf(c.fee_pct), ms = cf(c.min_stop_pct), s = [];
       if (fe != null) s.push('Every result is counted after costs: a ' + B(fe + '%') + ' exchange fee on each fill' + (m.eff === 'live' ? '' : ' (simulated on paper)') + ', plus funding while held.');
-      if (ms != null) s.push('Skips a signal whose stop would sit less than ' + B(ms + '%') + ' below the entry.');
+      if (ms != null && k === 'flip') s.push('Skips a signal whose stop would sit less than ' + B(ms + '%') + ' below the entry.');
       if (s.length) R.push(['Costs', s.join(' ')]);
     }
-    if (m.eff === 'live') {
+    if (k !== 'flip') {}                                               // judged in its own row above
+    else if (m.eff === 'live') {
       const o = isObj(b.origin) && b.origin.mode === 'live' ? num(b.origin.t) : null;
       R.push(['Going live', o != null ? 'Live since ' + esc(fmt.stamp(o)) + '.' : 'Running live.']);
     } else {
@@ -138,13 +145,39 @@
     }
     return R;
   }
+  // A rebalancer's and a collector's rules, from cfg.target / cfg.carry and b.tw; a missing setting leaves its clause out
+  // and a bundle without them gets a plain sentence of the kind, never the signal trader's text.
+  function kindRows(R, b, c, k, ckH) {
+    const ar = typeof rowOf === 'function' && isObj(rowOf(AGENT)) && rowOf(AGENT).arena;
+    if (k === 'target') {
+      const t = isObj(c.target) ? c.target : {}, tw = Array.isArray(b.tw) ? b.tw.filter(Array.isArray) : [], sma = num(t.sma), band = num(t.band), sp = cf(t.stop_pct);
+      let h = t.family ? 'Holds the ' + (num(t.top) ? B(fmt.int(t.top) + ' strongest') + ' of ' : 'strongest of ') + (num(t.n_coins) ? B(fmt.int(t.n_coins) + ' coins') : 'its coins')
+          + (num(t.rebalance_days) ? ', re-ranked every ' + B(fmt.int(t.rebalance_days) + ' days') : '') + '.'
+        : 'Holds ' + (tw.length ? and(tw.map(r => esc(r[0]))) : 'its coins') + (sma ? ' while the daily close is above its ' + B(fmt.int(sma) + '-day average') : '') + '.';
+      if (num(t.vol_target_pct)) h += ' Each holding is sized for about ' + B(cf(t.vol_target_pct) + '%') + ' yearly volatility.';
+      if (band != null) h += ' It rebalances only when a holding drifts more than ' + B(cf(band * 100) + '%') + ' from its target.';
+      R.push(['Holds', h + ckH('increase')]);
+      R.push(['Exits', 'Sells a coin when a rebalance takes its target to 0' + (sma && !t.family ? ' (a daily close at or below its average)' : '')
+        + (sp != null ? ', or when its protective stop, ' + B(sp + '%') + ' below the entry, is touched' : '') + '. The stop never trails; it resets only when a rebalance resizes the position.']);
+      R.push(['Judged', ar ? 'Proving itself in the arena: the lab compares its paper record with its backtest before offering it to the owner.' : 'Judged over a year against holding its coins; a few weeks say little. Stays on paper until the owner switches it.']);
+      return;
+    }
+    const q = isObj(c.carry) ? c.carry : {}, en = cf(q.enter_apr), ex = cf(q.exit_apr), fx = cf(q.fix_h), gp = cf(q.gate_pct), v = pos(q.min_spot_vol_m);
+    R.push(['Opens', 'Opens a pair when a coin’s ' + (num(q.window_h) ? fmt.int(q.window_h) + '-hour ' : '') + 'average funding is above ' + (en != null ? B(en + '%') + ' a year' : 'its entry rate')
+      + ': it buys the coin and shorts the same amount on its perp, with maker orders, so the price moves largely cancel and the funding is the income.' + ckH('pair')]);
+    R.push(['Exits', 'Closes a pair when funding falls below ' + (ex != null ? B(ex + '%') + ' a year' : 'its exit rate') + '.'
+      + (fx != null ? ' When one leg fills and the other lags for ' + B(fx + ' hours') + ', it evens them at market.' : '')]);
+    if (num(q.basket_n)) R.push(['Coins', 'Trades only its basket of ' + B(fmt.int(q.basket_n) + ' coins') + (v != null ? ', each with at least ' + B(v + 'M') + ' a day of spot volume (market figures, not your money)' : '') + '.']);
+    R.push(['Judged', 'Judged over 2–4 weeks on how much of the funding it could earn it keeps' + (gp != null ? ' (the gate is ' + B(gp + '%') + ')' : '')
+      + '. Results are in % of capital, never R. It stays on paper until a testnet run validates it.']);
+  }
   function inForce(b) {
     const c = cfgOf1(b), K = clockOf(b) || {};
     const row = r => '<li class="ru-r"><span class="ru-k">' + esc(r[0]) + '</span><div class="ru-s">' + r[1] + '</div></li>';
     let h = '<section class="card rise ru-if"><div class="head"><div class="ttl"><h2>In force</h2><span class="sub">';
     if (!c) {
       return h + 'What the bot does, in plain sentences</span></div></div><p class="ru-none">The settings in force are ' + na() + '. They arrive with the next check.</p>'
-        + '<ul class="ru-rules">' + row(['Sells', SELLS + tip('line')]) + '</ul></section>' + booksCard(b);
+        + '<ul class="ru-rules">' + row(kindOf(b) === 'flip' ? ['Sells', SELLS() + tip('line')] : ['Type', esc(word.kindName(kindOf(b)))]) + '</ul></section>' + booksCard(b);
     }
     const at = num(K.last_t);
     h += 'From the settings pushed with ' + (at != null ? 'the check at ' + esc(fmt.when(at)) : 'the last check') + (c.ver != null ? ' · version ' + esc(c.ver) : '') + '</span></div></div>';
@@ -288,7 +321,7 @@
     if (v !== cur) {
       cur = v; S.sub = v === 'inforce' ? null : v;
       setSeg(seg, v);
-      try { history.pushState(null, '', '#rules' + (S.sub ? '/' + S.sub : '')); } catch (e) {}
+      try { history.replaceState(null, '', '#rules' + (S.sub ? '/' + S.sub : '')); } catch (e) {}   // no history entry: Back means All bots
       hideTip();
       box.innerHTML = paneHtml(v, null); box.dataset.p = v;
       drawn = keyOf(S.b);
@@ -312,7 +345,8 @@
       }
       cur = q.pane; drawn = keyOf(S.b);
       return '<div class="stack ru cq">' + navHtml(cur) + '<div class="ru-pane" data-p="' + cur + '">' + paneHtml(cur, q.term) + '</div>'
-        + '<div class="ru-out phone-only"><span class="sub">Signed in on this device.</span><a class="btn small ghost" href="/logout">Log out</a></div></div>';
+        + '<div class="ru-out phone-only"><span class="sub">Signed in on this device.</span><button class="btn small ghost" type="button" data-theme-toggle>Light / dark</button>'
+        + '<a class="btn small ghost" href="/logout">Log out</a></div></div>';
     },
     after(root) {
       const q = parseSub(S.sub);

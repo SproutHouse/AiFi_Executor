@@ -1,7 +1,9 @@
 // cloud/dev/preview.mjs — run the dashboard Worker locally against an in-memory KV. Dev tool, never deployed.
-// Usage: node cloud/dev/preview.mjs [kv.json] [port]
+// Usage: node cloud/dev/preview.mjs [kv.json] [port] [--overlay file.json ...]
 //   kv.json maps KV keys to string values, e.g. from `python3 scripts/dashboard_push.py --kv-json kv.json`
 //   or `python3 scripts/dashboard_demo.py kv.json`. Default: cloud/dev/kv.json.
+//   --overlay layers more keys on top (later files win; keys starting with "_" are notes and skipped), e.g. the committed
+//   v2 exec:agents envelope: node cloud/dev/preview.mjs cloud/dev/kv.json 8788 --overlay cloud/dev/fx_agents_v2.json
 // Every request is signed in automatically (the harness mints the same cookie the Worker issues), so pages
 // render without typing a password. Source files are re-read when they change: edit and reload.
 import http from "node:http";
@@ -12,12 +14,15 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const cloud = path.resolve(here, "..");
-const kvPath = path.resolve(process.argv[2] || path.join(here, "kv.json"));
-const port = Number(process.argv[3] || 8788);
+const args = process.argv.slice(2), overlays = [], pos = [];
+for (let i = 0; i < args.length; i++) { if (args[i] === "--overlay") overlays.push(path.resolve(args[++i])); else pos.push(args[i]); }
+const kvPath = path.resolve(pos[0] || path.join(here, "kv.json"));
+const port = Number(pos[1] || 8788);
 const PASSWORD = "preview";
 
 function kvStore() {
   const raw = fs.existsSync(kvPath) ? JSON.parse(fs.readFileSync(kvPath, "utf8")) : {};
+  for (const o of overlays) for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(o, "utf8")))) if (!k.startsWith("_")) raw[k] = v;
   return { get: async (k) => (k in raw ? (typeof raw[k] === "string" ? raw[k] : JSON.stringify(raw[k])) : null), put: async () => {} };
 }
 
@@ -31,7 +36,8 @@ function stamp() {
   const files = [];
   const walk = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) { if (f.name !== "dev" && f.name !== ".wrangler") walk(p); } else if (/\.(js|css)$/.test(f.name)) files.push(p); } };
   walk(cloud);
-  return files.map((p) => p + ":" + fs.statSync(p).mtimeMs).join("|") + "|" + (fs.existsSync(kvPath) ? fs.statSync(kvPath).mtimeMs : 0);
+  return files.map((p) => p + ":" + fs.statSync(p).mtimeMs).join("|") + "|" + (fs.existsSync(kvPath) ? fs.statSync(kvPath).mtimeMs : 0)
+    + overlays.map((o) => "|" + (fs.existsSync(o) ? fs.statSync(o).mtimeMs : 0)).join("");
 }
 async function worker() {
   const s = stamp();
@@ -73,4 +79,4 @@ http.createServer(async (req, res) => {
   } catch (e) {
     res.writeHead(500, { "content-type": "text/plain" }); res.end(String(e && e.stack || e));
   }
-}).listen(port, () => console.log(`preview on http://localhost:${port}  (kv: ${kvPath})`));
+}).listen(port, () => console.log(`preview on http://localhost:${port}  (kv: ${kvPath}${overlays.length ? ", overlays: " + overlays.join(", ") : ""})`));
