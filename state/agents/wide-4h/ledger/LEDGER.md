@@ -1,27 +1,28 @@
 # Ledger
 
-_Rendered 2026-10-02T16:06:42.682285Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T20:07:19.665836Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | bitcoin | BTC | flip | A | 85544.8 | 83598.6 | 30.2% | 3x | 2026-10-02T04:06 |
-| eth-defi | ETH | flip | A | 2741.87 | 2652.08 | 24.0% | 3x | 2026-10-02T08:06 |
 | ai | WLD | flip | A | 0.577439 | 0.485924 | 6.2% | 2x | 2026-10-02T16:06 |
 
 ## Closed trades, summary
 
-No closed trades yet.
+- Trades 1 · win rate 0% · average -0.82 R · total -0.8 R · profit factor 0.00 · worst losing streak 1 · costs 0.02 R per trade · average -0.20 R against holding the benchmark
 
 ## Last 50 closed trades
 
-None yet.
+| Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
 ## Refused signals: 57 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- WLD: ENTERED WLD long [ai] · flip tier A · stop 0.48592 (16.1% away) · size 6.2% of pot at 2x · risk 1.00% of pot
-- evaluated 29 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 3 open
+- ETH [eth-defi]: closed on stop at 2650.8 → -0.82 R · -0.20 R vs ETH
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open

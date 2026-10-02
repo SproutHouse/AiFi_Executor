@@ -1,25 +1,28 @@
 # Ledger
 
-_Rendered 2026-10-02T16:06:02.226583Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T20:06:09.735062Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | bitcoin | BTC | flip | A | 85540.7 | 83598.6 | 30.2% | 3x | 2026-10-02T04:05 |
-| eth-defi | ETH | flip | A | 2741.97 | 2652.08 | 24.0% | 3x | 2026-10-02T08:05 |
 
 ## Closed trades, summary
 
-No closed trades yet.
+- Trades 1 · win rate 0% · average -0.82 R · total -0.8 R · profit factor 0.00 · worst losing streak 1 · costs 0.02 R per trade · average -0.20 R against holding the benchmark
 
 ## Last 50 closed trades
 
-None yet.
+| Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.97 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 28 recorded (state/ledger/refused.jsonl)
+## Refused signals: 29 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 12 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- ETH [eth-defi]: closed on stop at 2650.8 → -0.82 R · -0.20 R vs ETH
+- PUMP: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 13 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 1 open
