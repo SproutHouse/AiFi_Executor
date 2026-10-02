@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-02T13:06:39.985178Z",
+  "updated": "2026-10-02T14:06:39.872533Z",
   "mode": "paper",
   "positions": {
     "JUP": {
@@ -9,7 +9,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 0.332256045,
-      "stop": 0.31918561097389003,
+      "stop": 0.3191908545477433,
       "initial_stop": 0.3160411863875186,
       "notional": 194.3861550844579,
       "sz": 585.0492654978118,
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 19.541486423457357,
       "entry_fee": 0.08747376978800604,
-      "funding_paid": 0.009486210179511834,
+      "funding_paid": 0.011879550836758205,
       "opened": "2026-10-02T03:05:45Z",
       "opened_ts": 1790910345,
-      "last_bar_t": 1790942400,
-      "last_funding_ts": 1790946345,
+      "last_bar_t": 1790946000,
+      "last_funding_ts": 1790949945,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "solana",
       "benchmark": "SOL",
       "bench_entry": 120.2,
-      "mark": 0.33504,
-      "upnl_pct": 0.8378944617847273
+      "mark": 0.33326,
+      "upnl_pct": 0.3021630501861994
     },
     "XLM": {
       "coin": "XLM",
@@ -62,11 +62,11 @@
       "leverage": 3,
       "notional_pct_equity": 28.454058171345338,
       "entry_fee": 0.12718125282645665,
-      "funding_paid": 0.014876713995076146,
+      "funding_paid": 0.024635472836953307,
       "opened": "2026-10-02T09:05:45Z",
       "opened_ts": 1790931945,
-      "last_bar_t": 1790942400,
-      "last_funding_ts": 1790946345,
+      "last_bar_t": 1790946000,
+      "last_funding_ts": 1790949945,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "l1s",
       "benchmark": "BTC",
       "bench_entry": 86228.0,
-      "mark": 0.22594,
-      "upnl_pct": 0.510542307624906
+      "mark": 0.22522,
+      "upnl_pct": 0.19024669612852652
     }
   }
 }
