@@ -1,9 +1,9 @@
 {
  "v": 1,
- "gen": "2026-10-01T04:44:34Z",
+ "gen": "2026-10-02T14:45:52Z",
  "lab": {
-  "tried": 24,
-  "survivors": 2,
+  "tried": 58,
+  "survivors": 7,
   "by_family": {
    "rs_rotation": {
     "tried": 3,
@@ -32,18 +32,43 @@
    "sma_trend": {
     "tried": 5,
     "survived": 0
+   },
+   "bull_momentum": {
+    "tried": 34,
+    "survived": 5
    }
   },
-  "last_batch": "2026-10-01",
+  "last_batch": "2026-10-02",
   "gates_version": 1,
-  "vetoed": 0,
-  "retired": 0
+  "vetoed": 1,
+  "retired": 0,
+  "funnel": {
+   "tested": 58,
+   "passed_cheap": 53,
+   "passed_audit": 22,
+   "waiting_holdout": 14,
+   "passed_holdout": 7,
+   "vetoed": 1
+  },
+  "last": {
+   "date": "2026-10-02",
+   "tried": 34,
+   "passed": 5
+  },
+  "studies": [
+   {
+    "name": "Bull Momentum",
+    "date": "2026-10-02",
+    "configs": 162,
+    "headline": "Best bull detector is right 82% of the time it says bull (the current one: 63%); the best coin ranker's top 3 beat the average coin by 1.1% a week in bull markets."
+   }
+  ]
  },
  "regime": {
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-09-30"
+  "as_of": "2026-10-01"
  },
  "shortlist": [
   {
@@ -57,7 +82,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 2.2,
+   "days": 3.6,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -74,21 +99,21 @@
     }
    },
    "paper": {
-    "ret_pct": 0.5,
-    "dd_pct": 0.21,
+    "ret_pct": 0.43,
+    "dd_pct": 0.46,
     "weight_match_pct": 100,
-    "weight_checks": 26,
+    "weight_checks": 39,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "2 of 42 days in the arena"
+    "4 of 42 days in the arena"
    ]
   }
  ],
  "fleet": {
   "regime": "bull",
-  "window": "2023-06-01 → 2026-09-30",
+  "window": "2023-06-01 → 2026-10-01",
   "members": [
    {
     "agent": "trend-1d",
@@ -162,8 +187,8 @@
   "totals": {
    "paper": {
     "agents": 6,
-    "ret_pct": -0.17,
-    "dd_pct": 0.78
+    "ret_pct": 0.02,
+    "dd_pct": 0.74
    }
   },
   "kill": {
