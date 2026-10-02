@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-02T21:07:04.910376Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T22:07:16.074796Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | carry | PUMP | carry | None | 0.00466217 | — | 0.0% | —x | 2026-09-27T02:14 |
-| carry | XPL | carry | None | 0.107476 | — | 0.0% | —x | 2026-09-27T02:14 |
+| carry | XPL | carry | None | 0.106653 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | ETH | carry | None | 2699.81 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | ZEC | carry | None | 1563.02 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | BTC | carry | None | 84773.4 | — | 0.0% | —x | 2026-09-27T20:15 |
