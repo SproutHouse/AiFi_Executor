@@ -1,12 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-02T08:07:50.463033Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T09:06:37.559894Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | solana | JUP | flip | A | 0.332256 | 0.319186 | 19.5% | 3x | 2026-10-02T03:05 |
+| l1s | XLM | flip | A | 0.224792 | 0.217434 | 28.5% | 3x | 2026-10-02T09:05 |
 
 ## Closed trades, summary
 
@@ -26,5 +27,6 @@ _Rendered 2026-10-02T08:07:50.463033Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
-- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
+- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- XLM: ENTERED XLM long [l1s] · flip tier A · stop 0.21743 (3.5% away) · size 28.5% of pot at 3x · risk 1.00% of pot
+- evaluated 30 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 2 open

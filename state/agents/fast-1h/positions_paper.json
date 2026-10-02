@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-02T08:07:50.457350Z",
+  "updated": "2026-10-02T09:06:37.544079Z",
   "mode": "paper",
   "positions": {
     "JUP": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 19.541486423457357,
       "entry_fee": 0.08747376978800604,
-      "funding_paid": 0.002061518090901783,
+      "funding_paid": 0.0044575974330886775,
       "opened": "2026-10-02T03:05:45Z",
       "opened_ts": 1790910345,
-      "last_bar_t": 1790924400,
-      "last_funding_ts": 1790928395,
+      "last_bar_t": 1790928000,
+      "last_funding_ts": 1790931945,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,53 @@
       "book": "solana",
       "benchmark": "SOL",
       "bench_entry": 120.2,
-      "mark": 0.33319,
-      "upnl_pct": 0.2810949609660218
+      "mark": 0.3299,
+      "upnl_pct": -0.7091052323818459
+    },
+    "XLM": {
+      "coin": "XLM",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 0.22479233999999998,
+      "stop": 0.21743411382838124,
+      "initial_stop": 0.21743411382838124,
+      "notional": 282.6250062810148,
+      "sz": 1257.271516818655,
+      "risk_amt": 9.932678304764007,
+      "leverage": 3,
+      "notional_pct_equity": 28.454058171345338,
+      "entry_fee": 0.12718125282645665,
+      "funding_paid": 0.0,
+      "opened": "2026-10-02T09:05:45Z",
+      "opened_ts": 1790931945,
+      "last_bar_t": 1790928000,
+      "last_funding_ts": 1790931945,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:fast-1h",
+        "trigger:flip",
+        "tier:A",
+        "stop:1h-line",
+        "long-only",
+        "book:l1s"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "l1s",
+      "benchmark": "BTC",
+      "bench_entry": 86228.0,
+      "mark": 0.22468,
+      "upnl_pct": -0.04997501249375258
     }
   }
 }
