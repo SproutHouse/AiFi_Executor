@@ -50,6 +50,20 @@ Tap the agent name in the top bar to open **Agents**, then:
 The data comes from `factory/factory.json`, written by the lab nightly and carried to KV (`exec:factory`, route
 `/api/factory`) by the hourly push, which writes it only when it changed. The sheets live in `cloud/ui/factory.js`.
 
+## Hover tips and the Bot factory (2026-10-02)
+
+- **Hover tips.** Every title and label on the Command Center and a bot's page explains itself: rest the mouse on it
+  (a dotted underline marks it), focus it with the keyboard, or press and hold it on a phone (a normal tap on a tile
+  still opens the bot). The words are one plain-language dictionary, `TIP` in `cloud/ui/core.js`; an element opts in
+  with `data-tk="key"` (written by `hint()`), and status words are filled in with that bot's own rhythm and times.
+  Details: [COMMAND_CENTER_SPEC.md](COMMAND_CENTER_SPEC.md) §3.11.
+- **Bot factory.** Under the tiles, a card shows what the AiFi Lab did to get there: recipes tested → passed the quick
+  check → passed the full audit → passed the unseen final year → trading in the arena → ready for you, last night's
+  batch, every strategy type with tested and passed counts, and any research study. It reads `exec:factory`
+  (`lab.funnel`, `lab.last`, `lab.studies` when the lab sends them, else `tried` / `survivors`, and "—" for the rest).
+  Details: §3.7. Preview it in full with `node cloud/dev/preview.mjs cloud/dev/kv.json 8788 --overlay
+  cloud/dev/fx_factory_v2.json`.
+
 ## Data contract: Command Center additions (2026-10-01)
 
 The binding spec is [COMMAND_CENTER_SPEC.md](COMMAND_CENTER_SPEC.md) §6. Every change is additive, built by the same

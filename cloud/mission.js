@@ -187,9 +187,19 @@ dl.facts dd .sub,dl.facts dd .na{font-family:var(--font)}
 .sheet .sec>h3{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:var(--s2)}
 .sheet .pn{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:var(--s5);padding-top:var(--s3);border-top:1px solid var(--line)}
 html.noscroll,html.noscroll body{overflow:hidden}
-.tipbox{background:color-mix(in srgb,var(--bg) 90%,var(--ink));border:1px solid var(--line-2)}
+.tipbox{background:color-mix(in srgb,var(--bg) 90%,var(--ink));border:1px solid var(--line-2);max-width:min(280px,calc(100vw - 16px));box-shadow:inset 0 1px 0 var(--hi),var(--shadow);overflow-wrap:break-word}
 .tipbox.on{pointer-events:auto}
 .tipbox .btn{margin-top:8px}
+.tipt{display:block;margin-bottom:3px;font-weight:650;color:var(--ink)}
+/* hover tips (core TIP, COMMAND_CENTER_SPEC §3.11): a dotted underline on hover says a label explains itself; a
+   container (.tc) underlines only its label (.tl). Inside a link or button the pointer stays a pointer. */
+@media(hover:hover){
+  [data-tk]:hover{cursor:help}
+  [data-tk]:not(.tc):hover,[data-tk].tc:hover .tl{text-decoration:underline dotted;text-decoration-color:var(--muted);text-underline-offset:3px}
+  a [data-tk]:hover,button[data-tk]:hover,button [data-tk]:hover{cursor:pointer}
+}
+[data-tk][tabindex]:focus-visible{outline:2px solid var(--accent-line);outline-offset:2px}
+@media(hover:none){[data-tk],[data-tip]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}}
 .toast{position:fixed;left:50%;bottom:28px;z-index:45;display:flex;align-items:center;gap:10px;width:max-content;max-width:min(360px,calc(100vw - 32px));padding:10px 14px;border-radius:14px;border:1px solid var(--line-2);background:color-mix(in srgb,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(var(--blur)) saturate(150%);backdrop-filter:blur(var(--blur)) saturate(150%);box-shadow:inset 0 1px 0 var(--hi),var(--shadow);color:var(--ink);font-size:var(--fs-sm);line-height:1.4;opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,12px);transition:opacity var(--dur-2) var(--ease),transform var(--dur-2) var(--ease),visibility 0s linear var(--dur-2)}
 .toast.on{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);transition-delay:0s}
 .toast .btn{flex:none}

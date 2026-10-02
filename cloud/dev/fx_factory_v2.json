@@ -1,0 +1,206 @@
+{
+ "_note": "Overlay for the Command Center's Bot factory section (COMMAND_CENTER_SPEC §3.7): exec:factory with the lab's newer fields (lab.funnel incl. waiting_holdout, lab.last, lab.studies, the bull_momentum family), lab numbers of 2026-10-02. Overlay it on kv.json: node cloud/dev/preview.mjs cloud/dev/kv.json 8788 --overlay cloud/dev/fx_factory_v2.json",
+ "exec:factory": {
+  "v": 1,
+  "gen": "2026-10-01T04:44:34Z",
+  "lab": {
+   "tried": 42,
+   "survivors": 2,
+   "by_family": {
+    "rs_rotation": {
+     "tried": 3,
+     "survived": 1
+    },
+    "tsmom": {
+     "tried": 4,
+     "survived": 0
+    },
+    "donchian": {
+     "tried": 3,
+     "survived": 0
+    },
+    "meanrev": {
+     "tried": 2,
+     "survived": 0
+    },
+    "carry": {
+     "tried": 3,
+     "survived": 1
+    },
+    "cloud_trend": {
+     "tried": 4,
+     "survived": 0
+    },
+    "sma_trend": {
+     "tried": 5,
+     "survived": 0
+    },
+    "bull_momentum": {
+     "tried": 18,
+     "survived": 0
+    }
+   },
+   "last_batch": "2026-10-02",
+   "gates_version": 1,
+   "vetoed": 1,
+   "retired": 0,
+   "funnel": {
+    "tested": 42,
+    "passed_cheap": 37,
+    "passed_audit": 8,
+    "waiting_holdout": 6,
+    "passed_holdout": 2,
+    "vetoed": 1
+   },
+   "last": {
+    "date": "2026-10-02",
+    "tried": 18,
+    "passed": 0
+   },
+   "studies": [
+    {
+     "name": "Bull Momentum",
+     "date": "2026-10-02",
+     "configs": 162,
+     "headline": "Best bull detector is right 82% of the time it says bull (the current one: 63%); the best coin ranker's top 3 beat the average coin by 1.1% a week in bull markets."
+    }
+   ]
+  },
+  "regime": {
+   "now": "bull",
+   "fine": "bull",
+   "since": "2026-08-24",
+   "as_of": "2026-09-30"
+  },
+  "shortlist": [
+   {
+    "agent": "arena-01",
+    "name": "A01 Rotation",
+    "recipe": "rot-e335df0b",
+    "family": "rs_rotation",
+    "tag": "bull specialist",
+    "hypothesis": "Coins that outperformed over the past three weeks keep outperforming over the next week; holding only those above their own 50-day average (dual momentum) and only in bull regimes avoids the momentum crashes that follow market turns.",
+    "enrolled": "2026-09-29",
+    "enabled": true,
+    "live": false,
+    "status": "incubating",
+    "days": 2.2,
+    "backtest": {
+     "sharpe": 1.132,
+     "cagr_pct": 17.32,
+     "max_dd_pct": 17.99,
+     "years": 7.75,
+     "deflated": 0.9971,
+     "alpha_t": 2.06,
+     "holdout_sharpe": 0.763,
+     "holdout_ret_pct": 9.95,
+     "regimes": {
+      "bull": 32.84,
+      "bear": -0.43,
+      "crisis": -7.42
+     }
+    },
+    "paper": {
+     "ret_pct": 0.5,
+     "dd_pct": 0.21,
+     "weight_match_pct": 100,
+     "weight_checks": 26,
+     "p5_pct": null
+    },
+    "ready": false,
+    "not_ready": [
+     "2 of 42 days in the arena"
+    ]
+   }
+  ],
+  "fleet": {
+   "regime": "bull",
+   "window": "2023-06-01 → 2026-09-30",
+   "members": [
+    {
+     "agent": "trend-1d",
+     "name": "Trend",
+     "kind": "directional",
+     "mode": "paper",
+     "vol_pct": 21.6,
+     "erc_pct": 25.6,
+     "regime_w": 1.0,
+     "share_pct": 25.6
+    },
+    {
+     "agent": "carry-1h",
+     "name": "Carry",
+     "kind": "carry",
+     "mode": "paper",
+     "vol_pct": 0.3,
+     "erc_pct": 40.0,
+     "regime_w": 1.0,
+     "share_pct": 40.0
+    },
+    {
+     "agent": "arena-01",
+     "name": "A01 Rotation",
+     "kind": "directional",
+     "mode": "paper",
+     "vol_pct": 15.9,
+     "erc_pct": 34.4,
+     "regime_w": 1.0,
+     "share_pct": 34.4
+    }
+   ],
+   "corr": {
+    "agents": [
+     "trend-1d",
+     "carry-1h",
+     "arena-01"
+    ],
+    "m": [
+     [
+      1.0,
+      0.09,
+      0.52
+     ],
+     [
+      0.09,
+      1.0,
+      0.11
+     ],
+     [
+      0.52,
+      0.11,
+      1.0
+     ]
+    ]
+   },
+   "excluded": [
+    {
+     "agent": "core",
+     "why": "no recipe the lab can backtest (signal-flip agent)"
+    },
+    {
+     "agent": "wide-4h",
+     "why": "no recipe the lab can backtest (signal-flip agent)"
+    },
+    {
+     "agent": "fast-1h",
+     "why": "no recipe the lab can backtest (signal-flip agent)"
+    }
+   ],
+   "totals": {
+    "paper": {
+     "agents": 6,
+     "ret_pct": -0.17,
+     "dd_pct": 0.78
+    }
+   },
+   "kill": {
+    "halt": false,
+    "reason": null,
+    "max_live_dd_pct": 15,
+    "apply_regime_weights": false
+   },
+   "size_mult_live": {},
+   "method": "equal risk contribution on daily backtest returns since 2023-06 (volatility floors: carry 5%, directional 10%; at most 40% per bot), then the regime weights of docs/specs/REGIME.md (bull 1, bear 0.5, crisis 0)"
+  }
+ }
+}

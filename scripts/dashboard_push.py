@@ -80,6 +80,16 @@ ISO_RX = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2
 
 
 # ------------------------------------------------------------------------------------------------ numbers --
+
+def bull_words(family, pm):
+    """A bull_momentum recipe's market filter and pick rule in owner words (Rules tab); {} for other families."""
+    if family != "bull_momentum":
+        return {}
+    from executor import momentum as MO
+    p = dict(pm)
+    p.setdefault("gate", "btc_sma")
+    return {"gate": MO.gate_words(p), "rank": MO.SCORE_WORDS.get(p.get("rank", "ret")), "rank_days": p.get("n")}
+
 def num(x, nd=2):
     """Round to nd decimals; integral values become ints; NaN, inf and junk become None; never -0."""
     if x is None or isinstance(x, bool):
@@ -723,7 +733,7 @@ class Bundle:
                 "checks": list({"target": TARGET_CHECKS, "carry": CARRY_CHECKS}.get(self.kind, PRE_TRADE_ORDER)),
                 "kind": self.kind, "tf": self.tf, "btc_gate": bool(s.get("btc_gate", True)), **self.kind_cfg()}
 
-    def kind_cfg(self):
+    def kind_cfg(self):  # noqa: C901
         """The settings the Rules tab words a rebalancer's or a collector's rules from (ratios and counts only)."""
         s = self.X.s
         if self.kind == "target":
@@ -732,7 +742,8 @@ class Bundle:
             g = lambda k: t.get(k, pm.get(k))
             coins = t.get("weights") or t.get("coins") or []
             return {"target": {"sma": g("sma") or pm.get("filter_n"), "band": num(g("band")), "stop_pct": num(g("stop_pct")), "family": t.get("family"),
-                               "rebalance_days": pm.get("rebalance_days"), "top": pm.get("k"), "n_coins": len(coins), "vol_target_pct": num((g("vol_target") or 0) * 100) or None}}
+                               "rebalance_days": pm.get("rebalance_days"), "top": pm.get("k"), "n_coins": len(coins), "vol_target_pct": num((g("vol_target") or 0) * 100) or None,
+                               **bull_words(t.get("family"), pm)}}
         if self.kind == "carry":
             c = s.get("carry") if isinstance(s.get("carry"), dict) else {}
             pc = lambda v: num(v * 100) if isinstance(v, (int, float)) else None

@@ -51,7 +51,7 @@ sent on (before boot) to `/?a=<stored ex.agent or core>#<new tab>`. Wrangler imp
        beat (a close missed since the push counts as soon as it is past its late limit), or null: every "last 24 h" count;
        `COMP.sparkSvg(values, {w, h, t0, t1, label})` → html, the pot sparkline (numbers or `[t, v]` pairs);
        `COMP.roster()` → html, the rail's mini roster; `COMP.fleetSummary()` (master only) and `COMP.fleetLoading()`
-       (fleet.js).
+       (fleet.js); `COMP.fleetFactory(factory, done)` → html, the master's Bot factory card (fleet.js).
    - `SHEETS[kind] = (arg, el) → html | {html, after?(sheetEl) → cleanup?, cls?}`, opened by ONE delegated click on the
      nearest `[data-cursor] [data-health] [data-cycle] [data-name] [data-pos] [data-trade] [data-sheet="kind:arg"]`.
      Kinds: `name` (gaterun; `data-at` = run t), `cycle` (gaterun), `pos` (positions), `trade` (results), `health`
@@ -67,7 +67,9 @@ sent on (before boot) to `/?a=<stored ex.agent or core>#<new tab>`. Wrangler imp
    Time comes from `nowMs()` / `nowS()` so tests can override it (`window.__exNow`).
 4. **Shared helpers from core** every module should use rather than re-implement: `esc`, `$`, `$$`, `num`, `isObj`,
    `cap1`, `fmt.*` (spec §14), `val()/na()/safe()` for missing data (spec §1.8), `STAGE`/`GATES` (spec §12),
-   `GLOSS` + `tip(key)`, `word.*`, `chip()`, `icon()`, `openSheet()`, `closeSheet()`, `stagger()`, `countUp()`,
+   `GLOSS` + `tip(key)`, hover tips `TIP` + `hint(key, arg?, focus?)` (an element opts in with `data-tk="key:arg"`; the
+   words live only in core's `TIP`, COMMAND_CENTER_SPEC §3.11), `FAM` / `famName(id)`, `word.*`, `chip()`, `icon()`,
+   `openSheet()`, `closeSheet()`, `stagger()`, `countUp()`,
    `reduced`, `setSeg()/initSegs()`, `masks()`, `mdTables()` (markdown tables into a disclosure), `getJSON()`, `loadLedger()`, `loadLWC()` (lazy lightweight-charts),
    `every1s()`, `toast()`, `setPlay()`, `refreshShell()`; and for pages and bars: `PAGE`, `AGENT`, `BAR` (this bot's bar,
    set in `start()`), `barOf(b)`, `kindOf(b)`/`kindInfo(b)`, `rowBundle(row)`, `word.bar()`/`word.every()`/

@@ -151,8 +151,9 @@
     const ar = typeof rowOf === 'function' && isObj(rowOf(AGENT)) && rowOf(AGENT).arena;
     if (k === 'target') {
       const t = isObj(c.target) ? c.target : {}, tw = Array.isArray(b.tw) ? b.tw.filter(Array.isArray) : [], sma = num(t.sma), band = num(t.band), sp = cf(t.stop_pct);
-      let h = t.family ? 'Holds the ' + (num(t.top) ? B(fmt.int(t.top) + ' strongest') + ' of ' : 'strongest of ') + (num(t.n_coins) ? B(fmt.int(t.n_coins) + ' coins') : 'its coins')
-          + (num(t.rebalance_days) ? ', re-ranked every ' + B(fmt.int(t.rebalance_days) + ' days') : '') + '.'
+      let h = t.family ? (t.gate ? cap1(esc(t.gate)) + ', holds the ' : 'Holds the ') + (num(t.top) ? B(fmt.int(t.top) + ' strongest') + ' of ' : 'strongest of ') + (num(t.n_coins) ? B(fmt.int(t.n_coins) + ' coins') : 'its coins')
+          + (t.rank ? ' (' + esc(t.rank) + (num(t.rank_days) ? ' over ' + fmt.int(t.rank_days) + ' days' : '') + ')' : '')
+          + (num(t.rebalance_days) ? ', re-ranked every ' + B(fmt.int(t.rebalance_days) + ' days') : '') + (t.gate ? '; all cash when the bull signal ends.' : '.')
         : 'Holds ' + (tw.length ? and(tw.map(r => esc(r[0]))) : 'its coins') + (sma ? ' while the daily close is above its ' + B(fmt.int(sma) + '-day average') : '') + '.';
       if (num(t.vol_target_pct)) h += ' Each holding is sized for about ' + B(cf(t.vol_target_pct) + '%') + ' yearly volatility.';
       if (band != null) h += ' It rebalances only when a holding drifts more than ' + B(cf(band * 100) + '%') + ' from its target.';

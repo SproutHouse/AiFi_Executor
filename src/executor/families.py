@@ -18,12 +18,12 @@ the engine's short side is built and paper-validated (the expensive step comes l
 short side earns its keep; Phase 1 of the Doctrine found shorts did not pay in any trend family).
 """
 import math
-from . import indicators as I
+from . import indicators as I, momentum as MO
 
 DAY = 86400
 
 COMMON = {
-    # name: (kind, lo, hi, default)  kind: float | int | bool | choice
+    # name: (kind, lo, hi, default)  kind: float | int | bool | choice (choice: lo is the tuple of allowed values)
     "vol_target": ("float", 0.10, 0.60, 0.30),
     "cap_x": ("float", 0.25, 3.0, 2.0),
     "vol_days": ("int", 10, 90, 30),
@@ -52,7 +52,18 @@ FAMILIES = {
                        "(k deviations) while above the T-day average; out on a close back above the N-day average.",
                 "params": {"n": ("int", 5, 60, 20), "k": ("float", 1.0, 3.5, 2.0), "trend_n": ("int", 0, 300, 200)},
                 "engine": True},
+    "bull_momentum": {"doc": "Bull-market momentum: while the market gate says the market is in a bullish swing, hold the "
+                             "K coins with the strongest momentum score, re-ranked every R days (and the day the gate "
+                             "opens); everything flat the day the gate closes. Gates and scores: momentum.py.",
+                      "params": {"rank": ("choice", tuple(MO.SCORES), None, "ret"), "n": ("int", 5, 180, 30),
+                                 "k": ("int", 1, 10, 3), "rebalance_days": ("int", 1, 30, 7),
+                                 "buffer": ("int", 0, 5, 0), "filter_n": ("int", 0, 300, 0),
+                                 "abs_mom": ("bool", None, None, True),
+                                 "gate": ("choice", tuple(MO.GATES), None, "btc_sma"), "gate_n": ("int", 10, 300, 200),
+                                 "breadth_min": ("float", 0.3, 0.9, 0.5), "gate_hold": ("int", 1, 10, 1)},
+                      "engine": True},
 }
+ROTATIONS = ("rs_rotation", "bull_momentum")
 
 
 # ----------------------------------------------------------------- helpers --
@@ -165,6 +176,10 @@ def params_with_defaults(family, params):
             out[k] = float(out[k])
         elif kind == "bool":
             out[k] = bool(out[k])
+        elif kind == "choice":
+            out[k] = str(out[k])
+            if out[k] not in _lo:
+                raise ValueError(f"{k}={out[k]!r} is not one of {', '.join(_lo)}")
     return out
 
 
@@ -187,7 +202,7 @@ def targets(panel, family, params, regime=None, alloc=None):
         bars = panel[coin]
         c = _closes(bars)
         vol = realised_vol(c, p["vol_days"])
-        if family == "rs_rotation":
+        if family in ROTATIONS:
             dirs = [0.0] * len(bars)        # filled in below from the cross-section
         else:
             dirs = DIRECTIONS[family](bars, p)
@@ -201,6 +216,8 @@ def targets(panel, family, params, regime=None, alloc=None):
         raw[coin] = (dvals, size, bars)
     if family == "rs_rotation":
         _rotation(panel, p, days, pos_of, raw)
+    elif family == "bull_momentum":
+        _bull_momentum(panel, p, days, pos_of, raw, regime)
     shares = alloc or {c: 1.0 / len(coins) for c in coins}
     out = {c: [None] * len(days) for c in coins}
     for i, d in enumerate(days):
@@ -218,7 +235,7 @@ def targets(panel, family, params, regime=None, alloc=None):
                     dirn = 0.0
                 if dirn < 0 and lab not in (p.get("short_regimes") or ("bear", "crisis")):
                     dirn = 0.0
-            share = shares.get(coin, 0.0) if family != "rs_rotation" else 1.0 / max(1, p["k"])
+            share = shares.get(coin, 0.0) if family not in ROTATIONS else 1.0 / max(1, p["k"])
             row[coin] = dirn * sz[i] * share
         gross = sum(abs(w) for w in row.values())
         scale = min(1.0, p["gross_cap"] / gross) if gross > 0 else 1.0
@@ -262,6 +279,70 @@ def _rotation(panel, p, days, pos_of, raw):
             dv[i] = 1.0 if coin in held else 0.0
 
 
+def _bull_momentum(panel, p, days, pos_of, raw, regime):
+    """Gate closed: hold nothing. Gate open: on rebalance days (epoch day divisible by R, as in rs_rotation) and on the
+    day the gate opens, rank the eligible coins by the score and hold the top K; a coin already held stays while it
+    ranks inside the top K + buffer (fewer trades for the same idea). Eligible: a score, above its own F-day average
+    when filter_n > 0, and up over N days when abs_mom. Between rebalances a held coin that falls below its F-day
+    average is dropped at once. A day without a gate reading is a data gap: no weights that day, selection kept."""
+    n, k, R, fn, buf, rk = p["n"], p["k"], p["rebalance_days"], p["filter_n"], p["buffer"], p["rank"]
+    gate = MO.gate_series(panel, days, pos_of, p, regime)
+    btc = {b["t"] // DAY * DAY: b["c"] for b in panel.get("BTC", [])}
+    info = {}
+    for coin, bars in panel.items():
+        c = _closes(bars)
+        t = [b["t"] // DAY * DAY for b in bars]
+        f = _sma(c, fn) if fn else None
+        info[coin] = (c, t, f, {pos_of[d]: j for j, d in enumerate(t)})
+    names = MO.ENSEMBLE if rk == "ensemble" else (rk,)
+
+    def eligible(coin, i):
+        c, t, f, at = info[coin]
+        j = at.get(i)
+        if j is None or j < n:
+            return None
+        if fn and (f[j] is None or c[j] <= f[j]):
+            return None
+        if p["abs_mom"] and c[j] <= c[j - n]:
+            return None
+        vals = [MO.score(nm, c, j, n, btc, t) for nm in names]
+        return None if any(v is None for v in vals) else vals
+
+    held, prev = [], None
+    for i, d in enumerate(days):
+        g = gate[i]
+        if g is None:
+            for coin in panel:
+                raw[coin][0][i] = None
+            continue
+        if not g:
+            held = []
+        elif (d // DAY) % R == 0 or not prev:
+            cand = {}
+            for coin in sorted(panel):
+                v = eligible(coin, i)
+                if v is not None:
+                    cand[coin] = v
+            if len(names) == 1:
+                order = sorted(cand, key=lambda x: (-cand[x][0], x))
+            else:                        # average rank across the measures; ties to the alphabet
+                ranks = {x: 0.0 for x in cand}
+                for m in range(len(names)):
+                    for r, x in enumerate(sorted(cand, key=lambda x: (-cand[x][m], x))):
+                        ranks[x] += r
+                order = sorted(cand, key=lambda x: (ranks[x], x))
+            keep = [x for x in held if x in order[:k + buf]]
+            held = keep + [x for x in order if x not in keep][:k - len(keep)]
+        elif fn:
+            held = [x for x in held if (info[x][3].get(i) is None or
+                                        (info[x][2][info[x][3][i]] is not None and info[x][0][info[x][3][i]] > info[x][2][info[x][3][i]]))]
+        prev = g
+        for coin in panel:
+            c, t, f, at = info[coin]
+            j = at.get(i)
+            raw[coin][0][i] = None if (j is None or j < n) else (1.0 if coin in held else 0.0)
+
+
 def latest(panel, family, params, regime=None, alloc=None):
     """What the engine trades: {coin: (weight or None, detail)} for the last completed day in the panel."""
     days, out = targets(panel, family, params, regime, alloc)
@@ -291,5 +372,21 @@ def from_target_cfg(cfg):
     return "sma_trend", params, dict(cfg["weights"]), list(cfg["weights"])
 
 
+def unused_params(family, params):
+    """Settings the recipe carries but its rule never reads (the lab's neighbour check must not count moving them as
+    robustness)."""
+    if family != "bull_momentum":
+        return set()
+    g = params.get("gate", "btc_sma")
+    out = set()
+    if g in ("none", "regime", "btc_cloud"):
+        out.add("gate_n")
+    if g not in ("breadth", "combo", "vote"):
+        out.add("breadth_min")
+    if g == "none":
+        out.add("gate_hold")
+    return out
+
+
 def needs_regime(params):
-    return bool(params.get("long_regimes") or params.get("short_regimes") or params.get("short"))
+    return bool(params.get("long_regimes") or params.get("short_regimes") or params.get("short") or params.get("gate") == "regime")

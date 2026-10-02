@@ -65,7 +65,7 @@ The Worker route and app shell stay the same. The Worker renders one of two shel
 | `#agentbtn`, `SHEETS.agents` (compare table), the `ex.agent` auto-home | **Deleted.** The master replaces them. `switchAgent(id)` stays as a shim, `location.href = botHref(id)`, because factory.js "Open" calls it. It never writes `ex.agent`. |
 | Dial (dial.js + dial.css) | **Deleted.** Its 6-beads-a-day geometry is wrong for 1h and 1d bots; the heartbeat strip replaces it. |
 | Sheets `pos`, `trade`, `name`, `cycle`, `health` | Kept as they are. |
-| Sheets `shortlist`, `fleet` | Kept. Opened from the master Lab strip and from an arena bot's Strategy section. |
+| Sheets `shortlist`, `fleet` | Kept. Opened from the master's Bot factory card and from an arena bot's Strategy section. |
 | New sheet `fleethealth` (B, fleet.js) | Opened by the master capsule: every bot's `status().items`, grouped bad, then warn, then info, each with "Open bot ›". |
 
 ### 2.4 Movement
@@ -262,11 +262,44 @@ KPI values are numbers only, one line (`white-space: nowrap`); the words sit in 
   - If a bot's oldest kept `recent` row is still newer than `ex.fl.seen`, its count reads "3+".
 - Empty: "Nothing traded in the last week."
 
-### 3.7 Lab strip (one line)
+### 3.7 Bot factory (replaces the one-line Lab strip, 2026-10-02)
 
-- "AiFi Lab · 24 recipes tried · 2 survived · 1 in the arena · 0 ready for you".
-- Sources: `X.lab.tried`, `X.lab.survivors`, `X.shortlist.length`, the count of `X.shortlist[].ready`.
-- Buttons `[Shortlist]` `[Fleet split]` open the existing `SHEETS.shortlist` and `SHEETS.fleet`.
+The owner asked why the page shows only six bots when the lab "is creating and testing bots all the time". The answer
+gets its own card, `section.card.fl-fx` (`#fl-labw`), **right under the tile grid and above "What just happened"**: it
+explains where the tiles come from and why there are so few, so it belongs next to them; below the 10-row fleet log it
+would be off the first scroll on a laptop and three screens down on a phone.
+- **Title** "Bot factory" (sub "AiFi Lab"), buttons `[Shortlist]` `[Fleet split]` (the existing `SHEETS.shortlist` and
+  `SHEETS.fleet`), then one sentence: "Every night the AiFi Lab invents new bot recipes and tests each one against 8
+  years of market history. Most fail on purpose: the checks are strict. The few that pass get a tile above and start
+  paper trading."
+- **Funnel**, six cells (2 columns on phone, 3 on tablet, 6 on desktop), each a big number, its words, an optional
+  muted note and a thin bar sized against "tested":
+
+  | Step | Source (fallback) | Note under it |
+  |---|---|---|
+  | tested | `X.lab.funnel.tested` (`X.lab.tried`) | |
+  | passed the quick check | `funnel.passed_cheap` ("—") | |
+  | passed the full audit | `funnel.passed_audit` ("—") | "6 waiting for the final-year test" (`funnel.waiting_holdout`, hidden when 0 or absent) |
+  | passed the unseen final year | `funnel.passed_holdout` (`X.lab.survivors`) | "1 turned down at the lab's final review" (`funnel.vetoed`, else `lab.vetoed`; hidden when 0) |
+  | trading in the arena (paper) | `X.shortlist[]` enabled and not live ("—" without a shortlist) | "n bots retired" (`lab.retired` > 0) |
+  | ready for you | `X.shortlist[]` ready and not live | "n already live" |
+
+- **Last night** (`X.lab.last {date, tried, passed}`): "Last night: 18 recipes tested, 0 passed" while the date is
+  today or yesterday (phone-local), else "Latest batch, Sep 30: …". Without `last`, `lab.last_batch` gives "Latest
+  batch, Oct 1" alone.
+- **By strategy type** (`X.lab.by_family {id: {tried, survived}}`), most tried first, two columns from 641px: "Bull-market
+  momentum · 18 tested · 0 passed". Plain names come from core's `FAM` (rs_rotation "Strongest-coins rotation", tsmom
+  "Trend: price vs N days ago", sma_trend "Trend: price vs its average", dual_ma "Two-average crossover", donchian
+  "Breakout to new highs", cloud_trend "Momentum Cloud trend", meanrev "Buy the dip in an uptrend", carry "Funding
+  collector", bull_momentum "Bull-market momentum"); an unknown id is prettified ("vol_breakout" → "Vol breakout").
+- **Research** (`X.lab.studies[] {name, date, configs, headline}`, at most 3): "Research: Bull Momentum · <headline>",
+  then a muted "Oct 2 · 162 versions tried".
+- Every step, the last-night line, each family and each study carries a hover tip (§3.11).
+- `lab.funnel`, `lab.last` and `lab.studies` are optional: an older `exec:factory` falls back as above and anything it
+  cannot know reads "—", never 0. No `exec:factory` yet: the card keeps its sentence and says "Loading the lab's record…"
+  then "The lab hasn't published its record yet." `COMP.fleetFactory(X, done)` renders it (the client harness in
+  `tests/client_join_check.mjs` checks the full, old, unknown-family and empty payloads). Preview the full payload with
+  `--overlay cloud/dev/fx_factory_v2.json`.
 
 ### 3.8 Footer
 
@@ -277,7 +310,7 @@ The existing FOOT sentence, then "Rules & docs · Log out".
 | State | Rendering |
 |---|---|
 | **Loading** | Header with "—" values, plus N static placeholder tiles reading "Loading…" (N = `lsGet('ex.fl.n', 6)`). No shimmer. |
-| **Empty** (`agents: []` or 404) | One card: "No bot has reported yet. Each bot appears here after its first check." No header, no KPI zeros; the Lab strip (`#fl-labw`) stays below it. |
+| **Empty** (`agents: []` or 404) | One card: "No bot has reported yet. Each bot appears here after its first check." No header, no KPI zeros; the Bot factory card (`#fl-labw`) stays below it. |
 | **Fetch errors** | The existing `bootCard`s: 401 "Signed out" + Sign in; network "Can't reach the dashboard" + Retry; 5xx or parse "The fleet data couldn't be read" + Retry. |
 | **Offline after load** | Tiles keep their data. The capsule reads "Offline · last seen 2:42 am". The 30 s tick keeps recomputing status, so tiles honestly turn Late or Stale. |
 | **Stale tile** | The status line reads "Stale · no check for 9 h" in red. The tile gets a 3px inset `--bad` left edge and a 1px `--bad` border. The caption adds "as of Tue 4:05 pm". Numbers dim to 60%. |
@@ -300,6 +333,46 @@ The existing FOOT sentence, then "Rules & docs · Log out".
 - `/api/factory` goes through `loadFactory()`, cached for 5 min.
 - The 30 s tick recomputes every tile status and every `[data-ago]`.
 
+### 3.11 Hover tips (both pages, 2026-10-02)
+
+The owner asked for "a mouse hover tooltip on the titles". Every title and label a non-technical owner may wonder about
+explains itself in one or two plain sentences.
+- **One mechanism, in core.** An element carries `data-tk="key"` or `data-tk="key:arg"`; modules write it with
+  `hint(key, arg?, focus?)`. The words live in one dictionary, core's `TIP` (`[title, text]`, or a function of the arg
+  and the element for the dynamic ones), so a word always gets the same explanation. They are built when the bubble
+  opens, so times in them are never stale. The bot a tip is about is its arg, else the nearest `[data-id]` (a tile),
+  else the page's bot. The older `data-tip="text"`, `data-g` and `.tip` "?" buttons share the same bubble.
+- **The bubble** is core's one `#tipbox` (`role=tooltip`, `aria-describedby` on the trigger): dark glass from the
+  design tokens, a bold title line then the text, at most 280px wide and never wider than the screen less 16px, below
+  the element or flipped above it, clamped 8px from both edges (no sideways scroll at 375px).
+- **When it shows:** mouse rest of 250 ms (60 ms when moving from one tip to the next); keyboard focus (`:focus-visible`
+  only); a tap or click on a label that is not inside a control; a **long press of 450 ms** on touch. Hidden on mouse
+  leave (150 ms grace, so the pointer can reach a "Replay this check ›" button inside it), blur, Escape, any scroll,
+  resize or the page going hidden. Listeners are delegated: one set on the document, none per element. A 30 s repaint
+  that replaces the trigger re-anchors the bubble to its replacement (`retip()`).
+- **Touch and links.** A tile is a link, so a normal tap on anything in it still opens the bot. A label inside a link
+  or another control (`a[href]`, `button`, `summary`, `[data-sheet]` and the other sheet triggers) never takes the
+  control's click: only hover or a long press shows its tip. The tap that ends a long press is swallowed (no
+  navigation), and so is the next tap outside the bubble, which only closes it. `contextmenu` is cancelled during a
+  long press and `-webkit-touch-callout` is off on tiles, so the phone's own link menu never opens instead.
+- **The cue** is calm: on hover-capable screens a dotted underline in `--muted` on the label (a container `.tc` underlines
+  only its `.tl` label) and `cursor: help` (a pointer inside links and buttons). Nothing shows until hovered.
+- **Accessibility.** Labels inside a tile add no tab stop (the tile's `aria-label` already says it all). Outside links,
+  the verdict pill, the KPI cells, the switch pills, the funnel steps and the section titles get `tabindex="0"` and a
+  `--accent-line` focus ring. No native `title` attribute: the capsule's, the tile heartbeat count's and `na()`'s were
+  replaced by tips.
+- **What carries a tip.** Master: the capsule and rail status (`cap`), the fleet verdict (`verdict:<lvl>`), the four
+  KPIs, the four switch pills, the mode pill, the sort tabs, "What just happened", the rail roster's status words; on
+  every tile the name (`name`: the bot's `desc`), the kind chip with the arena day (`kind`), the Paper / Live pill, the
+  status line (`st`: every word `status()` and a v1 row can produce, with this bot's cadence and times, e.g. "On
+  schedule · It checks the market every 4 hours. Its last check (1 h ago) ran on time. Next check about 12:15 pm."),
+  the big return and its "since", each stat cell (Trades, Won, Holding, Invested, Closed trades, Pairs, Funding kept,
+  Capital in use), the "+0.28 R open" line (explains R), the heartbeat strip with its count, the last-trade line, every
+  "—" (`na`); the whole Bot factory card. Bot page: the verdict pill, the kind chip, the big return and its caption,
+  the heartbeat count, the last-trade line, the seven section titles, every Wins & losses cell and verdict pill, "Buying",
+  and the backtest-vs-paper table.
+- Every key and every status word is checked for words (no "undefined", "NaN" or money) by the client harness.
+
 ---
 
 ## 4. Tile anatomy
@@ -315,7 +388,7 @@ The tile (`a.fl-tile`) is about **236 px** tall on phone, at most 7 rows.
 | 2 | **Status line** (dominant) | `●` **On schedule** · checked 37 min ago · next ≈ 3:15 am | Word, dot and level from **core `status(rowBundle(A))`** (§6.6), never a second engine. Age is a `data-ago` span on `A.sb.clock.last_t`. "next ≈" = `fmt.time(clock(rowBundle(A)).next)`. Warn/bad: the age is replaced by `status().wide` ("· no check for the 3:00 am close"), wrapping to 2 lines at most. |
 | 3 | **Big number + sparkline** | **−0.15%** (`--fs-2xl` mono, sign always shown, `fmt.cls` colour; exactly 0 is neutral "0.00% · flat"). Caption "since Sep 26" (+ " · this week −x%" only when `now − A.since ≥ 7 d`). Sparkline right, about 140×40. | `A.pot_chg_pct` (v1), `A.since` (NEW), `A.wk_pct` (NEW), `A.spark` + `A.spark_t` (NEW) → `COMP.sparkSvg`. aria-label "Pot over the last 24 checks, from +0.10% to −0.15%". Fewer than 2 points: "line appears after two checks". Missing → "—". |
 | 4 | **Three plain stats** (by kind) | see the table below | NEW and v1 fields as listed |
-| 5 | **Heartbeat strip** | 24 beads (hourly) / 18 (4 h = 3 days) / 14 (daily = 2 weeks), plus a hollow accent "next" bead; right-aligned "24/24" with a `title` carrying the strip's aria-label (what the count means) | `A.beat {s0,n,k}` (NEW) → `COMP.beatStrip`. Alphabet in §6.1. aria-label "Last 24 hourly checks: 24 on time, 1 with a trade; next about 3:15 am". Grid `repeat(n+1, minmax(0,12px))`, gap 3px, so 25 beads fit the 311px inner width at 375px (about 9.5px each). |
+| 5 | **Heartbeat strip** | 24 beads (hourly) / 18 (4 h = 3 days) / 14 (daily = 2 weeks), plus a hollow accent "next" bead; right-aligned "24/24"; the strip's hover tip (§3.11) says what each dot means and "24 of the last 24 ran on time" | `A.beat {s0,n,k}` (NEW) → `COMP.beatStrip`. Alphabet in §6.1. aria-label "Last 24 hourly checks: 24 on time, 1 with a trade; next about 3:15 am". Grid `repeat(n+1, minmax(0,12px))`, gap 3px, so 25 beads fit the 311px inner width at 375px (about 9.5px each). |
 | 6 | **Last trade in words** | `●` Sold AVAX −0.20 R · Wed 10:17 am | `A.act` (NEW). Verbs: `bought` "Bought", `sold` "Sold … R", `resized` "Resized BTC to 48% of pot", `carry_in` "Started collecting on PUMP", `carry_out` "Started closing HYPE", `carry_closed` "Closed HYPE carry · +0.12% of capital". Solid accent dot when `now − act.t < 24 h`, else ink-2. "No trades yet" **only** when `A.act === null` **and** `A.sb` exists. A v1 row shows "—". |
 | 7 | **Problem line** (warn/bad only) | "ZEC: legs out of balance since 12:07 am, past the 3 h safety limit." | The head item's sentence from `status()`. For info-level carry notes, see the carry cell sub-line instead. |
 
@@ -869,7 +942,7 @@ Reads also drop. Push children no longer read `exec:agents` or `exec:factory`; t
 - Needs-you rows follow (44px each, only when present). The first tile starts at about 420–470px.
 - Controls: `.seg.quiet` sort scrolls inside its own mask. Filter chips only at ≥ 7 bots.
 - Tiles: one column, about 236px each. 6 bots ≈ 1.5k px. At ≥ 9 bots the Compact rows default to 64px each (17 bots ≈ 1.2k px).
-- Fleet log in one column, then the Lab strip and footer. No tabbar; safe-area bottom padding.
+- The Bot factory card (funnel 2 × 3), then the fleet log in one column and the footer. No tabbar; safe-area bottom padding.
 
 **Bot page**
 - Topbar `[‹ 44px] [h1 name, ellipsis] [capsule short] [modepill]`; the theme toggle moves into Rules on phone.

@@ -105,16 +105,18 @@
   }
   const gWait = c => '<p class="note bt-ld">' + (c.gs === 'err' ? 'Trades ' + na() : 'Loading trades…') + '</p>';
   function sec(c, id, title, sub, inner, acts) {
-    return '<section class="card cq bt-sec bt-' + id + c.rise + '" id="overview-' + id + '"><div class="head"><div class="ttl"><h2>' + title + '</h2>'
+    return '<section class="card cq bt-sec bt-' + id + c.rise + '" id="overview-' + id + '"><div class="head"><div class="ttl"><h2' + hint('sec', id, true) + '>' + title + '</h2>'
       + (sub ? '<span class="sub">' + sub + '</span>' : '') + '</div>' + (acts ? '<div class="acts">' + acts + '</div>' : '') + '</div>' + inner + '</section>';
   }
-  const cell = (label, v, s) => '<div class="bt-cell"><span class="bt-cl">' + label + '</span><span class="bt-cv">' + v + '</span>' + (s ? '<span class="bt-cs">' + s + '</span>' : '') + '</div>';
+  const CK = { 'Closed trades': 'nclosed', 'Won / lost': 'wl', 'Average trade': 'avg', 'Best / worst': 'best', Holding: 'holding', Invested: 'invested', 'Open result': 'openres',
+    Drawdown: 'dd', Pairs: 'pairs', 'Funding kept': 'kept', Collected: 'got', Result: 'result' };
+  const cell = (label, v, s) => '<div class="bt-cell' + (CK[label] ? ' tc"' + hint(CK[label]) : '"') + '><span class="bt-cl tl">' + label + '</span><span class="bt-cv">' + v + '</span>' + (s ? '<span class="bt-cs">' + s + '</span>' : '') + '</div>';
   const cells = list => '<div class="bt-cells">' + list.join('') + '</div>';
 
   // --------------------------------------------------------------------------------------------- hero --
   function verdictHtml() {
     const st = S.st || status(S.b);
-    return '<span class="pill big ' + (LV[st.lvl] || 'info') + '">' + esc(st.word) + '</span><span class="bt-vs">' + st.sentence + '</span>';
+    return '<span class="pill big ' + (LV[st.lvl] || 'info') + '"' + hint('st', '', true) + '>' + esc(st.word) + '</span><span class="bt-vs">' + st.sentence + '</span>';
   }
   function schedHtml(b) {
     const K = clock(b), last = obj(stateOf(b).last), out = [];
@@ -184,11 +186,11 @@
     const nav = pv && nx ? '<nav class="bt-nav" aria-label="Other bots"><a class="btn small ghost" href="' + esc(href(pv)) + '" data-bt-go="-1" aria-label="Previous bot: ' + esc(nameOfId(pv)) + '">‹</a>'
       + '<span class="sub">' + esc(nameOfId(me())) + ' · ' + (i + 1) + ' of ' + r.length + '</span><a class="btn small ghost" href="' + esc(href(nx)) + '" data-bt-go="1" aria-label="Next bot: ' + esc(nameOfId(nx)) + '">›</a></nav>' : '';
     const desc = A && A.desc ? String(A.desc) : '';
-    const id = '<div class="bt-id"><span class="pill bt-type' + (c.inf ? ' bt-inf" data-tip="Type inferred from its positions and events; confirmed after its next check.' : '') + '">' + esc(kindName(c.k, c.s)) + '</span>' + nav + '</div>'
+    const id = '<div class="bt-id"><span class="pill bt-type' + (c.inf ? ' bt-inf' : '') + '"' + hint('kind', '', true) + '>' + esc(kindName(c.k, c.s)) + '</span>' + nav + '</div>'
       + (desc ? (desc.length > 90 ? '<details class="bt-desc"><summary><span>' + esc(desc) + '</span><b class="bt-mo">more</b></summary></details>' : '<p class="bt-desc">' + esc(desc) + '</p>') : '');
     const wk = since != null && nowS() - since >= 7 * DAY && num(pot.wk_chg_pct) != null ? ' · this week ' + fmt.pct(pot.wk_chg_pct) : '';
     const dd = since != null ? dayDiff(since, nowS()) : null;
-    let nums = '<div class="bt-n"><span class="bt-pct ' + fmt.cls(chg) + '" data-v="' + (chg == null ? '' : chg) + '">' + fmt.pct(chg) + '</span><span class="bt-ncap">pot ' + (since != null ? 'since ' + fmt.day(since) + ' · ' + (dd < 1 ? 'today' : word.plural(dd, 'day')) : 'since —') + wk + (chg != null && fmt.cls(chg) === '' ? ' · flat' : '') + '</span></div>';
+    let nums = '<div class="bt-n"><span class="bt-pct ' + fmt.cls(chg) + '" data-v="' + (chg == null ? '' : chg) + '"' + hint('ret') + '>' + fmt.pct(chg) + '</span><span class="bt-ncap"' + hint('since') + '>pot ' + (since != null ? 'since ' + fmt.day(since) + ' · ' + (dd < 1 ? 'today' : word.plural(dd, 'day')) : 'since —') + wk + (chg != null && fmt.cls(chg) === '' ? ' · flat' : '') + '</span></div>';
     if (c.k === 'flip') {
       const rec = obj(b.rec), show = num(rec.n) > 0 || arr(b.pos).length > 0;
       nums += '<div class="bt-n bt-n2"><span class="bt-r">' + (show ? RR(rec.tot_R) : '—') + '</span><span class="bt-ncap">total R' + tip('R') + (show ? ' · closed ' + fmt.R(rec.closed_R) + ' · open ' + fmt.R(rec.open_R) : '') + '</span></div>';
@@ -199,7 +201,7 @@
       : '<p class="cap bt-spark">The line appears after two checks.</p>';
     return '<section class="card bt-hero' + c.rise + '" id="overview-hero">' + id
       + '<div class="bt-verdict" id="bt-verdict">' + verdictHtml() + '</div><p class="bt-sched" id="bt-sched">' + schedHtml(b) + '</p>'
-      + '<div class="bt-nums">' + nums + spk + '</div>' + beatHtml(b, c) + '<p class="bt-act" id="bt-act">' + actHtml(b, c) + '</p></section>';
+      + '<div class="bt-nums">' + nums + spk + '</div>' + beatHtml(b, c) + '<p class="bt-act" id="bt-act"' + hint('last') + '>' + actHtml(b, c) + '</p></section>';
   }
 
   // ----------------------------------------------------------------------------------- 5.2 wins & losses --
@@ -211,7 +213,7 @@
     const best = tr.slice().sort((a, z) => z.R - a.R)[0], worst = tr.slice().sort((a, z) => a.R - z.R)[0];
     const gates = arr(obj(c.G.verdict).gates).filter(isObj), fails = gates.filter(g => g.state === 'failing');
     const GN = { n: 'trade count', avg_R: 'average R', dd: 'drawdown', cost_R: 'costs' };
-    const pill = n < N ? '<span class="pill">Too early · ' + fmt.int(n) + ' of ' + fmt.int(N) + ' trades</span>'
+    const pill = n < N ? '<span class="pill"' + hint('early') + '>Too early · ' + fmt.int(n) + ' of ' + fmt.int(N) + ' trades</span>'
       : fails.length ? '<span class="pill bad">Failing: ' + esc(word.list(fails.map(g => GN[g.k] || g.k))) + '</span>'
       : gates.length && gates.every(g => g.state === 'passing') ? '<span class="pill ok">Go-live checks passing ' + gates.length + '/' + gates.length + '</span>' : '<span class="pill mute">Judging ' + fmt.int(n) + ' trades</span>';
     const pf = num(all.pf);
@@ -229,8 +231,8 @@
   function recTarget(b, c) {
     const pos = arr(b.pos).filter(isObj), thr = arr(obj(b.cfg).thr), dd = num(obj(stateOf(b).thr).dd_pct), s = arena(c);
     const origin = num(obj(b.origin).t);
-    const pill = s ? (s.ready ? '<span class="pill ok">Ready for you</span>' : '<span class="pill">' + esc(arr(s.not_ready)[0] || 'Proving itself in the arena') + '</span>')
-      : isArena(c) ? '<span class="pill">In the arena</span>' : '<span class="pill">Judged yearly' + (origin != null ? ' · day ' + ageDay(origin) + ' of 365' : '') + '</span>';
+    const pill = s ? (s.ready ? '<span class="pill ok"' + hint('fx', 'ready') + '>Ready for you</span>' : '<span class="pill"' + hint('fx', 'arena') + '>' + esc(arr(s.not_ready)[0] || 'Proving itself in the arena') + '</span>')
+      : isArena(c) ? '<span class="pill"' + hint('fx', 'arena') + '>In the arena</span>' : '<span class="pill"' + hint('yearly') + '>Judged yearly' + (origin != null ? ' · day ' + ageDay(origin) + ' of 365' : '') + '</span>';
     return '<div class="bt-vrow">' + pill + '</div>' + cells([
       cell('Holding', '<b>' + word.plural(pos.length, 'coin') + '</b>', esc(pos.map(p => p.c).join(', '))),
       cell('Invested', '<b>' + (pos.length ? pp(sum(pos, p => p.size_pct)) : '0%') + '</b> of pot'),
@@ -241,7 +243,7 @@
     const s = isObj(b.carry_sum) ? b.carry_sum : c.A && c.A.carry, origin = num(obj(b.origin).t), early = origin == null || nowS() - origin < 14 * DAY;
     if (!isObj(s)) return '<p class="note">' + word.plural(num(obj(b.risk).n_open) || 0, 'pair') + ' open · details after the next check</p>';
     const cap = num(s.capture_pct), gate = num(s.gate_pct) != null ? num(s.gate_pct) : 80, net = num(s.net_pct), fund = num(s.fund_pct), cost = num(s.cost_pct);
-    const pill = early ? '<span class="pill">Too early · judged over 2–4 weeks (day ' + (origin != null ? ageDay(origin) : '—') + ' of 14)</span>'
+    const pill = early ? '<span class="pill"' + hint('early') + '>Too early · judged over 2–4 weeks (day ' + (origin != null ? ageDay(origin) : '—') + ' of 14)</span>'
       : cap == null ? '<span class="pill mute">Capture —</span>' : cap < gate ? '<span class="pill warn">Capture below the ' + gate + '% gate</span>' : '<span class="pill ok">Capture gate met</span>';
     // The card leads with the hero's pot figure; the parts below add up to it (owner-6: open legs and closed pairs count too).
     const pot = num(obj(b.pot).chg_pct), opn = num(s.open_pct), cl = num(s.closed_pct);
@@ -452,7 +454,7 @@
       : ({ normal: 'Allowed', halved: '<span class="neg">Risk halved</span>', halted: '<span class="neg">Stopped</span>' })[thr.state] || 'unknown';
     const dd = num(thr.dd_pct), D = Math.max(1, dd || 0, num(T[1]) ? T[1] * 1.25 : 25), x = v => (Math.min(1, v / D) * 100).toFixed(1);
     const gen = isoS(b.gen), lt = num(obj(b.clock).last_t), pm = gen != null && lt != null ? Math.round((gen - lt) / 60) : null;
-    h.push('<dl class="facts"><dt>Buying</dt><dd>' + buy + '</dd><dt>Drawdown' + tip('drawdown') + '</dt><dd>' + (dd == null ? na(true) : fmt.pctu(dd, 2)) + '</dd>'
+    h.push('<dl class="facts"><dt' + hint('buying') + '>Buying</dt><dd>' + buy + '</dd><dt>Drawdown' + tip('drawdown') + '</dt><dd>' + (dd == null ? na(true) : fmt.pctu(dd, 2)) + '</dd>'
       + '<dt>Data</dt><dd>' + (pm == null ? na(true) : (pm < 1 ? 'pushed within a minute of the check' : 'pushed ' + pm + ' min after the check') + (gen != null ? ' · <span data-ago="' + gen + '">' + esc(fmt.ago(gen)) + '</span>' : '')) + '</dd></dl>');
     h.push('<div class="bt-dd" role="img" aria-label="' + esc('Drawdown ' + (dd == null ? 'not in this data' : fmt.pctu(dd, 2)) + (T[0] != null ? '; risk halves at ' + T[0] + '%' : '') + (T[1] != null ? ', buying stops at ' + T[1] + '%' : '')) + '">'
       + '<div class="meter"><i class="' + (dd != null && T[1] != null && dd >= T[1] ? 'bt-bad' : dd != null && T[0] != null && dd >= T[0] ? 'bt-warn' : 'bt-ok') + '" style="width:' + x(dd || 0) + '%"></i></div>'
@@ -494,7 +496,7 @@
       const bt = obj(s.backtest), pa = obj(s.paper), dy = num(s.days), nr = arr(s.not_ready), m = nr.map(String).map(x => /of (\d+) days/.exec(x)).find(Boolean);
       const tr = (k, x, y) => '<tr><td class="l">' + k + '</td><td>' + x + '</td><td>' + y + '</td></tr>';
       if (s.hypothesis) h.push('<p class="bt-hy">' + esc(s.hypothesis) + '</p>');
-      h.push('<div class="tbl bt-bt"><table><thead><tr><th class="l">Measure</th><th>Backtest</th><th>Paper so far</th></tr></thead><tbody>'
+      h.push('<div class="tbl bt-bt"><table><thead><tr><th class="l">Measure</th><th' + hint('bt') + '>Backtest</th><th' + hint('bt') + '>Paper so far</th></tr></thead><tbody>'
         + tr('Return', num(bt.cagr_pct) == null ? '—' : fmt.num(bt.cagr_pct, 1) + '%/yr' + (num(bt.years) != null ? ' (' + trim(bt.years) + ' yrs)' : ''), P(pa.ret_pct) + (dy != null ? ' in ' + word.plural(Math.floor(dy), 'day') : ''))
         + tr('Worst drawdown', num(bt.max_dd_pct) == null ? '—' : fmt.pctu(bt.max_dd_pct, 1), num(pa.dd_pct) == null ? '—' : fmt.pctu(pa.dd_pct, 2))
         + tr('Sharpe', num(bt.sharpe) == null ? '—' : fmt.num(bt.sharpe) + (num(bt.holdout_sharpe) != null ? ' (holdout ' + fmt.num(bt.holdout_sharpe) + ')' : ''), 'too early')

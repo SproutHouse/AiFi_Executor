@@ -177,8 +177,32 @@ button.fl-b::before{content:"";position:absolute;left:-2px;right:-2px;top:50%;he
 .fl-new{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--accent);font-size:var(--fs-xs);font-weight:600}
 .fl-new::after{content:"";flex:1;height:1px;background:var(--accent-line)}
 
-/* ---- the Lab strip ---- */
-.fl-lab{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s2) var(--s3);padding:var(--s3) var(--s4);border-radius:var(--r);border:1px solid var(--line);background:var(--glass);font-size:var(--fs-sm);color:var(--ink-2)}
-.fl-labb{display:flex;gap:var(--s2)}
+/* ---- the bot factory (§3.7): the lab's funnel, last night, strategy types, research ---- */
+.fl-labb{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.fl-fxp{margin:0 0 var(--s4);font-size:var(--fs-md);line-height:1.5;color:var(--ink-2);max-width:72ch}
+.fl-fun{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+@media(min-width:641px){.fl-fun{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1100px){.fl-fun{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.fl-fun li{display:flex;flex-direction:column;gap:2px;padding:var(--s3);border-radius:var(--r-md);background:var(--glass-2);border:1px solid var(--line);min-width:0}
+.fl-fn{font-family:var(--mono);font-size:var(--fs-xl);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.fl-fl{font-size:var(--fs-xs);color:var(--ink-2);line-height:1.35}
+.fl-fs{font-size:var(--fs-xs);color:var(--muted);line-height:1.35}
+.fl-fb{display:block;height:4px;margin-top:auto;border-radius:2px;background:var(--line);overflow:hidden}
+.fl-fun li>:nth-last-child(2){margin-bottom:8px}   /* at least 8px above the bar, which sits at the bottom of every cell */
+.fl-fb i{display:block;height:100%;border-radius:2px;background:var(--ink-2)}
+.fl-fxl{margin:var(--s3) 0 0;font-size:var(--fs-sm);color:var(--ink-2)}
+.fl-fxl b{color:var(--ink)}
+.fl-fxh{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:var(--s4) 0 var(--s2)}
+.fl-fam{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--s5)}
+@media(min-width:641px){.fl-fam{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fl-fam li{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);min-height:32px;padding:6px 0;border-bottom:1px solid var(--line);font-size:var(--fs-sm)}
+.fl-fmn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fl-fmc{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+.fl-fmc b{font-weight:500}
+.fl-fmc b.fl-fmp{color:var(--ink);font-weight:650}
+.fl-res{list-style:none;margin:var(--s4) 0 0;padding:0;display:grid;gap:var(--s2);font-size:var(--fs-sm);line-height:1.5;color:var(--ink-2)}
+.fl-res b{color:var(--ink)}
+/* touch: a long press on a tile shows a label's tip, never the link's own preview */
+@media(hover:none){.fl-tile,.fl-ro{-webkit-touch-callout:none}}
 
 @media(prefers-reduced-motion:reduce){.fl-tile,.fl-tile:hover,.fl-tile:active{transition:none;transform:none}}

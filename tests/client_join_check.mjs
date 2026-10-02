@@ -218,4 +218,59 @@ try {
 } catch (e) {
   bad("the clock harness threw: " + (e && e.stack || e));
 }
+
+// ------------------------------------------------------------------ hover tips and the Bot factory (core + fleet in a vm) --
+// COMMAND_CENTER_SPEC §3.7 and §3.11: every tip key has plain words (no "undefined", "NaN" or money), every status word
+// the engine can show has its own explanation, and the factory section renders the lab's full payload, an older one (no
+// funnel / last / studies: "—", never 0), an unknown family, and none at all. The texts go to facts for
+// tests/test_dashboard_client.py.
+try {
+  const C = coreContext("");
+  vm.runInContext(fs.readFileSync(path.join(cloud, "ui", "fleet.js"), "utf8"), C, { filename: "ui/fleet.js" });
+  const run = (src) => vm.runInContext(src, C);
+  const text = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+  const T = (iso) => Date.parse(iso) / 1000;
+  C.__exNow = Date.parse("2026-10-02T15:00:00Z");
+  const clk = { last_t: T("2026-10-02T12:06:00Z"), last_slot: T("2026-10-02T12:00:00Z"), late_min: 6, lag_med_min: 15, lag_rng: [6, 24], lag_n: 42, limit_min: 45, sched_min: 5, bar_s: 14400 };
+  const sb = { clock: clk, state: { halt: { set: false }, thr: { state: "normal", dd_pct: 1 }, last: { t: clk.last_t, fresh: true, failed: false } }, cfg: { late_min: 45, thr: [10, 20] }, mode: { eff: "paper", req: "paper" }, alerts: [], risk: { n_open: 0 } };
+  C.__E = { v: 2, gen: "2026-10-02T12:10:00Z", fleet: { halt: false }, order: ["core", "old"], agents: [
+    { id: "core", name: "Core", kind: "flip", bar_s: 14400, mode: "paper", desc: "Trades big coins every 4 hours.", gen: "x", sb },
+    { id: "old", name: "Old", tf: "4h", last_t: T("2026-10-02T12:06:00Z") }] };
+  run("S.E = __E; AGENTS = __E.agents");
+  // every key: a title and a sentence in plain words
+  const keys = JSON.parse(run("JSON.stringify(Object.keys(TIP))"));
+  const ARGS = { st: "core", verdict: "ok", name: "core", kind: "core", mode: "paper", kill: "run", server: "Paris server", sort: "roster", fx: "tested", fam: "rs_rotation", sec: "record", beads: "18/18" };
+  const empty = [], dirty = [];
+  for (const k of keys) {
+    C.__k = k + (ARGS[k] ? ":" + ARGS[k] : "");
+    const t = text(run("tipText(__k, null)"));
+    if (!t) empty.push(C.__k); else if (/undefined|NaN|\$|null/.test(t)) dirty.push(C.__k + " → " + t);
+  }
+  if (empty.length) bad("tips without words: " + empty.join(", "));
+  if (dirty.length) bad("tips with broken words: " + dirty.join(" | "));
+  // every status word status() and the master can show: a sentence of its own, never the generic fallback
+  const STK = ["ok", "due", "late_now", "stale", "exits", "failed", "halt", "thr_halt", "thr_half", "late", "fallback", "unhedged", "exit_slow", "none", "v1"];
+  C.__K = { phase: "late", C: T("2026-10-02T12:00:00Z"), next: T("2026-10-02T16:15:00Z"), lateAt: T("2026-10-02T12:45:00Z"), lastT: clk.last_t, age: 9 * 3600, lim: 45, rng: [6, 24] };
+  const generic = run("stTip({ k: 'zzz', word: 'Check', lvl: 'warn', K: __K }, null, AGENTS[0])[1]");
+  const words = {};
+  for (const k of STK) {
+    C.__st = { k, word: k, lvl: "warn", K: C.__K };
+    const t = run("stTip(__st, null, AGENTS[0])[1]");
+    words[k] = t;
+    if (!t || t === generic || /undefined|NaN|null/.test(t)) bad("status word " + k + " has no tip of its own: " + t);
+  }
+  facts.tips = { keys: keys.length, status_words: STK.length, ok: text(run("tipText('st:core', null)")), v1: text(run("tipText('st:old', null)")), late_now: words.late_now,
+    beads: text(run("tipText('beads:18/18', null)")), ropen: text(run("tipText('ropen', null)")), unknown_family: text(run("tipText('fam:vol_breakout', null)")) };
+  // the Bot factory: the lab's full payload (cloud/dev/fx_factory_v2.json), an older one, an unknown family, none
+  const full = JSON.parse(fs.readFileSync(path.join(cloud, "dev", "fx_factory_v2.json"), "utf8"))["exec:factory"];
+  const old = JSON.parse(JSON.stringify(full));
+  delete old.lab.funnel; delete old.lab.last; delete old.lab.studies; delete old.lab.by_family.bull_momentum;
+  Object.assign(old.lab, { tried: 24, last_batch: "2026-09-30", vetoed: 0 });
+  const odd = { v: 1, lab: { by_family: { vol_breakout: { tried: 3 } } } };
+  const fx = (X, done) => { C.__X = X; C.__d = done; return text(run("COMP.fleetFactory(__X, __d)")); };
+  facts.factory = { full: fx(full, true), old: fx(old, true), odd: fx(odd, true), none: fx(null, true), loading: fx(null, false) };
+  for (const [k, t] of Object.entries(facts.factory)) if (/undefined|NaN|null/.test(t)) bad("factory (" + k + ") has broken words: " + t);
+} catch (e) {
+  bad("the tips and factory harness threw: " + (e && e.stack || e));
+}
 console.log(JSON.stringify({ ok: problems.length === 0, problems, facts }));

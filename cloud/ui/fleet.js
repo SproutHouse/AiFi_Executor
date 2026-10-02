@@ -1,11 +1,12 @@
 // cloud/ui/fleet.js — the Command Center, the master page at "/" (COMMAND_CENTER_SPEC §3, §4, §7, §8). One block (see
 // ui/README.md); classes carry the fl- prefix. It exports, by assignment only:
-//   VIEWS.fleet               the master: header (verdict, KPIs, switch pills), Needs-you rail, controls, tiles, fleet log, Lab
+//   VIEWS.fleet               the master: header (verdict, KPIs, switch pills), Needs-you rail, controls, tiles, Bot factory, log
 //   COMP.fleetSummary()       → {lvl, cap, alerts, items}: the worst fleet level, which core paints into the capsule and rail
 //   COMP.fleetLoading()       → the loading state (header of "—" and N static placeholder tiles, no shimmer)
 //   COMP.beatStrip(beat, o)   → html: the heartbeat strip of a row's / bundle's beat {s0, n, k} (§4 row 5, §6.1 alphabet)
 //   COMP.sparkSvg(values, o)  → html: the pot sparkline (inline SVG, no library)
 //   COMP.roster()             → html: the rail's mini roster (dot + name + short status word), on both pages
+//   COMP.fleetFactory(X, done) → html: the Bot factory card from exec:factory (§3.7); X null: loading / not published
 //   SHEETS.fleethealth        every bot's status items, bad then warn then info, each with "Open bot ›"
 // Every status word comes from core status(rowBundle(row)), the one engine the bot page uses on its bundle (§6.7).
 {
@@ -20,7 +21,7 @@
   const SORTS = [['roster', 'Roster'], ['attention', 'Needs attention'], ['return', 'Return'], ['active', 'Most active']];
   const FILTERS = [['all', 'All'], ['flip', 'Signal traders'], ['target', 'Rebalancers'], ['carry', 'Funding collectors'], ['live', 'Live'], ['arena', 'Arena']];
   const PHONE = matchMedia('(max-width:640px)');
-  const F = { order: null, root: null, seen0: Number(lsGet('ex.fl.seen', 0)) || 0, seenT: 0, gens: {}, acts: {}, big: {}, live: {}, first: true, fx: null };
+  const F = { order: null, root: null, seen0: Number(lsGet('ex.fl.seen', 0)) || 0, seenT: 0, gens: {}, acts: {}, big: {}, live: {}, first: true, fx: null, fxDone: false };
 
   // ====================================================================================== rows ==
   const E = () => S.E || {};
@@ -127,8 +128,8 @@
     }
     const nw = nx != null ? 'Next check about ' + fmt.time(nx) : 'Next check';
     h += o.big ? '<button type="button" class="fl-b fl-bn" data-tip="' + esc(nw) + '" aria-label="' + esc(nw) + '"><i></i></button>' : '<i class="fl-b fl-bn"></i>';
-    return '<span class="fl-hb' + (o.big ? ' fl-hbig' : '') + '"' + (o.big ? ' role="group"' : ' role="img"') + ' aria-label="' + esc(lab) + '"><span class="fl-beads" style="--n:' + (k.length + 1) + '"' + (o.big ? '' : ' aria-hidden="true"') + '>' + h + '</span>'
-      + '<span class="fl-hbn" aria-hidden="true"' + (o.big ? '' : ' title="' + esc(lab) + '"') + '>' + ok + '/' + owed + '</span></span>';
+    return '<span class="fl-hb tc' + (o.big ? ' fl-hbig' : '') + '"' + (o.big ? ' role="group"' : ' role="img"') + ' aria-label="' + esc(lab) + '"' + hint('beads', ok + '/' + owed) + '><span class="fl-beads" style="--n:' + (k.length + 1) + '"' + (o.big ? '' : ' aria-hidden="true"') + '>' + h + '</span>'
+      + '<span class="fl-hbn tl" aria-hidden="true">' + ok + '/' + owed + '</span></span>';
   };
 
   // ============================================================================== the sparkline ==
@@ -155,7 +156,7 @@
     if (!list.length) return '';
     return '<div class="fl-roh">Bots</div>' + list.map(A => {
       const st = PAGE === 'bot' && A.id === AGENT && S.st ? S.st : sts[A.id];
-      return '<a class="fl-ro" href="' + esc(href(A)) + '"' + (PAGE === 'bot' && A.id === AGENT ? ' aria-current="page"' : '') + '><i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i><span class="fl-ron">' + esc(nm(A)) + '</span><span class="fl-row">' + esc(st.word) + '</span></a>';
+      return '<a class="fl-ro" href="' + esc(href(A)) + '"' + (PAGE === 'bot' && A.id === AGENT ? ' aria-current="page"' : '') + '><i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i><span class="fl-ron">' + esc(nm(A)) + '</span><span class="fl-row"' + hint('st', A.id) + '>' + esc(st.word) + '</span></a>';
     }).join('');
   };
 
@@ -172,9 +173,10 @@
         + esc(plain(tail(sts[A.id].head ? sts[A.id].head.sentence : sts[A.id].sentence)).replace(/^([A-Z0-9]{2,12}): /, '$1 ').replace(/\.$/, ''))).join('; ')
         + (hit.length > 2 ? '; and ' + (hit.length - 2) + ' more' : '') + '.';
     }
-    return '<div class="fl-verdict"><span class="pill big ' + PILLC[lvl] + '">' + esc(VERD[lvl]) + '</span><span class="fl-vs">' + s + '</span></div>';
+    return '<div class="fl-verdict"><span class="pill big ' + PILLC[lvl] + '"' + hint('verdict', lvl, true) + '>' + esc(VERD[lvl]) + '</span><span class="fl-vs">' + s + '</span></div>';
   }
-  function kpi(k, v, sub, cls) { return '<div class="fl-kpi"><span class="fl-kk">' + esc(k) + '</span><b class="fl-kv' + (cls ? ' ' + cls : '') + '">' + v + '</b><span class="fl-ks">' + sub + '</span></div>'; }
+  const KPI = { Bots: 'bots', 'Last 24 h': 'day', Open: 'open', 'Fleet (paper)': 'fleet' };
+  function kpi(k, v, sub, cls) { return '<div class="fl-kpi tc"' + hint(KPI[k], '', true) + '><span class="fl-kk tl">' + esc(k) + '</span><b class="fl-kv' + (cls ? ' ' + cls : '') + '">' + v + '</b><span class="fl-ks">' + sub + '</span></div>'; }
   function kpisHtml(sm) {
     const on = active(), sts = sm.sts, X = fxNow(), now = nowS();
     // Bots: the not-OK rows split so the parts add up to (total − OK) (§3 b).
@@ -207,7 +209,7 @@
     return '<div class="fl-kpis">' + c1 + c2 + c3 + c4 + '</div>';
   }
   function ymdS(s) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || '')); return m ? Math.floor(new Date(+m[1], +m[2] - 1, +m[3], 12).getTime() / 1000) : null; }
-  function pill(cls, html) { return '<span class="pill ' + cls + ' fl-sw">' + html + '</span>'; }
+  function pill(cls, html, tk) { return '<span class="pill ' + cls + ' fl-sw"' + hint(tk, '', true) + '>' + html + '</span>'; }
   function nextOf(sts) {
     let best = null;
     for (const A of active()) { const K = sts[A.id].K; if (!K || K.next == null || !/^(countdown|due)$/.test(K.phase)) continue; if (!best || K.next < best.K.next) best = { A, K }; }
@@ -220,19 +222,19 @@
   }
   function pillsHtml(sm) {
     const e = E(), X = fxNow(), fl = isObj(e.fleet) ? e.fleet : null, host = isObj(e.host) ? e.host : null, now = nowS();
-    const kill = !fl ? pill('mute', 'Kill switch —') : fl.halt ? pill('bad', 'Fleet halted') : pill('good', 'Fleet running');
+    const kill = !fl ? pill('mute', 'Kill switch —', 'kill') : fl.halt ? pill('bad', 'Fleet halted', 'kill:halt') : pill('good', 'Fleet running', 'kill:run');
     const rg = X && X.regime;
-    const mkt = rg && rg.now ? pill(rg.now === 'bull' ? 'good' : rg.now === 'crisis' ? 'bad' : 'warn', 'Market: ' + esc(rg.now) + (rg.since ? ' since ' + esc(fmt.md(ymdS(rg.since))) : '') + ' · lab') : pill('mute', 'Market —');
-    let srv = pill('mute', 'Server —');
+    const mkt = rg && rg.now ? pill(rg.now === 'bull' ? 'good' : rg.now === 'crisis' ? 'bad' : 'warn', 'Market: ' + esc(rg.now) + (rg.since ? ' since ' + esc(fmt.md(ymdS(rg.since))) : '') + ' · lab', 'market') : pill('mute', 'Market —', 'market');
+    let srv = pill('mute', 'Server —', 'server');
     if (host) {
       const t = isoS(host.t), fails = num(host.fails) || 0, gap = t != null ? now - t : null;
-      const base = esc(hostName(host)) + ' · ';
-      srv = fails >= 2 ? pill('bad', base + fails + ' failed runs in a row')
-        : fails === 1 ? pill('warn', base + '1 failed run')
-        : gap != null && gap > 75 * 60 ? pill('warn', base + 'no tick for ' + esc(fmt.age(gap)))
-        : pill(t != null ? 'good' : 'mute', base + 'last tick ' + esc(t != null ? fmt.time(t) : '—'));
+      const base = esc(hostName(host)) + ' · ', tk = 'server:' + hostName(host);
+      srv = fails >= 2 ? pill('bad', base + fails + ' failed runs in a row', tk)
+        : fails === 1 ? pill('warn', base + '1 failed run', tk)
+        : gap != null && gap > 75 * 60 ? pill('warn', base + 'no tick for ' + esc(fmt.age(gap)), tk)
+        : pill(t != null ? 'good' : 'mute', base + 'last tick ' + esc(t != null ? fmt.time(t) : '—'), tk);
     }
-    const tk = '<span class="pill fl-sw fl-next" id="fl-next">' + esc(tickText(nextOf(sm.sts))) + '</span>';
+    const tk = '<span class="pill fl-sw fl-next" id="fl-next"' + hint('next', '', true) + '>' + esc(tickText(nextOf(sm.sts))) + '</span>';
     return '<div class="fl-pills">' + kill + mkt + srv + tk + '</div>';
   }
   function headHtml(sm, rise) {
@@ -262,12 +264,14 @@
     }
   }
   function lastTrade(A, now) {
-    if (A.act === undefined || (!A.sb && !A.act)) return { h: '<span class="fl-lt">—</span>', a: 'last trade not in this data' };
-    if (A.act === null) return { h: '<span class="fl-lt"><i class="fl-ad"></i>No trades yet</span>', a: 'no trades yet' };
+    const lt = '<span class="fl-lt"' + hint('last') + '>';
+    if (A.act === undefined || (!A.sb && !A.act)) return { h: lt + '—</span>', a: 'last trade not in this data' };
+    if (A.act === null) return { h: lt + '<i class="fl-ad"></i>No trades yet</span>', a: 'no trades yet' };
     const w = actWords(A.act), t = num(A.act.t), hot = t != null && now - t < D;
-    return { h: '<span class="fl-lt"><i class="fl-ad' + (hot ? ' on' : '') + '"></i>' + esc(w) + (t != null ? ' · ' + esc(fmt.when(t)) : '') + '</span>', a: 'last: ' + w };
+    return { h: lt + '<i class="fl-ad' + (hot ? ' on' : '') + '"></i>' + esc(w) + (t != null ? ' · ' + esc(fmt.when(t)) : '') + '</span>', a: 'last: ' + w };
   }
-  function cell(k, v, sub, cls) { return '<span class="fl-st"><span class="fl-sk">' + esc(k) + '</span><b class="fl-sv' + (cls ? ' ' + cls : '') + '">' + v + '</b>' + (sub ? '<span class="fl-ss">' + sub + '</span>' : '') + '</span>'; }
+  const CELL = { Trades: 'trades', Won: 'won', Holding: 'holding', Invested: 'invested', 'Closed trades': 'closed', Pairs: 'pairs', 'Funding kept': 'kept', 'Capital in use': 'capuse' };
+  function cell(k, v, sub, cls) { return '<span class="fl-st' + (CELL[k] ? ' tc"' + hint(CELL[k]) : '"') + '><span class="fl-sk tl">' + esc(k) + '</span><b class="fl-sv' + (cls ? ' ' + cls : '') + '">' + v + '</b>' + (sub ? '<span class="fl-ss">' + sub + '</span>' : '') + '</span>'; }
   function stats(A, now) {
     const rec = isObj(A.rec) ? A.rec : {}, kind = A.kind;
     // A v1 row (no kind): neutral cells, never a signal trader's R or a pair counted as a position (§3.9).
@@ -292,18 +296,18 @@
     const n = num(rec.n), w = num(rec.w), l = num(rec.l), open = num(A.n_open) || 0;
     const won = !n || w == null ? na(true) : esc(fmt.int(w) + ' of ' + fmt.int(n));
     return { h: cell('Trades', n == null ? na(true) : esc(fmt.int(n)), 'closed') + cell('Won', won, n && l != null ? esc(fmt.int(l) + ' lost') : '')
-               + cell('Holding', open ? esc(word.plural(open, 'coin')) : 'Nothing', open && num(rec.open_R) != null ? '<span class="' + fmt.cls(rec.open_R) + '">' + esc(fmt.R(rec.open_R)) + '</span> open' : ''),
+               + cell('Holding', open ? esc(word.plural(open, 'coin')) : 'Nothing', open && num(rec.open_R) != null ? '<span' + hint('ropen') + '><span class="' + fmt.cls(rec.open_R) + '">' + esc(fmt.R(rec.open_R)) + '</span> open</span>' : ''),
              a: (n == null ? '' : word.plural(n, 'trade') + (n && w != null ? ', ' + w + ' won, ' + l + ' lost' : '')) };
   }
   function modePill(A) {
     const m = A.sb && isObj(A.sb.mode) ? A.sb.mode : null;
-    if (m && m.req && m.eff && m.req !== m.eff) return '<span class="pill warn">Paper (live requested)</span>';
-    return (A.mode || (m && m.eff)) === 'live' ? '<span class="pill live">Live</span>' : '<span class="pill pt">Paper</span>';
+    if (m && m.req && m.eff && m.req !== m.eff) return '<span class="pill warn"' + hint('mode', 'ask') + '>Paper (live requested)</span>';
+    return (A.mode || (m && m.eff)) === 'live' ? '<span class="pill live"' + hint('mode', 'live') + '>Live</span>' : '<span class="pill pt"' + hint('mode', 'paper') + '>Paper</span>';
   }
   function typeChip(A) {
     let t = word.kindName(A.kind, barS(A));
     if (A.arena) { const ar = arenaOf(A); t += ' · Arena' + (ar && ar.day != null ? ' day ' + ar.day + (ar.of ? ' of ' + ar.of : '') : ''); }
-    return '<span class="fl-ty">' + esc(t) + '</span>';
+    return '<span class="fl-ty"' + hint('kind') + '>' + esc(t) + '</span>';
   }
   function statusHtml(A, st) {
     const K = st.K || {}, lt = lastT(A);
@@ -312,16 +316,16 @@
     else if (st.lvl === 'ok') rest = ' <span class="fl-sr">· checked <span data-ago="' + lt + '">' + esc(fmt.ago(lt)) + '</span>' + (K.next != null ? ' · next ≈ ' + esc(fmt.time(K.next)) : '') + '</span>';
     else if (st.k === 'stale') rest = ' <span class="fl-sr">· no check for ' + esc(fmt.age(K.age)) + '</span>';
     else if (st.head && st.head.wide) rest = ' <span class="fl-sr">' + esc(st.head.wide) + '</span>';      // without the "pushed …" trail
-    return '<span class="fl-status"><i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i><b class="fl-sw0">' + esc(st.word) + '</b>' + rest + '</span>';
+    return '<span class="fl-status tc"' + hint('st') + '><i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i><b class="fl-sw0 tl">' + esc(st.word) + '</b>' + rest + '</span>';
   }
   function bigHtml(A, now, st) {
     const p = num(A.pot_chg_pct), since = num(A.since);
-    const v = '<span class="fl-bigl">' + (p == null ? na(true) : '<b class="fl-big ' + fmt.cls(p) + '" data-fl-big="' + p + '">' + esc(fmt.pct(p)) + '</b>' + (fmt.cls(p) ? '' : '<span class="fl-flat">flat</span>')) + '</span>';
+    const v = '<span class="fl-bigl"' + hint('ret') + '>' + (p == null ? na(true) : '<b class="fl-big ' + fmt.cls(p) + '" data-fl-big="' + p + '">' + esc(fmt.pct(p)) + '</b>' + (fmt.cls(p) ? '' : '<span class="fl-flat">flat</span>')) + '</span>';
     let cap = 'since ' + (since != null ? esc(fmt.md(since)) : '—');
     if (since != null && now - since >= 7 * D && num(A.wk_pct) != null) cap += ' · this week ' + esc(fmt.pct(A.wk_pct));
     if (st.k === 'stale' && lastT(A) != null) cap += ' · as of ' + esc(fmt.when(lastT(A)));
     const sp = A.spark === undefined ? '' : COMP.sparkSvg(A.spark, { w: 140, h: 40 });
-    return '<span class="fl-num"><span class="fl-bigw">' + v + '<span class="fl-cap">' + cap + '</span></span><span class="fl-spw">' + sp + '</span></span>';
+    return '<span class="fl-num"><span class="fl-bigw">' + v + '<span class="fl-cap"' + hint('since') + '>' + cap + '</span></span><span class="fl-spw">' + sp + '</span></span>';
   }
   function tileCls(st) { return 'fl-tile fl-' + (st.lvl || 'mute') + (st.k === 'stale' ? ' fl-stale' : ''); }
   function ariaOf(A, st, now, s, lt) {
@@ -337,12 +341,12 @@
     const s = stats(A, now), lt = lastTrade(A, now), K = st.K || {}, lim = limOf(A.sb);
     const strip = COMP.beatStrip(A.beat, { bar: barS(A), lim, nextT: K.next, fresh: o && o.fresh });
     const prob = (st.lvl === 'warn' || st.lvl === 'bad') && !st.v1 ? '<span class="fl-prob">' + esc(plain(tail(st.head ? st.head.sentence : st.sentence))) + '</span>' : '';
-    return { a: ariaOf(A, st, now, s, lt), h: '<span class="fl-r1"><b class="fl-name">' + esc(nm(A)) + '</b>' + typeChip(A) + modePill(A) + '</span>'
+    return { a: ariaOf(A, st, now, s, lt), h: '<span class="fl-r1"><b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b>' + typeChip(A) + modePill(A) + '</span>'
       + statusHtml(A, st) + bigHtml(A, now, st) + '<span class="fl-stats">' + s.h + '</span>' + '<span class="fl-hbw">' + strip + '</span>' + lt.h + prob };
   }
   function compactInner(A, st, now) {
     const p = num(A.pot_chg_pct), lt = lastTrade(A, now), lim = limOf(A.sb);
-    return '<i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i><b class="fl-name">' + esc(nm(A)) + '</b><span class="fl-cw">' + esc(st.word) + '</span>'
+    return '<i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i><b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b><span class="fl-cw"' + hint('st') + '>' + esc(st.word) + '</span>'
       + '<span class="fl-cp ' + fmt.cls(p) + '">' + (p == null ? '—' : esc(fmt.pct(p))) + '</span>' + lt.h
       + '<span class="fl-micro">' + COMP.beatStrip(A.beat, { bar: barS(A), lim, nextT: (st.K || {}).next }) + '</span>';
   }
@@ -352,7 +356,7 @@
     return '<a class="' + tileCls(st) + rise + '" id="fl-' + esc(A.id) + '" data-id="' + esc(A.id) + '" href="' + esc(href(A)) + '" aria-label="' + esc(t.a) + '">' + t.h + '</a>';
   }
   function waitingTile(id) {
-    return '<a class="fl-tile fl-mute fl-wait" href="' + esc(botHref(id)) + '" data-id="' + esc(id) + '"><span class="fl-r1"><b class="fl-name">' + esc(id) + '</b></span><span class="fl-status"><i class="dot mute"></i><b class="fl-sw0">Waiting for its first check</b></span></a>';
+    return '<a class="fl-tile fl-mute fl-wait" href="' + esc(botHref(id)) + '" data-id="' + esc(id) + '"><span class="fl-r1"><b class="fl-name">' + esc(id) + '</b></span><span class="fl-status"><i class="dot mute"></i><b class="fl-sw0"' + hint('wait') + '>Waiting for its first check</b></span></a>';
   }
 
   // ===================================================================== sort, filter, compact ==
@@ -379,7 +383,7 @@
   function controlsHtml() {
     const n = active().length, by = sortOf(), f = filtOf(), dense = denseOf();
     let h = '<div class="fl-ctl"><div class="seg quiet fl-sort" role="group" aria-label="Sort the bots" data-mask><span class="ind"></span>'
-      + SORTS.map(([k, w]) => '<button type="button" data-v="' + k + '" data-fl-sort="' + k + '" aria-pressed="' + (by === k) + '">' + w + '</button>').join('') + '</div>';
+      + SORTS.map(([k, w]) => '<button type="button" data-v="' + k + '" data-fl-sort="' + k + '" aria-pressed="' + (by === k) + '"' + hint('sort', k) + '>' + w + '</button>').join('') + '</div>';
     if (n >= 7) {
       const cnt = k => active().filter(A => match(A, k)).length;
       h += '<div class="fchips fl-chips" role="group" aria-label="Show">' + FILTERS.filter(([k]) => k === 'all' || cnt(k) > 0)
@@ -402,7 +406,7 @@
     if (!shown.length && f !== 'all') h = '<div class="card fl-none"><div class="empty">No bot matches “' + esc((FILTERS.find(x => x[0] === f) || [])[1] || f) + '”. <button type="button" class="btn small ghost" data-fl-f="all">Show all ›</button></div></div>';
     const ret = rows().filter(A => A.enabled === false);
     if (ret.length) h += '<details class="disc fl-ret"><summary>Retired (' + ret.length + ')</summary><div class="body fl-grid">'
-      + ret.map(A => '<a class="fl-tile fl-mute fl-retired" href="' + esc(href(A)) + '" data-id="' + esc(A.id) + '"><span class="fl-r1"><b class="fl-name">' + esc(nm(A)) + '</b>' + typeChip(A) + '</span><span class="fl-status"><i class="dot mute"></i><b class="fl-sw0">Retired</b></span></a>').join('') + '</div></details>';
+      + ret.map(A => '<a class="fl-tile fl-mute fl-retired" href="' + esc(href(A)) + '" data-id="' + esc(A.id) + '"><span class="fl-r1"><b class="fl-name">' + esc(nm(A)) + '</b>' + typeChip(A) + '</span><span class="fl-status"><i class="dot mute"></i><b class="fl-sw0"' + hint('retired') + '>Retired</b></span></a>').join('') + '</div></details>';
     return h;
   }
 
@@ -442,7 +446,7 @@
   }
   function logHtml(rise, prevTop) {
     const list = logRows().slice(0, 10), seen = F.seen0;
-    let h = '<section class="card fl-log' + rise + '" id="fl-log"><div class="head"><div class="ttl"><h2>What just happened</h2><span class="sub">every bot, newest first</span></div></div>';
+    let h = '<section class="card fl-log' + rise + '" id="fl-log"><div class="head"><div class="ttl"><h2' + hint('log', '', true) + '>What just happened</h2><span class="sub">every bot, newest first</span></div></div>';
     if (!list.length) return h + '<div class="empty">Nothing traded in the last week.</div></section>';
     if (seen > 0) h += digest(list, seen);
     h += '<ol class="fl-lg">';
@@ -464,14 +468,43 @@
     }, 5000);
   }
 
-  // ==================================================================================== the Lab ==
-  function labHtml() {
-    const X = fxNow();
-    if (!X) return '<section class="fl-lab"><span>AiFi Lab · <span class="sub">not published yet</span></span></section>';
-    const L = X.lab || {}, sl = arr(X.shortlist);
-    return '<section class="fl-lab"><span><b>AiFi Lab</b> · ' + esc([fmt.int(L.tried || 0) + ' recipes tried', fmt.int(L.survivors || 0) + ' survived', sl.length + ' in the arena', sl.filter(s => s && s.ready).length + ' ready for you'].join(' · ')) + '</span>'
-      + '<span class="fl-labb"><button type="button" class="btn small" data-sheet="shortlist">Shortlist</button><button type="button" class="btn small" data-sheet="fleet">Fleet split</button></span></section>';
+  // ============================================================================ the bot factory ==
+  // Where new bots come from (§3.7): the AiFi Lab's funnel, last night's batch, every strategy type it tried and its
+  // research studies. lab.funnel, lab.last and lab.studies are newer and optional: an older exec:factory falls back to
+  // tried and survivors, and anything missing reads "—", never 0.
+  const FUN = [['tested', 'tested'], ['cheap', 'passed the quick check'], ['audit', 'passed the full audit'], ['holdout', 'passed the unseen final year'],
+    ['arena', 'trading in the arena (paper)'], ['ready', 'ready for you']];
+  function factoryHtml(X, done) {
+    const btns = '<div class="acts fl-labb"><button type="button" class="btn small" data-sheet="shortlist">Shortlist</button><button type="button" class="btn small" data-sheet="fleet">Fleet split</button></div>';
+    let h = '<section class="card fl-fx" id="fl-fx" aria-labelledby="fl-fxh"><div class="head"><div class="ttl"><h2 id="fl-fxh"' + hint('fx', '', true) + '>Bot factory</h2><span class="sub">AiFi Lab</span></div>' + (isObj(X) ? btns : '') + '</div>'
+      + '<p class="fl-fxp">Every night the AiFi Lab invents new bot recipes and tests each one against 8 years of market history. Most fail on purpose: the checks are strict. The few that pass get a tile above and start paper trading.</p>';
+    if (!isObj(X)) return h + '<p class="note">' + (done ? 'The lab hasn’t published its record yet.' : 'Loading the lab’s record…') + '</p></section>';
+    const L = isObj(X.lab) ? X.lab : {}, fn = isObj(L.funnel) ? L.funnel : {}, sl = Array.isArray(X.shortlist) ? X.shortlist.filter(isObj) : null;
+    const v = { tested: num(fn.tested) ?? num(L.tried), cheap: num(fn.passed_cheap), audit: num(fn.passed_audit), holdout: num(fn.passed_holdout) ?? num(L.survivors),
+      arena: sl && sl.filter(s => s.enabled !== false && !s.live).length, ready: sl && sl.filter(s => s.ready && !s.live).length };
+    const wait = num(fn.waiting_holdout), veto = num(fn.vetoed) ?? num(L.vetoed), ret = num(L.retired), live = sl ? sl.filter(s => s.live).length : 0;
+    const note = { audit: wait ? wait + ' waiting for the final-year test' : '', holdout: veto ? veto + ' turned down at the lab’s final review' : '',
+      arena: ret ? word.plural(ret, 'bot') + ' retired' : '', ready: live ? live + ' already live' : '' };
+    h += '<ol class="fl-fun">' + FUN.map(([k, w]) => {
+      const n = v[k], pc = n != null && v.tested ? Math.min(100, n / v.tested * 100) : 0;
+      return '<li class="tc"' + hint('fx', k, true) + '><b class="fl-fn">' + (n == null ? '—' : esc(fmt.int(n))) + '</b><span class="fl-fl tl">' + w + '</span>'
+        + (note[k] ? '<span class="fl-fs">' + esc(note[k]) + '</span>' : '') + '<i class="fl-fb"><i style="width:' + (n ? Math.max(1.5, pc).toFixed(1) : 0) + '%"></i></i></li>';
+    }).join('') + '</ol>';
+    // Last night's batch, called "last night" only while it is that recent; an older one, or a bare date, names its day.
+    const ls = isObj(L.last) ? L.last : null, day = ymdS(ls ? ls.date : L.last_batch);
+    const when = day == null ? '' : ls && Math.round((nowS() - day) / D) <= 1 ? 'Last night' : 'Latest batch, ' + fmt.md(day);
+    if (when) h += '<p class="fl-fxl"' + hint('fx', 'last') + '><b>' + esc(when) + '</b>' + (ls ? ': ' + esc((num(ls.tried) == null ? '—' : word.plural(ls.tried, 'recipe')) + ' tested, ' + (num(ls.passed) == null ? '—' : fmt.int(ls.passed)) + ' passed') : '') + '</p>';
+    const fam = isObj(L.by_family) ? Object.keys(L.by_family).map(id => { const f = isObj(L.by_family[id]) ? L.by_family[id] : {}; return { id, n: num(f.tried), p: num(f.survived) ?? num(f.passed) }; }) : [];
+    fam.sort((a, z) => (z.n ?? -1) - (a.n ?? -1) || famName(a.id).localeCompare(famName(z.id)));
+    if (fam.length) h += '<h3 class="fl-fxh"' + hint('fx', 'fam') + '>By strategy type</h3><ul class="fl-fam">' + fam.map(f => '<li class="tc"' + hint('fam', f.id) + '><span class="fl-fmn tl">' + esc(famName(f.id)) + '</span><span class="fl-fmc">'
+      + (f.n == null ? '—' : esc(fmt.int(f.n))) + ' tested · <b' + (f.p ? ' class="fl-fmp"' : '') + '>' + (f.p == null ? '—' : esc(fmt.int(f.p))) + ' passed</b></span></li>').join('') + '</ul>';
+    const st = arr(L.studies).filter(x => isObj(x) && x.name).slice(0, 3);
+    if (st.length) h += '<ul class="fl-res">' + st.map(x => '<li class="tc"' + hint('fx', 'study') + '><b class="tl">Research: ' + esc(x.name) + '</b>' + (x.headline ? ' · ' + esc(x.headline) : '')
+      + ' <span class="sub">' + esc([ymdS(x.date) != null ? fmt.md(ymdS(x.date)) : '', num(x.configs) ? word.plural(x.configs, 'version') + ' tried' : ''].filter(Boolean).join(' · ')) + '</span></li>').join('') + '</ul>';
+    return h + '</section>';
   }
+  COMP.fleetFactory = factoryHtml;
+  const labHtml = () => factoryHtml(fxNow(), F.fxDone);
 
   // =================================================================================== the view ==
   COMP.fleetLoading = function () {
@@ -483,7 +516,7 @@
   function render(root, why) {
     if (PAGE !== 'fleet' || !S.E) return '';
     F.root = root;
-    if (!F.fx) loadFactory().then(X => { if (X && F.fx !== X) { F.fx = X; paintParts(); } });
+    if (!F.fx) loadFactory().then(X => { const was = F.fxDone; F.fxDone = true; if ((X && F.fx !== X) || !was) { F.fx = X || F.fx; paintParts(); } });
     if (why === 'arrival' && $('#fl-grid', root) && arrive(root)) return;
     const now = nowS(), sm = summary(now), rise = why === 'route' ? ' rise' : '';
     if (why === 'route' || !F.order) computeOrder(sm.sts);
@@ -492,8 +525,9 @@
     F.gens = {}; F.acts = {}; F.big = {};
     for (const A of rows()) { F.gens[A.id] = A.gen; F.acts[A.id] = A.act && A.act.t; F.big[A.id] = num(A.pot_chg_pct); }
     F.logTop = logRows().reduce((m, x) => Math.max(m, x.e[0]), 0);
+    // The bot factory sits right under the tiles: it answers "where do these bots come from, and why so few?" (§3.7).
     return '<div class="fl">' + headHtml(sm, rise) + '<div id="fl-ny">' + needsHtml(sm) + '</div>' + controlsHtml() + gridHtml(sm.sts, now, rise)
-      + '<div id="fl-logw">' + logHtml(rise, null) + '</div><div id="fl-labw">' + labHtml() + '</div></div>';
+      + '<div id="fl-labw">' + labHtml() + '</div><div id="fl-logw">' + logHtml(rise, null) + '</div></div>';
   }
   // A recorded check arrived (a row's gen changed): that tile updates in place (one border pulse, a count-up of a
   // changed big number, the new bead grows), new log rows rise, one toast. Tiles never reorder (§3.4, §7).
@@ -582,7 +616,7 @@
 
   if (PAGE === 'fleet') {
     hook('tick30s', () => paintParts());
-    hook('agents', () => { loadFactory().then(X => { if (X !== F.fx) { F.fx = X; if (F.root) paintParts(); } }); });
+    hook('agents', () => { loadFactory().then(X => { F.fxDone = true; if (X !== F.fx) { F.fx = X; if (F.root) paintParts(); } }); });
     hook('show', () => {                                              // back to visible: the order may be recomputed
       if (!S.E || !F.root) return;
       const before = (F.order || []).join(), sm = summary(); computeOrder(sm.sts);

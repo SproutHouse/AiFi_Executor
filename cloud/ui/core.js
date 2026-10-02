@@ -43,6 +43,9 @@
                  word.punct(b) the punctuality sentence · word.list([…]) · word.plural(n, one, many?)
                  word.bar(b?) 'hourly' | '4-hour' | 'daily' · word.every(b?) 'every hour' | 'every 4 hours' | 'every day'
                  word.kindName(kind, bar_s?) "Signal trader · hourly" ("—" for an unknown kind)
+                 TIP[key] = [title, text] | fn(arg, el) → [title, text] | null: the plain words of every hover tip
+                   (§3.11) · hint(key, arg?, focus?) → ' data-tk="key:arg"' (+ tabindex=0) · tipText(spec, el) → html
+                   FAM[family id] = [plain name, what it does] · famName(id) (an unknown id prettified)
                  chip(coin, runT?) → a .tk button that opens the name sheet · ICON[name] / icon(name) → inline SVG
                    ICON names: x warn bad info ok left right up down raise block rec clock pause play flag eye doc
                    swap refresh
@@ -85,7 +88,7 @@
                    items[i] = {lvl, k, word, sentence(html), act:{label, href | cycle}, age, wide, head}
                  DOT[lvl] → dot class (ok due gap bad) · LVCLS[lvl] → '' | 'warn' | 'bad'
  Shell           openSheet(html | {html, after, cls}, key?) · showSheet(kind, arg, el?) · closeSheet() · refreshSheet()
-                 showTip(el, html?) · hideTip() · toast(html, {ms}) · setPlay(key, on) (html.play pauses .bg)
+                 showTip(el, html?, by?) · hideTip() · retip() · toast(html, {ms}) · setPlay(key, on) (html.play pauses .bg)
                  every1s(el, fn): fn runs every second while el is on screen and the page is visible
                  countUp(el, to, {from, decimals, prefix, suffix, ms, fmt}) · stagger(root) · setSeg(seg, v)
                  initSegs(root?) · movePill() · masks(root?) (edge fades .mask-l/.mask-r + region semantics) ·
@@ -99,8 +102,10 @@
                  On a bot page every same-page hash link is history.replaceState + route(): tabs add no history entry.
  Clicks          [data-cursor="<t>" | ""] sets the cursor ([data-scroll] also scrolls to the Gate Run) ·
                  [data-refresh] checks for new data · [data-retry] reboots · [data-top] scrolls to the top ·
-                 .tip / [data-tip="text"] / [data-g="glossKey"] open a tip (or set el._tip = html | fn(el));
-                 [data-tip-cursor="<t>"] adds a "Replay this check ›" button to that tip.
+                 .tip / [data-tip="text"] / [data-g="glossKey"] / [data-tk="key[:arg]"] open a tip (or set el._tip =
+                 html | fn(el)) on click, keyboard focus, a 250 ms mouse hover or a 450 ms long press; a tipped label
+                 inside a link or control leaves its click to the control. [data-tip-cursor="<t>"] adds a "Replay this
+                 check ›" button to that tip.
  ========================================================================================================== */
 
 // ============================================================================================ basics ==
@@ -216,7 +221,7 @@ const fmt = {
 
 // ==================================================================================== missing data ==
 const MISSING = 'not in this data';
-function na(short) { return short ? '<span class="na" title="' + MISSING + '">—</span>' : '— <span class="na">' + MISSING + '</span>'; }
+function na(short) { return short ? '<span class="na" data-tk="na">—</span>' : '— <span class="na">' + MISSING + '</span>'; }
 function val(v, f, short) { return v == null || (typeof v === 'number' && !isFinite(v)) ? na(short) : f ? f(v) : esc(v); }
 function broken(name) { return '<div class="card"><div class="empty">' + (name ? '<b>' + esc(name) + '</b> · ' : '') + 'This panel couldn’t be drawn from this data.</div></div>'; }
 function safe(fn, name, host) {
@@ -831,49 +836,96 @@ function toast(html, opts) {
 }
 
 // ============================================================================================ tips ==
-// Click or focus opens; Escape, an outside tap or a scroll closes; no hover (touch first). role=tooltip plus
-// aria-describedby on the trigger; the "?" buttons read "What is <term>?" and have a 44px hit area (mission.js).
-let tipbox = null, tipEl = null, tipAt = 0, tipQuiet = null;
+// One bubble for every tip (COMMAND_CENTER_SPEC §3.11). A tap, a click or keyboard focus opens it; a mouse resting
+// 250 ms on a tipped label opens it; on touch a long press (450 ms) opens it. A label inside a link or another control
+// never takes that control's click: only hover or a long press shows its tip, and the tap that ends a long press (or
+// the next tap, which just closes the bubble) is swallowed. Escape, a scroll, an outside tap or the mouse leaving
+// closes it. role=tooltip plus aria-describedby on the trigger; the "?" buttons read "What is <term>?" and have a 44px
+// hit area (mission.js). tipBy: 'hover' | 'click' | 'focus' | 'press'.
+let tipbox = null, tipEl = null, tipAt = 0, tipQuiet = null, tipBy = '', tipSig = '';
+let hovEl = null, hovT = 0, prT = 0, pr = null, prUp = false, prDown = 0;
 function tipFocus(el) { if (!el || !el.isConnected) return; tipQuiet = el; try { el.focus({ preventScroll: true }); } catch (e) {} if (document.activeElement !== el) tipQuiet = null; }
-const TIPSEL = '.tip,[data-tip],[data-g],[data-tip-cursor]';
+const TIPSEL = '.tip,[data-tip],[data-g],[data-tip-cursor],[data-tk]';
+// A label inside one of these (or a control carrying a tip itself) leaves the click to the control.
+const TIPACT = 'a[href],button,summary,label,input,select,textarea,[data-health],[data-sheet],[data-cursor],[data-cycle],[data-name],[data-pos],[data-trade]';
+const tipOwn = el => el.matches('.tip,[data-g],[data-tip-cursor],button[data-tip]') || !el.closest(TIPACT);
+const focusVis = el => { try { return el.matches(':focus-visible'); } catch (e) { return true; } };
+const sigOf = el => ((el.closest('[id]') || {}).id || '') + '|' + (el.dataset.tk || el.dataset.tip || el.dataset.g || '');
 function tipHtml(el) {
   if (typeof el._tip === 'function') return el._tip(el);
   if (typeof el._tip === 'string') return el._tip;
   let h = '';
   if (el.dataset.tip) h = esc(el.dataset.tip);
-  else if (el.dataset.g) { const g = gloss(el.dataset.g); if (g) h = '<b>' + esc(g.t) + '</b> · ' + esc(g.d); }
+  else if (el.dataset.tk) h = tipText(el.dataset.tk, el);
+  else if (el.dataset.g) { const g = gloss(el.dataset.g); if (g) h = '<b class="tipt">' + esc(g.t) + '</b>' + esc(g.d); }
   if (el.dataset.tipCursor != null) h += '<div><button type="button" class="btn small" data-cursor="' + esc(el.dataset.tipCursor) + '">Replay this check ›</button></div>';
   return h;
 }
-function showTip(el, html) {
+function showTip(el, html, by) {
   if (!el) return;
   const h = html != null ? html : tipHtml(el); if (!h) return;
   if (!tipbox) { tipbox = document.createElement('div'); tipbox.className = 'tipbox glass'; tipbox.id = 'tipbox'; tipbox.setAttribute('role', 'tooltip'); document.body.appendChild(tipbox); }
   if (tipEl && tipEl !== el) tipEl.removeAttribute('aria-describedby');
-  tipbox.innerHTML = h; tipEl = el; tipAt = performance.now();
+  tipbox.innerHTML = h; tipEl = el; tipAt = performance.now(); tipBy = by || 'click'; tipSig = sigOf(el);
   el.setAttribute('aria-describedby', 'tipbox');
-  const r = el.getBoundingClientRect();
+  const r = el.getBoundingClientRect(), vw = HTML.clientWidth || innerWidth;
   tipbox.style.left = '0px'; tipbox.style.top = '0px'; tipbox.classList.add('on');
   const w = tipbox.offsetWidth, ht = tipbox.offsetHeight;
-  const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), innerWidth - w - 8);
+  const x = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, vw - w - 8));
   let y = r.bottom + 8; if (y + ht > innerHeight - 8) y = Math.max(8, r.top - ht - 8);
   tipbox.style.left = x + 'px'; tipbox.style.top = y + 'px';
 }
 function hideTip() {
   if (tipbox) tipbox.classList.remove('on');
   if (tipEl) tipEl.removeAttribute('aria-describedby');
-  tipEl = null;
+  tipEl = null; tipBy = ''; tipSig = '';
 }
+// A redraw replaced the trigger (a tile's 30 s repaint): follow it to its replacement, with fresh words, or close.
+function retip() {
+  if (!tipEl || tipEl.isConnected) return;
+  const s = tipSig, n = s ? $$(TIPSEL).find(x => sigOf(x) === s) : null;
+  if (n) showTip(n, null, tipBy); else hideTip();
+}
+function pressOpen() { if (!pr || !pr.el.isConnected) return; pr.on = true; prDown = 0; showTip(pr.el, null, 'press'); }
 function initTips() {
   document.addEventListener('click', e => {
     const t = e.target; if (!(t instanceof Element)) return;
     if (tipbox && tipbox.contains(t)) return;                    // a button inside the tip acts; the shell then closes it
     const el = t.closest(TIPSEL);
-    if (el) { e.preventDefault(); if (tipEl === el && performance.now() - tipAt > 350) hideTip(); else showTip(el); return; }
+    if (el && tipOwn(el)) { e.preventDefault(); if (tipEl === el && tipBy !== 'hover' && performance.now() - tipAt > 350) hideTip(); else showTip(el, null, 'click'); return; }
     if (tipEl) hideTip();
   });
-  document.addEventListener('focusin', e => { const el = e.target instanceof Element && e.target.closest(TIPSEL); if (el && el === tipQuiet) { tipQuiet = null; return; } if (el && !(tipbox && tipbox.contains(el))) showTip(el); });
-  document.addEventListener('focusout', () => { if (tipEl) setTimeout(() => { const a = document.activeElement; if (tipEl && a !== tipEl && !(tipbox && tipbox.contains(a))) hideTip(); }, 0); });
+  // Touch: a long press shows the tip. The tap that ends it, and the next tap outside the bubble, only close or keep it.
+  addEventListener('pointerdown', e => {
+    prUp = false; clearTimeout(prT); pr = null;
+    const t = e.target instanceof Element ? e.target : null, inBox = !!(t && tipbox && tipbox.contains(t));
+    prDown = tipEl && tipBy === 'press' && !inBox ? performance.now() : 0;
+    const el = e.pointerType !== 'mouse' && t && !inBox ? t.closest(TIPSEL) : null;
+    if (el) { pr = { el, x: e.clientX, y: e.clientY, on: false }; prT = setTimeout(pressOpen, 450); }
+  }, true);
+  addEventListener('pointermove', e => { if (pr && !pr.on && Math.abs(e.clientX - pr.x) + Math.abs(e.clientY - pr.y) > 12) { clearTimeout(prT); pr = null; } }, { capture: true, passive: true });
+  addEventListener('pointerup', () => { clearTimeout(prT); if (pr && pr.on) prUp = true; pr = null; }, true);
+  addEventListener('pointercancel', () => { clearTimeout(prT); if (pr && pr.on) prUp = true; pr = null; prDown = 0; }, true);
+  addEventListener('contextmenu', e => { if (pr) { e.preventDefault(); if (!pr.on) { clearTimeout(prT); pressOpen(); } } else if (tipEl && tipBy === 'press') e.preventDefault(); }, true);
+  addEventListener('click', e => {
+    if (prUp) { prUp = false; e.preventDefault(); e.stopPropagation(); return; }
+    if (prDown && performance.now() - prDown < 1500) { e.preventDefault(); e.stopPropagation(); hideTip(); }
+    prDown = 0;
+  }, true);
+  // Mouse: rest 250 ms on a label (at once when moving from one tip to the next); leaving it closes a hover tip.
+  document.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse') return;
+    const t = e.target instanceof Element ? e.target : null;
+    if (t && tipbox && tipbox.contains(t)) { clearTimeout(hovT); return; }
+    const el = t && t.closest(TIPSEL);
+    if (el === hovEl) return;
+    hovEl = el; clearTimeout(hovT);
+    if (el) hovT = setTimeout(() => { if (hovEl === el && el.isConnected) showTip(el, null, 'hover'); }, tipEl && tipBy === 'hover' ? 60 : 250);
+    else if (tipBy === 'hover') hovT = setTimeout(hideTip, 150);
+  });
+  document.addEventListener('pointerout', e => { if (e.pointerType === 'mouse' && !e.relatedTarget) { hovEl = null; clearTimeout(hovT); if (tipBy === 'hover') hideTip(); } });
+  document.addEventListener('focusin', e => { const el = e.target instanceof Element && e.target.closest(TIPSEL); if (el && el === tipQuiet) { tipQuiet = null; return; } if (el && !(tipbox && tipbox.contains(el)) && focusVis(el)) showTip(el, null, 'focus'); });
+  document.addEventListener('focusout', () => { if (tipEl && (tipBy === 'focus' || tipBy === 'click')) setTimeout(() => { const a = document.activeElement; if (tipEl && (tipBy === 'focus' || tipBy === 'click') && a !== tipEl && !(tipbox && tipbox.contains(a))) hideTip(); }, 0); });
   document.addEventListener('keydown', e => {
     if (!tipEl) return;
     const a = document.activeElement, inBox = !!(tipbox && a && tipbox.contains(a));
@@ -887,7 +939,174 @@ function initTips() {
   });
   addEventListener('scroll', () => { if (tipEl) hideTip(); }, { passive: true, capture: true });
   addEventListener('resize', () => { if (tipEl) hideTip(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && tipEl) hideTip(); });
 }
+
+// ================================================================================== the tip words ==
+// One plain-language dictionary for every title and label the owner may wonder about (COMMAND_CENTER_SPEC §3.11), so
+// a word always gets the same explanation. An element carries data-tk="key" or "key:arg" (hint() writes it); the words
+// are built when the bubble opens, so a time in them is never stale. An entry is [title, text] or fn(arg, el) →
+// [title, text] | null. Words first; R and % of pot only, never money. The bot a tip is about: its arg, else the
+// nearest [data-id] (a master tile), else this page's bot.
+function hint(k, arg, focus) { return ' data-tk="' + esc(k + (arg == null || arg === '' ? '' : ':' + arg)) + '"' + (focus ? ' tabindex="0"' : ''); }
+function tipText(spec, el) {
+  const s = String(spec), i = s.indexOf(':'), k = i < 0 ? s : s.slice(0, i);
+  let v = TIP[k];
+  try { if (typeof v === 'function') v = v(i < 0 ? '' : s.slice(i + 1), el); } catch (e) { report(e, 'tip ' + k); v = null; }
+  return !v ? '' : '<b class="tipt">' + esc(v[0]) + '</b>' + esc(v[1]);
+}
+function tipRow(arg, el) { const h = el && el.closest ? el.closest('[data-id]') : null; return rowOf(arg || (h && h.dataset.id) || AGENT); }
+const onPage = A => PAGE === 'bot' && !!S.b && (!A || A.id === AGENT);
+const tipBar = A => onPage(A) ? barOf(S.b) : (A && (num(A.bar_s) || TF[A.tf])) || null;
+const R1 = 'R is the amount this bot planned to risk on one trade: +1 R means it won what it risked.';
+// A status word for one bot, with its own times.
+function stTip(st, b, A) {
+  if (!st) return null;
+  const K = st.K || {}, T = fmt.when, ev = barw(b ? barOf(b) : tipBar(A) || BAR, 1);
+  const d = {
+    ok: 'It checks the market ' + ev + '. Its last check' + (K.lastT != null ? ' (' + fmt.ago(K.lastT) + ')' : '') + ' ran on time.' + (K.next != null ? ' Next check about ' + T(K.next) + '.' : ''),
+    due: 'Its ' + T(K.C) + ' check should land any minute' + (K.rng ? ' (usually ' + K.rng[0] + '–' + K.rng[1] + ' min after)' : '') + '. Nothing is wrong unless it is still missing at ' + T(K.lateAt) + '.',
+    late_now: 'Its ' + T(K.C) + ' check is past its ' + (K.lim || limOf(b)) + '-min limit, so this round’s buys are skipped. Sells are checked once it runs.',
+    stale: 'No check for ' + fmt.age(K.age) + ', though it checks ' + ev + '. The server may be down, so these numbers may be out of date.',
+    exits: 'It holds coins, but no check since ' + T(K.lastT) + ' has looked at selling them.',
+    failed: 'Its last check stopped partway, so its sells may not have been checked.',
+    halt: 'Buying is off, set by you or the fleet kill switch. It still sells when its rules say so.',
+    thr_halt: 'The pot fell to its safety limit below its best point, so buying stopped until reviewed. Sells still run.',
+    thr_half: 'The pot is far enough below its best point that new trades risk half as much until it recovers.',
+    late: 'Its last check started too late, on old prices, so it skipped buying that round. Sells still ran.',
+    fallback: 'Live trading was asked for, but something it needs is missing, so it still trades on paper.',
+    unhedged: 'In one pair the coin and its short bet differ in size, so price moves no longer cancel. It evens them within a few hours.',
+    exit_slow: 'A pair it is closing is taking longer than usual.',
+    none: 'It hasn’t run its first check yet.',
+    v1: 'It hasn’t sent its schedule yet; its on-time status shows after its next check.',
+  }[st.k];
+  return [st.word, d || (st.lvl === 'bad' ? 'It raised a problem. Open the bot to see it.' : 'It raised a note worth a look. Open the bot for details.')];
+}
+const VTIP = {
+  ok: ['All clear', 'Every bot checked in on time and nothing needs you.'],
+  mute: ['Waiting', 'No bot has sent its schedule yet; this fills in after their next checks.'],
+  info: ['Due', 'A check is due any minute. Nothing is wrong yet.'],
+  warn: ['Watch', 'Something is worth a look but not urgent, like a late check. The line beside it names the bot.'],
+  bad: ['Needs you', 'A bot has a problem that won’t fix itself, like a failed check or a halt. Open it to see what to do.'],
+};
+function capTip() {
+  const c = capState(), net = { signedout: 'Your session ended. Tap to sign in again.', offline: 'Can’t reach the dashboard; the numbers are from the last time it could.', checking: 'Fetching the latest data.' }[S.net];
+  if (net) return [c.word, net];
+  let v = null;
+  if (PAGE === 'fleet') { const f = S.E && typeof COMP.fleetSummary === 'function' ? safe(() => COMP.fleetSummary(), 'Fleet') : null; if (isObj(f) && VTIP[f.lvl]) v = [c.word, VTIP[f.lvl][1]]; }
+  else if (S.b) v = stTip(S.st || status(S.b), S.b, rowOf(AGENT));
+  return v ? [v[0], v[1] + ' Tap for the health details.'] : [c.word, 'No readable data yet; the next check sends it.'];
+}
+const KTIP = {
+  flip: 'It buys a coin when its trend signal fires and every safety check passes, and sells when the trend turns or its stop is hit.',
+  target: 'It keeps a set mix of coins and adjusts it at each check, instead of trading single signals.',
+  carry: 'It holds a coin plus an equal short bet on it, so price moves mostly cancel, and earns the funding fees traders pay.',
+};
+function arenaDays(id) {
+  const s = fxCache && Array.isArray(fxCache.shortlist) ? fxCache.shortlist.find(x => x && x.agent === id) : null;
+  const m = s && /(\d+)\s+of\s+(\d+)\s+days/.exec(String(s.not_ready || ''));
+  return { day: s && num(s.days) != null ? Math.floor(s.days) : null, of: m ? m[2] : null };
+}
+const FXT = {
+  '': ['Bot factory', 'The AiFi Lab, a separate program, designs and tests new bot recipes every night. This shows how many it tried and how few got through.'],
+  tested: ['Tested', 'Every recipe tried so far: rules for when to buy and sell, replayed on about 8 years of past prices.'],
+  cheap: ['Passed the quick check', 'A fast first screen: did it make money on past prices, with sensible risk?'],
+  audit: ['Passed the full audit', 'A strict review: realistic costs, many market periods, and a test that the result isn’t luck.'],
+  holdout: ['Passed the unseen final year', 'The lab hides the latest year of prices while it designs. A recipe gets one try to work on that year.'],
+  arena: ['Trading in the arena', 'A recipe that passed everything trades on paper, no real money, for a trial of several weeks, and must keep matching its backtest.'],
+  ready: ['Ready for you', 'It finished its trial and matched its backtest. Going live is always your call; nothing switches by itself.'],
+  last: ['Nightly batch', 'The lab’s latest nightly batch: new recipes tested, and how many passed every check.'],
+  fam: ['By strategy type', 'The kinds of idea the lab tests: recipes tried and passed for each.'],
+  study: ['Research', 'A bigger experiment to learn which ideas are worth testing. A study, not a bot.'],
+};
+// Strategy families the lab tests: [plain name, what it does]. An id not listed reads as its own words.
+const FAM = {
+  rs_rotation: ['Strongest-coins rotation', 'Holds the few coins that rose most in recent weeks, swapping as the ranking changes.'],
+  tsmom: ['Trend: price vs N days ago', 'Holds a coin while its price is above where it was a set number of days ago.'],
+  sma_trend: ['Trend: price vs its average', 'Holds a coin while its price is above its recent average.'],
+  dual_ma: ['Two-average crossover', 'Buys when a short average price crosses above a longer one; sells when it crosses back.'],
+  donchian: ['Breakout to new highs', 'Buys when a coin breaks above its recent high; sells on a break below its recent low.'],
+  cloud_trend: ['Momentum Cloud trend', 'Follows the Momentum Cloud trend line your signal traders use.'],
+  meanrev: ['Buy the dip in an uptrend', 'Buys a short drop in a coin that is in a longer uptrend.'],
+  carry: ['Funding collector', 'Holds a coin plus an equal short bet on it and collects funding fees.'],
+  bull_momentum: ['Bull-market momentum', 'Buys the strongest coins, only while the whole market is rising.'],
+};
+function famName(id) { const f = FAM[id]; return f ? f[0] : cap1(String(id || '—').replace(/[_-]+/g, ' ')); }
+const TIP = {
+  st: (a, el) => {
+    const A = tipRow(a, el);
+    if (onPage(A)) return stTip(S.st || status(S.b), S.b, A);
+    if (!A) return null;
+    if (A.enabled === false) return TIP.retired;
+    const b = rowBundle(A), t = num(A.last_t);
+    return stTip(b ? status(b) : A.failed === true ? { k: 'failed', word: 'Failed', lvl: 'bad' } : A.halt === true || (S.E && S.E.fleet && S.E.fleet.halt) ? { k: 'halt', word: 'Halted', lvl: 'bad' }
+      : { k: 'v1', word: t != null ? 'Checked ' + fmt.ago(t) : 'Waiting for its first check' }, b, A);
+  },
+  cap: capTip,
+  verdict: l => VTIP[l],
+  retired: ['Retired', 'Switched off; it no longer trades. Its record stays here.'],
+  wait: ['Waiting for its first check', 'On the roster but not reported yet. Its tile fills in after its first check.'],
+  name: (a, el) => { const A = tipRow(a, el); return A && [A.name || A.id, A.desc || 'No description yet.']; },
+  kind: (a, el) => {
+    const A = tipRow(a, el), ki = onPage(A) ? kindInfo(S.b) : { kind: A && A.kind }, bar = tipBar(A), r = A && A.arena ? arenaDays(A.id) : null;
+    return KTIP[ki.kind] && [KINDW[ki.kind], KTIP[ki.kind] + (bar ? ' It checks ' + barw(bar, 1) + '.' : '')
+      + (r ? ' Arena: a new AiFi Lab bot on a ' + (r.of ? r.of + '-day ' : '') + 'paper trial' + (r.day != null ? ', on day ' + r.day : '') + '. It stays only while it matches its backtest.' : '')
+      + (ki.inferred ? ' Type inferred from what it holds; confirmed after its next check.' : '')];
+  },
+  mode: a => ({ paper: ['Paper', 'It follows every rule on real prices but places no real orders: no real money, simulated results.'],
+    live: ['Live', 'It places real orders with real money.'], ask: ['Paper (live requested)', 'Live trading was asked for, but something it needs is missing, so it is still on paper.'] })[a],
+  modes: ['Paper and live', 'How many bots trade real money (live) and how many only simulate (paper).'],
+  ret: ['Return', 'How much its pot grew or shrank since it started, in % of the pot. A paper pot is pretend.'],
+  since: ['Since', 'The day it started on its current rules; the return counts from then.'],
+  trades: ['Trades', 'Finished trades: bought, then sold. An open one counts once it closes.'],
+  won: ['Won', 'Finished trades that made money after costs, out of all finished trades.'],
+  holding: ['Holding', 'The coins it owns right now.'],
+  ropen: ['Open R', 'Where the trades it still holds stand now. ' + R1],
+  invested: ['Invested', 'The share of its pot in coins right now; the rest waits in cash.'],
+  closed: ['Closed trades', 'Trades it has fully exited. A rebalancer trades rarely, so it is judged over a year (an arena bot over its trial), not by trade count.'],
+  pairs: ['Pairs', 'Each pair is a coin plus an equal short bet on it, so price moves mostly cancel while it collects funding.'],
+  kept: (a, el) => { const A = tipRow('', el), c = (onPage(A) ? S.b.carry_sum : A && A.carry) || {}; return ['Funding kept', 'The share of the funding it could earn that it kept after costs and timing. It needs ' + (num(c.gate_pct) ?? 80) + '% to go live; its first 2 weeks are too early to judge.']; },
+  capuse: ['Capital in use', 'How much of the pot its pairs tie up. It can pass 100%: each pair counts the coin and the short.'],
+  beads: (a, el) => {
+    const bar = tipBar(tipRow('', el)), m = /^(\d+)\/(\d+)$/.exec(a);
+    return ['Heartbeat', 'One dot per check' + (bar ? ' (' + barw(bar, 1) + ')' : '') + ', oldest left. Green on time, amber late, red failed; a magenta ring means it traded. A dashed empty dot was missed; the empty magenta dot is the next check.'
+      + (m ? ' ' + m[1] + ' of the last ' + m[2] + ' ran on time.' : '')];
+  },
+  last: ['Last trade', 'The latest thing it bought or sold, and when. A magenta dot: within 24 hours.'],
+  na: ['Not in this data', 'Not in the latest data; it fills in after the next check.'],
+  bots: ['Bots', 'Bots running normally. Below: how many are late, failed or halted (stopped by a safety rule or by you).'],
+  day: ['Last 24 h', 'Checks in the past day that ran on time, all bots together. Below: signals seen, and the buys and sells that followed.'],
+  open: ['Open', 'Coins held now by the traders and rebalancers, then the funding pairs, counted apart (a pair is two positions).'],
+  fleet: ['Fleet (paper)', 'All paper bots as one pretend pot: its change, and its worst drop from a peak (drawdown). Worked out by the AiFi Lab.'],
+  kill: a => a === 'halt' ? ['Fleet halted', 'The fleet kill switch is on: no bot buys; sells still run.'] : a ? ['Fleet running', 'The fleet kill switch is off. If it trips, every bot stops buying but keeps selling.'] : ['Kill switch', 'Not in this data yet.'],
+  market: ['Market', 'The AiFi Lab’s read of the crypto market: bull (rising), bear (falling) or crisis. Some bots buy only in a bull market.'],
+  server: a => [a || 'Server', 'The always-on computer that runs the bots’ checks. A tick is it waking to run them, about hourly.'],
+  next: ['Next check', 'Which bot checks the market next, with a live countdown.'],
+  sort: a => ({ roster: ['Roster', 'Your bots in a fixed order; tiles never move on their own.'], attention: ['Needs attention', 'Bots with a problem first, then live before paper.'],
+    return: ['Return', 'Best return since the start first.'], active: ['Most active', 'Most buys and sells in the last 24 hours first.'] })[a],
+  log: ['What just happened', 'The latest trades and events of every bot, newest first. Tap one to open that bot’s log.'],
+  fx: a => FXT[a],
+  fam: a => [famName(a), (FAM[a] || [])[1] || 'A kind of recipe the lab added recently.'],
+  sec: a => ({ record: ['Wins and losses', 'How its finished trades went, and whether its record is long enough to judge.'],
+    traded: ['What it traded', 'Every buy, sell and adjustment, newest first.'],
+    pace: ['How often', 'How regularly it checks and how often it trades; for a signal trader, how many signals passed its checks.'],
+    holding: ['Holding now', 'What it owns now and, for a trader, where each safety exit (stop) sits.'],
+    equity: ['Equity', 'Its pot over time; shaded is how far it fell below its best point (drawdown).'],
+    health: ['Health and schedule', 'Whether its checks run on time, whether it may buy, and any warnings.'],
+    strategy: ['Strategy and evidence', 'Its rules in brief and, for an arena bot, paper results against the backtest.'] })[a],
+  wl: ['Won / lost', 'Finished trades that made money against those that lost, after costs.'],
+  avg: ['Average trade', 'The average finished trade, in R and in % of the pot. ' + R1],
+  best: ['Best / worst', 'Its best and worst finished trades, in R.'],
+  nclosed: () => ['Closed trades', 'Finished trades. It needs ' + (num((cfgOf().gates || {}).n) || 'enough') + ' before its record can be judged for going live.'],
+  openres: ['Open result', 'Where its holdings stand now, in % of the pot and in R.'],
+  dd: ['Drawdown', 'How far the pot is below its best point. At the limits shown, risk halves, then buying stops.'],
+  got: ['Collected', 'Funding earned so far in % of the pot, and what trading cost.'],
+  result: ['Result', 'The pot’s change since it started, everything included.'],
+  early: ['Too early', 'A fair verdict needs more trades or days. Until then the numbers are a first look, not proof.'],
+  yearly: ['Judged yearly', 'A slow rebalancer can only be judged fairly over a full year.'],
+  buying: ['Buying', 'Whether it may open new trades now. After a big drop its safety rules halve the risk, then stop buying.'],
+  bt: ['Backtest vs paper', 'Backtest: the recipe replayed on past prices. Paper: how it does now on live prices, no real money. Close numbers mean it behaves as tested.'],
+};
 
 // =========================================================================================== theme ==
 function setTheme(t) {
@@ -1029,8 +1248,7 @@ function paintCapsule() {
     const cls = 'capsule' + (c.cls ? ' ' + c.cls : '');
     if (h !== capMemo) { cap.innerHTML = h; capMemo = h; }
     if (cap.className !== cls) cap.className = cls;
-    const ttl = c.word + (c.age ? ' · ' + c.age : '') + (S.net === 'signedout' ? ' · sign in' : ' · health details');
-    if (cap.title !== ttl) cap.title = ttl;          // the 30 s tick writes nothing that did not change (§3.3)
+    if (!cap.dataset.tk) cap.dataset.tk = 'cap';
   }
   const rs = $('#railstat');
   if (rs) {
@@ -1038,6 +1256,7 @@ function paintCapsule() {
     const cls = 'status' + (c.cls === 'warn' || c.cls === 'bad' ? ' ' + c.cls : '');
     if (h !== railMemo) { rs.innerHTML = h; railMemo = h; }
     if (rs.className !== cls) rs.className = cls;
+    if (!rs.dataset.tk) rs.dataset.tk = 'cap';
   }
 }
 function paintMode() {
@@ -1054,6 +1273,8 @@ function paintMode() {
   }
   if (el.className !== cls) el.className = cls;
   if (h !== modeMemo || !el.firstChild) { el.innerHTML = h; modeMemo = h; }
+  const tk = PAGE === 'fleet' ? 'modes' : 'mode:' + (modeOf(S.b).eff || '');
+  if (el.dataset.tk !== tk) el.dataset.tk = tk;
 }
 // Alert rail (§4.1): bad items and the paper fallback on every tab, other warn items on Overview only; empty renders
 // nothing. The master's rail (COMMAND_CENTER_SPEC §3.1) comes from fleet.js: a fleet halt, a runner that seems down.
@@ -1124,6 +1345,7 @@ function renderView(why) {
   if (typeof out === 'string') root.innerHTML = out;
   stagger(root); initSegs(root); masks(root);
   if (typeof V.after === 'function') { try { const r = V.after(root); if (typeof r === 'function') viewClean = r; } catch (e) { report(e, name + ' (after)'); } }
+  retip();
 }
 // Re-render the open tab in place (a layout breakpoint crossed, a module's own state changed): keeps the scroll
 // position and any open sheet; not an arrival, so nothing counts up and no card rises.
@@ -1286,7 +1508,7 @@ function tick30() {
   refreshShell();
   $$('[data-ago]').forEach(el => { const t = Number(el.dataset.ago); if (!isFinite(t)) return; const a = fmt.ago(t); if (el.textContent !== a) el.textContent = a; });
   runHooks('tick30s');
-  nudgePoll(); sync1s();
+  retip(); nudgePoll(); sync1s();
 }
 function startTimers() {
   stopTimers();
