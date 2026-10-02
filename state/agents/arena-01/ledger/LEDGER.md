@@ -1,39 +1,43 @@
 # Ledger
 
-_Rendered 2026-10-01T02:07:19.261676Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T00:08:18.397561Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| arena | LTC | target | T | 66.5604 | 53.2483 | 12.4% | 3x | 2026-09-30T00:23 |
 | arena | NEAR | target | T | 4.91516 | 3.93213 | 6.4% | 3x | 2026-09-30T00:23 |
 | arena | UNI | target | T | 8.8076 | 7.04608 | 7.3% | 3x | 2026-09-30T00:23 |
+| arena | AVAX | target | T | 10.9895 | 8.79159 | 8.8% | 3x | 2026-10-02T00:08 |
 
 ## Closed trades, summary
 
-No closed trades yet.
+- Trades 1 · win rate 100% · average +0.12 R · total +0.1 R · profit factor n/a · worst losing streak 0 · costs 0.01 R per trade · average -0.01 R against holding the benchmark
 
 ## Last 50 closed trades
 
-None yet.
+| Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-02T00:08 | arena | LTC | target | T | 66.5604 | 68.2279 | +0.12 | -0.01 | target weight zero | 48 |
 
 ## Refused signals: 0 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 127 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
 - AAVE: target 0% of pot, holding 0% → none
 - ADA: target 0% of pot, holding 0% → none
-- AVAX: target 0% of pot, holding 0% → none
+- AVAX: target 9% of pot, holding 0% → open
+- AVAX: ENTERED AVAX long [arena] · target tier T · stop 8.7872 (20.0% away) · size 8.8% of pot at 3x · risk 1.75% of pot
 - BNB: target 0% of pot, holding 0% → none
 - BTC: target 0% of pot, holding 0% → none
 - DOGE: target 0% of pot, holding 0% → none
 - ETH: target 0% of pot, holding 0% → none
 - LINK: target 0% of pot, holding 0% → none
-- LTC: target 12% of pot, holding 12% → hold
-- NEAR: target 6% of pot, holding 7% → hold
+- LTC: target 0% of pot, holding 13% → close
+- LTC [arena]: closed on target weight zero at 68.228 → +0.12 R · -0.01 R vs LTC
+- NEAR: target 6% of pot, holding 6% → hold
 - SOL: target 0% of pot, holding 0% → none
-- UNI: target 7% of pot, holding 7% → hold
+- UNI: target 8% of pot, holding 7% → hold
 - XRP: target 0% of pot, holding 0% → none
-- evaluated 13 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
+- evaluated 13 names · 0 triggers · 0 refused · 0 proposed · 1 entered · 3 open
