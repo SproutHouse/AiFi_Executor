@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-02T03:06:37.420629Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T04:07:45.857653Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -26,6 +26,5 @@ _Rendered 2026-10-02T03:06:37.420629Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- JUP: ENTERED JUP long [solana] · flip tier A · stop 0.31604 (5.1% away) · size 19.5% of pot at 3x · risk 1.00% of pot
-- evaluated 31 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 1 open
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
+- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open

@@ -1,5 +1,51 @@
 {
-  "updated": "2026-10-02T00:06:39.406593Z",
+  "updated": "2026-10-02T04:06:34.427963Z",
   "mode": "paper",
-  "positions": {}
+  "positions": {
+    "BTC": {
+      "coin": "BTC",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 85544.75099999999,
+      "stop": 82914.73166885023,
+      "initial_stop": 82914.73166885023,
+      "notional": 301.5657925477058,
+      "sz": 0.0035252401698814446,
+      "risk_amt": 10.0,
+      "leverage": 3,
+      "notional_pct_equity": 30.156579254770584,
+      "entry_fee": 0.1357046066464676,
+      "funding_paid": 0.0,
+      "opened": "2026-10-02T04:06:02Z",
+      "opened_ts": 1790913962,
+      "last_bar_t": 1790899200,
+      "last_funding_ts": 1790913962,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:wide-4h",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:bitcoin"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "bitcoin",
+      "benchmark": "BTC",
+      "bench_entry": 85502.0,
+      "mark": 85502.0,
+      "upnl_pct": -0.04997501249374148
+    }
+  }
 }

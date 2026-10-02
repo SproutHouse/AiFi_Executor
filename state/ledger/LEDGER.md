@@ -1,10 +1,12 @@
 # Ledger
 
-_Rendered 2026-10-02T00:06:03.455406Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T04:06:01.934709Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-None.
+| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
+|---|---|---|---|---|---|---|---|---|
+| bitcoin | BTC | flip | A | 85540.7 | 82914.7 | 30.2% | 3x | 2026-10-02T04:05 |
 
 ## Closed trades, summary
 
@@ -19,6 +21,5 @@ None yet.
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- LINK: signal pullback tier B recorded, not traded (tier not automated)
-- CRV: signal pullback tier B REFUSED: universe filters (24h volume 9.7M below 30M)
-- evaluated 14 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 0 open
+- BTC: ENTERED BTC long [bitcoin] · flip tier A · stop 82915 (3.3% away) · size 30.2% of pot at 3x · risk 1.00% of pot
+- evaluated 14 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 1 open
