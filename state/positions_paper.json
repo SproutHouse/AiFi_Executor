@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-02T04:06:01.927709Z",
+  "updated": "2026-10-02T08:06:00.967323Z",
   "mode": "paper",
   "positions": {
     "BTC": {
@@ -9,7 +9,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 85540.749,
-      "stop": 82914.73166885023,
+      "stop": 83305.04738016924,
       "initial_stop": 82914.73166885023,
       "notional": 301.97771503391914,
       "sz": 0.0035302206090563827,
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 30.197771503391913,
       "entry_fee": 0.1358899717652636,
-      "funding_paid": 0.0,
+      "funding_paid": 0.015098885751695958,
       "opened": "2026-10-02T04:05:45Z",
       "opened_ts": 1790913945,
-      "last_bar_t": 1790899200,
-      "last_funding_ts": 1790913945,
+      "last_bar_t": 1790913600,
+      "last_funding_ts": 1790928345,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,7 +44,52 @@
       "book": "bitcoin",
       "benchmark": "BTC",
       "bench_entry": 85498.0,
-      "mark": 85498.0,
+      "mark": 86243.0,
+      "upnl_pct": 0.8209549345891354
+    },
+    "ETH": {
+      "coin": "ETH",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 2741.9703,
+      "stop": 2634.3829302254385,
+      "initial_stop": 2634.3829302254385,
+      "notional": 240.7628522419659,
+      "sz": 0.08780651352859872,
+      "risk_amt": 10.023432109811653,
+      "leverage": 3,
+      "notional_pct_equity": 24.020001293398295,
+      "entry_fee": 0.10834328350888466,
+      "funding_paid": 0.0,
+      "opened": "2026-10-02T08:05:45Z",
+      "opened_ts": 1790928345,
+      "last_bar_t": 1790913600,
+      "last_funding_ts": 1790928345,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:core",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:eth-defi"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "eth-defi",
+      "benchmark": "ETH",
+      "bench_entry": 2740.6,
+      "mark": 2740.6,
       "upnl_pct": -0.04997501249375258
     }
   }
