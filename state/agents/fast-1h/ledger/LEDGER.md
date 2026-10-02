@@ -1,21 +1,20 @@
 # Ledger
 
-_Rendered 2026-10-02T18:06:46.407057Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-02T19:06:56.219991Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
-|---|---|---|---|---|---|---|---|---|
-| solana | JUP | flip | A | 0.332256 | 0.319191 | 19.5% | 3x | 2026-10-02T03:05 |
+None.
 
 ## Closed trades, summary
 
-- Trades 6 · win rate 33% · average -0.21 R · total -1.3 R · profit factor 0.32 · worst losing streak 3 · costs 0.02 R per trade · average -0.03 R against holding the benchmark
+- Trades 7 · win rate 29% · average -0.30 R · total -2.1 R · profit factor 0.22 · worst losing streak 3 · costs 0.02 R per trade · average -0.10 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-02T18:00 | solana | JUP | flip | A | 0.332256 | 0.319031 | -0.80 | -0.51 | stop | 15 |
 | 2026-10-02T17:00 | l1s | XLM | flip | A | 0.224792 | 0.218967 | -0.77 | -0.30 | stop | 8 |
 | 2026-10-01T13:00 | eth-defi | CRV | flip | A | 0.361701 | 0.377451 | +0.35 | +0.39 | stop | 67 |
 | 2026-09-30T13:00 | l1s | AVAX | flip | A | 11.1856 | 10.9844 | -0.20 | -0.22 | stop | 30 |
@@ -23,13 +22,11 @@ _Rendered 2026-10-02T18:06:46.407057Z in paper mode from state/positions_paper.j
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 103 recorded (state/ledger/refused.jsonl)
+## Refused signals: 104 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- XLM [l1s]: closed on stop at 0.21897 → -0.77 R · -0.30 R vs BTC
-- ZRO: signal pullback tier B recorded, not traded (tier not automated)
-- DOT: signal pullback tier B REFUSED: universe filters (24h volume 1.9M below 5M)
-- INJ: signal pullback tier B REFUSED: universe filters (24h volume 2.5M below 5M)
-- evaluated 30 names · 3 triggers · 3 refused · 0 proposed · 0 entered · 1 open
+- JUP [solana]: closed on stop at 0.31903 → -0.80 R · -0.51 R vs SOL
+- WLD: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open
