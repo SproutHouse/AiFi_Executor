@@ -55,12 +55,13 @@ FAMILIES = {
     "bull_momentum": {"doc": "Bull-market momentum: while the market gate says the market is in a bullish swing, hold the "
                              "K coins with the strongest momentum score, re-ranked every R days (and the day the gate "
                              "opens); everything flat the day the gate closes. Gates and scores: momentum.py.",
-                      "params": {"rank": ("choice", tuple(MO.SCORES), None, "ret"), "n": ("int", 5, 180, 30),
+                      "params": {"rank": ("choice", tuple(MO.SCORES), None, "ret"), "n": ("int", 5, 365, 30),
                                  "k": ("int", 1, 10, 3), "rebalance_days": ("int", 1, 30, 7),
                                  "buffer": ("int", 0, 5, 0), "filter_n": ("int", 0, 300, 0),
                                  "abs_mom": ("bool", None, None, True),
                                  "gate": ("choice", tuple(MO.GATES), None, "btc_sma"), "gate_n": ("int", 10, 300, 200),
-                                 "breadth_min": ("float", 0.3, 0.9, 0.5), "gate_hold": ("int", 1, 10, 1)},
+                                 "breadth_min": ("float", 0.3, 0.9, 0.5), "gate_hold": ("int", 1, 10, 1),
+                                 "near_high": ("float", 0.0, 0.9, 0.0)},
                       "engine": True},
 }
 ROTATIONS = ("rs_rotation", "bull_momentum")
@@ -283,7 +284,8 @@ def _bull_momentum(panel, p, days, pos_of, raw, regime):
     """Gate closed: hold nothing. Gate open: on rebalance days (epoch day divisible by R, as in rs_rotation) and on the
     day the gate opens, rank the eligible coins by the score and hold the top K; a coin already held stays while it
     ranks inside the top K + buffer (fewer trades for the same idea). Eligible: a score, above its own F-day average
-    when filter_n > 0, and up over N days when abs_mom. Between rebalances a held coin that falls below its F-day
+    when filter_n > 0, up over N days when abs_mom, and (near_high > 0) no more than near_high below its highest close
+    of the last 365 days (a strong month in a coin still far below its yearly high is a bounce, not leadership). Between rebalances a held coin that falls below its F-day
     average is dropped at once. A day without a gate reading is a data gap: no weights that day, selection kept."""
     n, k, R, fn, buf, rk = p["n"], p["k"], p["rebalance_days"], p["filter_n"], p["buffer"], p["rank"]
     gate = MO.gate_series(panel, days, pos_of, p, regime)
@@ -304,6 +306,8 @@ def _bull_momentum(panel, p, days, pos_of, raw, regime):
         if fn and (f[j] is None or c[j] <= f[j]):
             return None
         if p["abs_mom"] and c[j] <= c[j - n]:
+            return None
+        if p["near_high"] and c[j] < (1 - p["near_high"]) * max(c[max(0, j - 364):j + 1]):
             return None
         vals = [MO.score(nm, c, j, n, btc, t) for nm in names]
         return None if any(v is None for v in vals) else vals

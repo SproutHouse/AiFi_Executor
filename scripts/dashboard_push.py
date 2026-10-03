@@ -88,7 +88,10 @@ def bull_words(family, pm):
     from executor import momentum as MO
     p = dict(pm)
     p.setdefault("gate", "btc_sma")
-    return {"gate": MO.gate_words(p), "rank": MO.SCORE_WORDS.get(p.get("rank", "ret")), "rank_days": p.get("n")}
+    rank = MO.SCORE_WORDS.get(p.get("rank", "ret"))
+    if p.get("near_high"):
+        rank += f", only coins within {round(p['near_high'] * 100)}% of their 1-year high"
+    return {"gate": MO.gate_words(p), "rank": rank, "rank_days": p.get("n")}
 
 def num(x, nd=2):
     """Round to nd decimals; integral values become ints; NaN, inf and junk become None; never -0."""

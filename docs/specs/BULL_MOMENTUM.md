@@ -35,12 +35,13 @@ the top K coins by score, re-ranked every R days and on the day the gate opens. 
 | `breadth_min` | 0.3-0.9 | share of coins that must be above their average (breadth, combo, vote) |
 | `gate_hold` | 1-10 | days a new gate reading must persist before the state flips (1 = at once) |
 | `rank` | ret, skip, sharpe, clenow, high, accel, smooth, resid, ma_dist, multi, ensemble | the momentum score (`momentum.SCORES`) |
-| `n` | 5-180 | the score's lookback (days) |
+| `n` | 5-365 | the score's lookback (days) |
 | `k` | 1-10 | coins held |
 | `rebalance_days` | 1-30 | re-rank when the epoch day number is divisible by this (same rule as rs_rotation, so engine and lab agree) |
 | `buffer` | 0-5 | a held coin stays while it ranks inside the top K + buffer (fewer trades for the same idea) |
 | `filter_n` | 0-300 | a coin must also be above its own N-day average (0 = off); checked daily |
 | `abs_mom` | true/false | a coin must be up over the score's N days to be picked |
+| `near_high` | 0-0.9 | a coin must be no more than this far below its highest close of the last 365 days to be picked (0 = off). Added 2026-10-03 after A01 bought AVAX: up 48% in three weeks but still 65% below its yearly high. A strong month in a long-term laggard is a bounce, not leadership (George & Hwang 2004, 52-week-high momentum) |
 
 Plus the common target settings (vol_target, cap_x, vol_days, band, stop_pct, gross_cap). Each held coin gets 1/K of
 the pot, scaled by vol_target / its realised volatility, capped at cap_x.

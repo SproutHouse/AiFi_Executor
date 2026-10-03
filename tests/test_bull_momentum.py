@@ -57,6 +57,9 @@ class Causal(unittest.TestCase):
     def test_hysteresis(self):
         self.check({"gate": "index_sma", "gate_n": 30, "gate_hold": 3, "rank": "multi", "n": 15, "k": 3})
 
+    def test_near_high(self):
+        self.check({"gate": "breadth", "gate_n": 50, "rank": "high", "n": 200, "k": 2, "near_high": 0.3})
+
 
 class StartIndependent(unittest.TestCase):
     def test_late_start_gives_the_same_weights(self):
@@ -98,6 +101,23 @@ class Rules(unittest.TestCase):
         days, W = F.targets(pn, "bull_momentum", {"gate": "btc_sma", "gate_n": 50}, None, None)
         i = days.index(gap)
         self.assertTrue(all(W[c][i] is None for c in pn))
+
+    def test_near_high_skips_coins_far_below_their_yearly_high(self):
+        pn = panel()
+        days = sorted({b["t"] for b in pn["BTC"]})
+        base = {"gate": "none", "rank": "ret", "n": 20, "k": 3, "abs_mom": False, "rebalance_days": 1}
+        _d, W0 = F.targets(pn, "bull_momentum", base, None, None)
+        _d, W1 = F.targets(pn, "bull_momentum", dict(base, near_high=0.2), None, None)
+        checked = 0
+        for i in range(400, len(days)):
+            for c, bars in pn.items():
+                cl = [b["c"] for b in bars]
+                far = cl[i] < 0.8 * max(cl[max(0, i - 364):i + 1])
+                if far:
+                    self.assertEqual(W1[c][i], 0.0, f"{c} day {i}")
+                    checked += 1
+        self.assertGreater(checked, 50)
+        self.assertNotEqual(W0, W1)
 
     def test_settings(self):
         with self.assertRaises(ValueError):
