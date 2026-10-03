@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-02T20:06:09.735062Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-03T00:06:01.387941Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -23,6 +23,4 @@ _Rendered 2026-10-02T20:06:09.735062Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ETH [eth-defi]: closed on stop at 2650.8 → -0.82 R · -0.20 R vs ETH
-- PUMP: signal pullback tier B recorded, not traded (tier not automated)
-- evaluated 13 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 1 open
+- evaluated 13 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open

@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-02T02:06:37Z",
+  "t": "2026-10-03T00:08:12Z",
   "agent": "trend-1d",
   "tf": "1d",
   "mode": "paper",
-  "hours": "auto",
+  "hours": "approval",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -16,9 +16,9 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 0.0,
+    "drawdown_pct": 0.8590206399806242,
     "halt": false,
-    "peak": 1004.8641903979501
+    "peak": 1004.8557604923233
   },
   "halt": false,
   "fleet_mult": 1.0,
@@ -30,9 +30,9 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 127 min after the bar close",
+    "BTC weekly Bullish · daily Bullish · data 8 min after the bar close",
     "BTC: target 36% of pot, holding 35% → hold",
-    "ETH: target 34% of pot, holding 33% → hold",
+    "ETH: target 34% of pot, holding 32% → hold",
     "evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open"
   ],
   "readings": [
@@ -44,13 +44,13 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 84837.0,
+      "close": 84482.0,
       "trigger": null,
-      "why": "close 84837 above its 50-day average 77709; volatility 42% → weight 0.72",
+      "why": "close 84482 above its 50-day average 78129; volatility 42% → weight 0.72",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 0.586482,
       "days": 1500,
-      "mark": 84976.0
+      "mark": 84413.6
     },
     {
       "coin": "ETH",
@@ -60,15 +60,15 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 2706.6,
+      "close": 2668.6,
       "trigger": null,
-      "why": "close 2706.6 above its 50-day average 2452.8; volatility 44% → weight 0.69",
+      "why": "close 2668.6 above its 50-day average 2468.5; volatility 44% → weight 0.69",
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 2718.2
+      "mark": 2666.07
     }
   ],
-  "equity": 1004.8557604923233,
-  "hours_local": "22:06 EDT"
+  "equity": 996.1289819273587,
+  "hours_local": "20:08 EDT"
 }
