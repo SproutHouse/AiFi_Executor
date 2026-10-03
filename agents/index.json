@@ -45,6 +45,20 @@
         "dev_sharpe": 1.132,
         "dev_max_dd": 17.99
       }
+    },
+    {
+      "id": "arena-02",
+      "name": "A02 Bull",
+      "enabled": true,
+      "desc": "While at least two of three bull signals agree, holds the 3 of 35 coins with the strongest move beyond Bitcoin's over 30 days, re-ranked every 7 days; all cash when the bull signal ends. Picked by the AiFi Lab (recipe bm-c3067ed4); paper, and dropped if it stops matching its backtest.",
+      "arena": {
+        "recipe": "bm-c3067ed4",
+        "family": "bull_momentum",
+        "enrolled": "2026-10-03",
+        "tag": "all-weather",
+        "dev_sharpe": 1.609,
+        "dev_max_dd": 20.33
+      }
     }
   ]
 }
