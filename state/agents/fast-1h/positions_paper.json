@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-03T14:06:39.204261Z",
+  "updated": "2026-10-03T15:06:39.267818Z",
   "mode": "paper",
   "positions": {
     "CRV": {
@@ -9,7 +9,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 0.38071026,
-      "stop": 0.3639180547947705,
+      "stop": 0.36508750075084895,
       "initial_stop": 0.36222450532752276,
       "notional": 192.2713857088864,
       "sz": 505.0333702823938,
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 19.635771284855746,
       "entry_fee": 0.08652212356899888,
-      "funding_paid": 0.009613569285444322,
+      "funding_paid": 0.012016961606805402,
       "opened": "2026-10-03T10:05:45Z",
       "opened_ts": 1791021945,
-      "last_bar_t": 1791032400,
-      "last_funding_ts": 1791036345,
+      "last_bar_t": 1791036000,
+      "last_funding_ts": 1791039945,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2679.7,
-      "mark": 0.37854,
-      "upnl_pct": -0.5700555587863643
+      "mark": 0.37955,
+      "upnl_pct": -0.3047619467886231
     },
     "AVAX": {
       "coin": "AVAX",
@@ -54,7 +54,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 11.139567,
-      "stop": 10.75044153076313,
+      "stop": 10.795682639918136,
       "initial_stop": 10.715546145292365,
       "notional": 241.43702251294897,
       "sz": 21.67382471086614,
@@ -62,11 +62,11 @@
       "leverage": 3,
       "notional_pct_equity": 24.71452319064377,
       "entry_fee": 0.10864666013082702,
-      "funding_paid": 0.005994009413081893,
+      "funding_paid": 0.009011972194493754,
       "opened": "2026-10-03T12:06:35Z",
       "opened_ts": 1791029195,
-      "last_bar_t": 1791032400,
-      "last_funding_ts": 1791036345,
+      "last_bar_t": 1791036000,
+      "last_funding_ts": 1791039945,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "l1s",
       "benchmark": "BTC",
       "bench_entry": 84659.0,
-      "mark": 11.1341,
-      "upnl_pct": -0.04907731153284134
+      "mark": 11.127,
+      "upnl_pct": -0.11281407975730628
     }
   }
 }
