@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-03T12:07:42.634979Z",
+  "updated": "2026-10-03T13:06:39.808811Z",
   "mode": "paper",
   "positions": {
     "CRV": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 19.635771284855746,
       "entry_fee": 0.08652212356899888,
-      "funding_paid": 0.004840165091629953,
+      "funding_paid": 0.007210176964083241,
       "opened": "2026-10-03T10:05:45Z",
       "opened_ts": 1791021945,
-      "last_bar_t": 1791025200,
-      "last_funding_ts": 1791029195,
+      "last_bar_t": 1791028800,
+      "last_funding_ts": 1791032745,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2679.7,
-      "mark": 0.37636,
-      "upnl_pct": -1.1426694935933845
+      "mark": 0.375,
+      "upnl_pct": -1.4998965354913296
     },
     "AVAX": {
       "coin": "AVAX",
@@ -54,7 +54,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 11.139567,
-      "stop": 10.715546145292365,
+      "stop": 10.75044153076313,
       "initial_stop": 10.715546145292365,
       "notional": 241.43702251294897,
       "sz": 21.67382471086614,
@@ -62,11 +62,11 @@
       "leverage": 3,
       "notional_pct_equity": 24.71452319064377,
       "entry_fee": 0.10864666013082702,
-      "funding_paid": 0.0,
+      "funding_paid": 0.002976046631670031,
       "opened": "2026-10-03T12:06:35Z",
       "opened_ts": 1791029195,
-      "last_bar_t": 1791025200,
-      "last_funding_ts": 1791029195,
+      "last_bar_t": 1791028800,
+      "last_funding_ts": 1791032745,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "l1s",
       "benchmark": "BTC",
       "bench_entry": 84659.0,
-      "mark": 11.134,
-      "upnl_pct": -0.04997501249374148
+      "mark": 11.066,
+      "upnl_pct": -0.6604116659112425
     }
   }
 }
