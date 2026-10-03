@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-03T15:06:39.274141Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-03T16:07:39.952084Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -29,8 +29,5 @@ _Rendered 2026-10-03T15:06:39.274141Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- CRV: stop trailed to 0.36509
-- AVAX: stop trailed to 10.796
-- AAVE: signal pullback tier B REFUSED: book open-risk cap (book eth-defi: 2.00% after entry, cap 2.0%)
-- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
