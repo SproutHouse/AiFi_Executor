@@ -16,6 +16,7 @@ import ARRIVAL from "./ui/arrival.js";
 import FACTORY from "./ui/factory.js";
 import FLEET from "./ui/fleet.js";
 import BOT from "./ui/bot.js";
+import LAB from "./ui/lab.js";
 import BOOT from "./ui/boot.js";
 import GATERUN_CSS from "./ui/gaterun.css";
 import NOW_CSS from "./ui/now.css";
@@ -27,6 +28,7 @@ import ARRIVAL_CSS from "./ui/arrival.css";
 import FACTORY_CSS from "./ui/factory.css";
 import FLEET_CSS from "./ui/fleet.css";
 import BOT_CSS from "./ui/bot.css";
+import LAB_CSS from "./ui/lab.css";
 
 const APP = "AiFi Executor";
 const COOKIE = "ex";
@@ -56,13 +58,19 @@ function lean(src) {
 // core.js declares the shared names, so it alone is joined bare; every other module is already one block.
 const guard = (n, src) => n === "core" ? src
   : "try {\n" + src + "\n} catch (e) { try { console.error('[executor] ui/" + n + ".js did not load', e); } catch (_) {} }";
-const CLIENT = inlineSafe('(function(){"use strict";\n'
-  + MODULES.map(([n, src]) => "/* ui/" + n + ".js */\n" + guard(n, lean(src))).join("\n;\n")
+const bundle = (mods) => inlineSafe('(function(){"use strict";\n'
+  + mods.map(([n, src]) => "/* ui/" + n + ".js */\n" + guard(n, lean(src))).join("\n;\n")
   + "\n})();");
+const CLIENT = bundle(MODULES);
+// The AiFi Lab page ("/lab", COMMAND_CENTER_SPEC §11) has its own, smaller bundle: core + lab + boot. The lab module
+// never reaches the Command Center's or a bot page's script, so their size does not grow with it.
+const LAB_CLIENT = bundle([["core", CORE], ["lab", LAB], ["boot", BOOT]]);
 // CSS comments and indentation are dropped the same way (no stylesheet has "/*" inside a string or url()).
 const leanCss = (c) => String(c || "").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map(l => l.trim()).filter(Boolean).join("\n");
 const CSS = [DESIGN_CSS, MISSION_CSS, GATERUN_CSS, NOW_CSS, ACTIVITY_CSS, POSITIONS_CSS, RESULTS_CSS, RULES_CSS, ARRIVAL_CSS, FACTORY_CSS,
              FLEET_CSS, BOT_CSS].map(leanCss).join("\n");
+const CSS_LAB = [DESIGN_CSS, MISSION_CSS, LAB_CSS].map(leanCss).join("\n");
+const LAB_DAY = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 export default {
   async fetch(request, env) {
@@ -82,6 +90,15 @@ export default {
       const a = url.searchParams.get("a");
       if (a !== null && !AGENT_ID.test(a)) return redirect(url.origin + "/");
       return shell(request, a === null ? "fleet" : "bot");
+    }
+    if (p === "/lab") return shell(request, "lab");
+    // The AiFi Lab's log (§11): exec:lab, and one night's full trial records, exec:lab:day:<YYYY-MM-DD>. The lab writes
+    // both straight to KV; nothing here parses them.
+    if (p === "/api/lab") return kvRaw(env, "exec:lab");
+    if (p === "/api/lab/day") {
+      const d = url.searchParams.get("d") || "";
+      if (!LAB_DAY.test(d)) return json({ error: "bad date" }, 400);
+      return kvRaw(env, "exec:lab:day:" + d);
     }
     // Several agents share this dashboard: ?a=<agent id> picks whose payload; "core" (the default) keeps exec:<name>.
     const ag = url.searchParams.get("a") || "core";
@@ -230,7 +247,7 @@ function md(text) {
 // before first paint and rewrites both metas; the client does the same on every toggle.
 const THEME_BOOT = "<script>(function(){try{var t=localStorage.getItem('aifi.theme');if(t==='light'||t==='dark'){document.documentElement.dataset.theme=t;var c=t==='light'?'#eef1f6':'#0a0b0f',m=document.querySelectorAll('meta[name=theme-color]');for(var i=0;i<m.length;i++)m[i].setAttribute('content',c)}}catch(e){}})()</script>";
 const ICON = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f04ec2"/><stop offset="1" stop-color="#9d8ff7"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#g)"/><text x="16" y="21" text-anchor="middle" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="13" font-weight="800" fill="#1b0713">Ex</text></svg>');
-const HEAD = (title) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0b0f" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)"><meta name="color-scheme" content="dark light"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Executor"><link rel="icon" href="${ICON}"><title>${esc(title)}</title>${THEME_BOOT}${FONTS}<style>${CSS}</style></head><body><div class="bg" aria-hidden="true"></div>`;
+const HEAD = (title, css = CSS) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0b0f" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)"><meta name="color-scheme" content="dark light"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Executor"><link rel="icon" href="${ICON}"><title>${esc(title)}</title>${THEME_BOOT}${FONTS}<style>${css}</style></head><body><div class="bg" aria-hidden="true"></div>`;
 const SHEET = '<div class="sheet-bg" id="sheetbg"></div><div class="sheet glass" id="sheet" role="dialog" aria-modal="true" aria-label="Details"></div>';
 const SVG = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 // The bot page's four tabs (COMMAND_CENTER_SPEC §2.2). 24px, stroke 1.7 from design.js; the Activity dots are drawn
@@ -243,6 +260,7 @@ const NAV = [
 ];
 const ICO_FLEET = '<rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>';
 const ICO_BACK = '<path d="M15 6l-6 6 6 6"/>';
+const ICO_LAB = '<path d="M9 3h6M10 3v6l-5.2 9.2A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-2.8L14 9V3"/><path d="M7.4 15h9.2"/>';
 const ICO_DOC = '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>';
 const THEME_BTN = '<button class="btn icon" type="button" data-theme-toggle title="Light / dark" aria-label="Switch light or dark theme">' + SVG('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>') + '</button>';
 const FOOT = '<div class="foot">Deterministic rules, no model. Every figure comes from the state each check commits, in R and percent of the pot; the dashboard never shows money amounts.</div>';
@@ -258,13 +276,14 @@ function appPage(view) {
   const navA = (href, label, d, extra) => `<a href="${href}" class="nav"${extra || ""}>${SVG(d)}<span>${label}</span></a>`;
   const rail = bot
     ? navA("/", "All bots", ICO_BACK, " data-back") + NAV.map(([id, label, d], i) => `<a href="#${id}" data-tab="${id}" class="nav" aria-keyshortcuts="${i + 1}">${SVG(d)}<span>${label}</span><span class="k" aria-hidden="true">${i + 1}</span></a>`).join("")
-    : navA("/", "Command center", ICO_FLEET, ' aria-current="page"') + navA("/doc/how_it_works", "Rules &amp; docs", ICO_DOC);
+    : navA("/", "Command center", ICO_FLEET, ' aria-current="page"') + navA("/lab", "AiFi Lab", ICO_LAB) + navA("/doc/how_it_works", "Rules &amp; docs", ICO_DOC);
   const tabs = NAV.map(([id, label, d]) => `<a href="#${id}" data-tab="${id}">${SVG(d)}<span>${label}</span></a>`).join("");
   const lead = bot
     ? `<a class="btn small ghost fl-backbtn" id="back" href="/" data-back aria-label="All bots"><span aria-hidden="true">‹</span><span class="fl-bkw">All bots</span></a>`
     : `<a class="brand tmark" href="/" aria-label="${APP}, Command center"><span class="mark" aria-hidden="true">Ex</span></a>`;
   const loading = bot ? "Loading the bot…" : "Loading the fleet…";
-  const foot = bot ? FOOT : FOOT.replace("</div>", ' <span class="fl-footl"><a href="/doc/how_it_works">Rules &amp; docs</a> · <a href="/logout">Log out</a></span></div>');
+  const foot = bot ? FOOT : FOOT.replace("</div>", ' <span class="fl-footl"><a href="/lab">AiFi Lab</a> · <a href="/doc/how_it_works">Rules &amp; docs</a> · <a href="/logout">Log out</a></span></div>');
+  if (view === "lab") return labPage(navA);
   return HEAD(APP) + `
 <div class="shell" data-view="${bot ? "bot" : "fleet"}">
   <aside class="rail glass">
@@ -291,6 +310,32 @@ ${bot ? `<nav class="tabbar glass" aria-label="Sections">${tabs}</nav>` : ""}
 ${SHEET}
 <div class="toast" id="toast"></div>
 <script>${CLIENT}</script></body></html>`;
+}
+// The AiFi Lab page ("/lab", COMMAND_CENTER_SPEC §11): the lab's totals, the Lab floor replay and the Strategy log. Its
+// own CSS and bundle (core + lab + boot); mounts #ttl (the one h1), #view, #sheet/#sheetbg, #toast and #app, no capsule
+// (the lab has no live status to announce).
+function labPage(navA) {
+  const rail = navA("/", "Command center", ICO_FLEET) + navA("/lab", "AiFi Lab", ICO_LAB, ' aria-current="page"') + navA("/doc/how_it_works", "Rules &amp; docs", ICO_DOC);
+  return HEAD("AiFi Lab · " + APP, CSS_LAB) + `
+<div class="shell" data-view="lab">
+  <aside class="rail glass">
+    <a class="brand" href="/"><span class="mark" aria-hidden="true">Ex</span><div class="bn">${APP}</div></a>
+    <nav aria-label="Pages"><span class="pill" aria-hidden="true"></span>${rail}</nav>
+    <div class="foot rfoot"><a class="btn small ghost" href="/logout">Log out</a></div>
+  </aside>
+  <div class="main"><div class="wrap">
+    <header class="topbar"><div class="row">
+      <a class="brand tmark" href="/" aria-label="${APP}, Command center"><span class="mark" aria-hidden="true">Ex</span></a>
+      <h1 id="ttl">AiFi Lab</h1>
+      <div class="ctl"><a class="btn small ghost lb-home" href="/">Command center</a>${THEME_BTN}</div>
+    </div></header>
+    <main class="app" id="app" data-view="lab"><div id="view"><div class="card"><div class="empty">Loading the lab’s log…<noscript> This page needs JavaScript.</noscript></div></div></div></main>
+    ${FOOT.replace("</div>", ' <span class="lb-footl"><a href="/">Command center</a> · <a href="/doc/how_it_works">Rules &amp; docs</a> · <a href="/logout">Log out</a></span></div>')}
+  </div></div>
+</div>
+${SHEET}
+<div class="toast" id="toast"></div>
+<script>${LAB_CLIENT}</script></body></html>`;
 }
 const PAGE_TOP = (title, right) => `<div class="wrap" style="max-width:1120px"><header class="topbar"><div class="row"><a class="brand" href="/" style="display:flex;align-items:center;gap:10px" aria-label="${APP} dashboard"><span class="mark" aria-hidden="true">Ex</span></a><h1>${esc(title)}</h1><div class="ctl">${right || ""}${THEME_BTN}</div></div></header>`;
 async function docPage(env, slug) {

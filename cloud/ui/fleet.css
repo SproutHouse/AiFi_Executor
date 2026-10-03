@@ -192,6 +192,7 @@ button.fl-b::before{content:"";position:absolute;left:-2px;right:-2px;top:50%;he
 .fl-fb i{display:block;height:100%;border-radius:2px;background:var(--ink-2)}
 .fl-fxl{margin:var(--s3) 0 0;font-size:var(--fs-sm);color:var(--ink-2)}
 .fl-fxl b{color:var(--ink)}
+.fl-fxa{display:flex;flex-wrap:wrap;gap:var(--s2);margin:var(--s3) 0 0}
 .fl-fxh{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:var(--s4) 0 var(--s2)}
 .fl-fam{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);column-gap:var(--s5)}
 @media(min-width:641px){.fl-fam{grid-template-columns:repeat(2,minmax(0,1fr))}}

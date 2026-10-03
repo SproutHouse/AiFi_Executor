@@ -14,6 +14,10 @@ module cannot stop the ones after it (boot.js is last). Never use a template lit
 The CSS is appended in the same order: `design.js` (AiFi tokens, magenta accent) → `mission.js` (shared executor
 vocabulary, spec §11–13) → `ui/<module>.css` (gaterun, now, activity, positions, results, rules, arrival, factory, fleet, bot).
 
+The **AiFi Lab page** (`/lab`, COMMAND_CENTER_SPEC §11) has its own, smaller bundle, joined the same way:
+`core + lab + boot`, with `design.js` → `mission.js` → `ui/lab.css`. `ui/lab.js` never reaches the Command Center's or a
+bot page's script, so their size does not grow with it; it may use only core (no `COMP` from fleet.js or bot.js).
+
 ## Pages (docs/COMMAND_CENTER_SPEC.md §2)
 
 The Worker serves one bundle into two shells, chosen by `?a`: `/` is the **Command Center** (`PAGE === 'fleet'`,
@@ -27,6 +31,11 @@ so no module state ever carries one bot's numbers into another. On a bot page ev
 `history.replaceState` + `route()`: tabs add no history entries, so Back always means "All bots". An old `/#tab` link is
 sent on (before boot) to `/?a=<stored ex.agent or core>#<new tab>`. Wrangler imports every `ui/*.js` and `ui/*.css` as text (see
 `wrangler.toml` rules); `cloud/dev/preview.mjs` does the same locally.
+
+`/lab` is the third shell, the **AiFi Lab** page (`PAGE === 'lab'`, `data-view="lab"`, view `VIEWS.lab`, data
+`/api/lab` = `exec:lab` and, per strategy, `/api/lab/day?d=YYYY-MM-DD` = `exec:lab:day:<date>`; no polling, no capsule).
+Core only routes it (`ready()` is true at once); lab.js loads its own data, plays the Lab floor replay and opens
+`SHEETS.lab(id)`. Its in-page anchors `#floor` and `#log` are plain links (no `route()` on this page).
 
 ## Rules
 
@@ -68,7 +77,8 @@ sent on (before boot) to `/?a=<stored ex.agent or core>#<new tab>`. Wrangler imp
 4. **Shared helpers from core** every module should use rather than re-implement: `esc`, `$`, `$$`, `num`, `isObj`,
    `cap1`, `fmt.*` (spec §14), `val()/na()/safe()` for missing data (spec §1.8), `STAGE`/`GATES` (spec §12),
    `GLOSS` + `tip(key)`, hover tips `TIP` + `hint(key, arg?, focus?)` (an element opts in with `data-tk="key:arg"`; the
-   words live only in core's `TIP`, COMMAND_CENTER_SPEC §3.11), `FAM` / `famName(id)`, `word.*`, `chip()`, `icon()`,
+   words live in core's `TIP`, COMMAND_CENTER_SPEC §3.11; a page's own module may add its keys, as lab.js adds `lab`,
+   `chk`, `lbby` and `lbv`, never change core's), `FAM` / `famName(id)`, `word.*`, `chip()`, `icon()`,
    `openSheet()`, `closeSheet()`, `stagger()`, `countUp()`,
    `reduced`, `setSeg()/initSegs()`, `masks()`, `mdTables()` (markdown tables into a disclosure), `getJSON()`, `loadLedger()`, `loadLWC()` (lazy lightweight-charts),
    `every1s()`, `toast()`, `setPlay()`, `refreshShell()`; and for pages and bars: `PAGE`, `AGENT`, `BAR` (this bot's bar,
@@ -81,7 +91,7 @@ sent on (before boot) to `/?a=<stored ex.agent or core>#<new tab>`. Wrangler imp
    `results-verdict|curve|record|r|trades|review|sweeps`, `rules-glossary/<key>`. The old tabs redirect: `#now` →
    `#overview`, `#positions` and `#book` → `#overview/holding`, `#trades` → `#results`, `#logic/x` → `#rules/x`.
 6. **CSS.** Shared, un-prefixed classes and the `.st-*` vocabulary live in `cloud/mission.js`. A module's own classes live
-   in its `ui/<module>.css` and carry its prefix: now `nw-`, gaterun `gr-`, activity `ac-`, positions `ps-`,
+   in its `ui/<module>.css` and carry its prefix (lab `lb-`): now `nw-`, gaterun `gr-`, activity `ac-`, positions `ps-`,
    results `rs-`, rules `ru-`, arrival `ar-`, factory `fx-`, fleet `fl-` (also the shells' own bits), bot `bt-`. Use design tokens (`var(--…)`) only; no raw colours except where
    `design.js` itself uses them. design.js still defines bare `.deck`, `.plan`, `.setup` and `.trend .tl`: do not reuse
    those names.

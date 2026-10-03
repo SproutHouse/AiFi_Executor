@@ -64,6 +64,24 @@ The data comes from `factory/factory.json`, written by the lab nightly and carri
   Details: §3.7. Preview it in full with `node cloud/dev/preview.mjs cloud/dev/kv.json 8788 --overlay
   cloud/dev/fx_factory_v2.json`.
 
+## AiFi Lab page (2026-10-03)
+
+`/lab` (rail and footer link "AiFi Lab", and the Bot factory card's "Watch last night's run ›" and "Every strategy
+tested ›") shows what the AiFi Lab has been testing:
+- **Lab floor:** a replay of one of the lab's runs, labelled as a replay. Ideas leave the scouts (Claude scout, the auto
+  scout or a research campaign), each test spawns as a numbered pod on the test bench and fills its four steps (quick
+  check, full audit, other coins, final exam), gets a verdict stamp, and becomes a dot on the results wall; recipes that
+  pass go to the auditor and, when approved, to the arena. Real order and relative lengths, compressed to 15–60 s; pick
+  a run, play, pause, 1× or 4×. Under reduced motion it shows the finished run.
+- **Strategy log:** every strategy tested, newest first, with filters (passed, failed, killed early, waiting for the
+  exam), a type picker and a search. A tap opens the full record: the idea and its source, settings, every check with
+  ✓ / ✗, the backtest in % and Sharpe, results by kind of market and by year, the final exam and the auditor's note.
+
+The lab writes `exec:lab` and `exec:lab:day:<date>` to KV itself; until it has a Cloudflare key in its GitHub secrets
+the page says the log isn't connected yet. The page has its own small bundle (core + `ui/lab.js`), so the Command
+Center's script does not grow. Details: [COMMAND_CENTER_SPEC.md](COMMAND_CENTER_SPEC.md) §11. Preview with invented
+data: `node cloud/dev/preview.mjs cloud/dev/kv.json 8788 --overlay cloud/dev/fx_lab.json`.
+
 ## Data contract: Command Center additions (2026-10-01)
 
 The binding spec is [COMMAND_CENTER_SPEC.md](COMMAND_CENTER_SPEC.md) §6. Every change is additive, built by the same

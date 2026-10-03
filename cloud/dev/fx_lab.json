@@ -1,0 +1,2902 @@
+{
+ "_note": "Invented AiFi Lab log (COMMAND_CENTER_SPEC §11) for tests and the preview: every strategy, id and number here is made up. Overlay it on kv.json: node cloud/dev/preview.mjs cloud/dev/kv.json 8788 --overlay cloud/dev/fx_lab.json (2026-09-30 has no day record, to show the summary-only sheet).",
+ "exec:lab": {
+  "v": 1,
+  "gen": "2026-10-02T05:02:00Z",
+  "gates_version": 2,
+  "rules": {
+   "nightly_minutes": 25,
+   "arena_slots": 25
+  },
+  "totals": {
+   "tested": 20,
+   "killed-cheap": 3,
+   "failed-audit": 10,
+   "passed-dev": 3,
+   "failed-holdout": 1,
+   "survivor": 2,
+   "vetoed": 1,
+   "enrolled": 1
+  },
+  "families": {
+   "bull_momentum": {
+    "name": "Bull-market momentum",
+    "tested": 8,
+    "passed": 2
+   },
+   "sma_trend": {
+    "name": "Trend: price vs its average",
+    "tested": 3,
+    "passed": 0
+   },
+   "rs_rotation": {
+    "name": "Strongest-coins rotation",
+    "tested": 2,
+    "passed": 0
+   },
+   "donchian": {
+    "name": "Breakout to new highs",
+    "tested": 2,
+    "passed": 0
+   },
+   "meanrev": {
+    "name": "Buy the dip in an uptrend",
+    "tested": 2,
+    "passed": 0
+   },
+   "vol_squeeze": {
+    "tested": 1,
+    "passed": 0
+   }
+  },
+  "runs": [
+   {
+    "date": "2026-10-02",
+    "tested": 8,
+    "start": "2026-10-02T04:40:58Z",
+    "end": "2026-10-02T04:41:21Z",
+    "secs": 17.3,
+    "by": {
+     "scout": 6,
+     "auto": 2
+    },
+    "verdicts": {
+     "killed-cheap": 2,
+     "failed-audit": 2,
+     "passed-dev": 1,
+     "failed-holdout": 1,
+     "survivor": 2
+    },
+    "passed": [
+     "fx-a107",
+     "fx-a106"
+    ]
+   },
+   {
+    "date": "2026-10-01",
+    "tested": 6,
+    "start": "2026-10-01T14:04:49Z",
+    "end": "2026-10-01T14:05:41Z",
+    "secs": 38.7,
+    "by": {
+     "campaign": 6
+    },
+    "verdicts": {
+     "failed-audit": 4,
+     "passed-dev": 2
+    },
+    "passed": []
+   },
+   {
+    "date": "2026-09-30",
+    "tested": 4,
+    "start": "2026-09-30T04:50:02Z",
+    "end": "2026-09-30T04:50:10Z",
+    "secs": 4.2,
+    "by": {
+     "scout": 1,
+     "auto": 2,
+     "seed": 1
+    },
+    "verdicts": {
+     "killed-cheap": 1,
+     "failed-audit": 3
+    },
+    "passed": []
+   },
+   {
+    "date": "2026-09-29",
+    "tested": 2,
+    "start": "2026-09-29T04:50:00Z",
+    "end": "2026-09-29T04:50:04Z",
+    "secs": 2.0,
+    "by": {
+     "seed": 2
+    },
+    "verdicts": {
+     "failed-audit": 2
+    },
+    "passed": []
+   }
+  ],
+  "studies": [
+   {
+    "name": "Fixture study",
+    "date": "2026-10-01",
+    "configs": 48,
+    "headline": "An invented headline: wider filters helped a little in bull markets."
+   }
+  ],
+  "rows": [
+   {
+    "id": "fx-a108",
+    "at": "2026-10-02T04:41:20Z",
+    "day": "2026-10-02",
+    "fam": "vol_squeeze",
+    "name": "Quiet-range breakout on five large coins",
+    "desc": "Buys a coin when its price leaves a long quiet range upward.",
+    "by": "auto",
+    "v": "killed-cheap",
+    "stage": "quick",
+    "fail": [
+     "cheap: Sharpe and trades"
+    ],
+    "sh": -0.2,
+    "cagr": -1.1,
+    "dd": 22.4,
+    "dfl": null,
+    "secs": 0.21,
+    "coins_n": 5,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "ADA",
+     "XRP"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-a107",
+    "at": "2026-10-02T04:41:19Z",
+    "day": "2026-10-02",
+    "fam": "bull_momentum",
+    "name": "Bull-only leaders, top 3, weekly",
+    "desc": "Holds the 3 strongest coins while the whole market rises.",
+    "by": "scout",
+    "v": "survivor",
+    "stage": "passed",
+    "fail": [],
+    "sh": 1.31,
+    "cagr": 24.6,
+    "dd": 14.2,
+    "dfl": 0.982,
+    "secs": 4.6,
+    "coins_n": 7,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK",
+     "DOGE"
+    ],
+    "hold": 1.02,
+    "veto": false,
+    "arena": "arena-09",
+    "gv": 2
+   },
+   {
+    "id": "fx-a106",
+    "at": "2026-10-02T04:41:14Z",
+    "day": "2026-10-02",
+    "fam": "bull_momentum",
+    "name": "Bull-only leaders, top 2, fortnightly",
+    "desc": "Holds the 2 strongest coins while the whole market rises.",
+    "by": "scout",
+    "v": "survivor",
+    "stage": "review",
+    "fail": [],
+    "sh": 1.22,
+    "cagr": 21.0,
+    "dd": 16.8,
+    "dfl": 0.971,
+    "secs": 4.1,
+    "coins_n": 5,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK"
+    ],
+    "hold": 0.31,
+    "veto": true,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-a105",
+    "at": "2026-10-02T04:41:10Z",
+    "day": "2026-10-02",
+    "fam": "sma_trend",
+    "name": "Majors above their 100-day average",
+    "desc": "Holds 4 coins while each is above its 100-day average.",
+    "by": "scout",
+    "v": "passed-dev",
+    "stage": "waiting",
+    "fail": [],
+    "sh": 1.05,
+    "cagr": 15.2,
+    "dd": 19.9,
+    "dfl": 0.962,
+    "secs": 1.3,
+    "coins_n": 4,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "BNB"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-a104",
+    "at": "2026-10-02T04:41:08Z",
+    "day": "2026-10-02",
+    "fam": "rs_rotation",
+    "name": "Leaders rotation, 60-day lookback",
+    "desc": "Holds the 2 strongest of 10 coins, re-ranked every 14 days.",
+    "by": "auto",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "works on other coins"
+    ],
+    "sh": 0.98,
+    "cagr": 13.4,
+    "dd": 21.1,
+    "dfl": 0.957,
+    "secs": 3.2,
+    "coins_n": 6,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "ADA",
+     "XRP",
+     "DOT"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-a103",
+    "at": "2026-10-02T04:41:04Z",
+    "day": "2026-10-02",
+    "fam": "donchian",
+    "name": "Twenty-day high breakout on majors",
+    "desc": "Buys when a coin makes a new 20-day high and sells at a 10-day low.",
+    "by": "scout",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "deflated Sharpe",
+     "beats holding the coins"
+    ],
+    "sh": 0.71,
+    "cagr": 9.8,
+    "dd": 26.0,
+    "dfl": 0.61,
+    "secs": 2.4,
+    "coins_n": 2,
+    "coins": [
+     "BTC",
+     "ETH"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-a102",
+    "at": "2026-10-02T04:41:01Z",
+    "day": "2026-10-02",
+    "fam": "meanrev",
+    "name": "Short dips inside uptrends",
+    "desc": "Buys a 5-day dip in a coin whose 50-day trend is up.",
+    "by": "scout",
+    "v": "killed-cheap",
+    "stage": "quick",
+    "fail": [
+     "cheap: Sharpe and trades"
+    ],
+    "sh": 0.12,
+    "cagr": 1.9,
+    "dd": 18.0,
+    "dfl": null,
+    "secs": 0.4,
+    "coins_n": 3,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-a101",
+    "at": "2026-10-02T04:41:00Z",
+    "day": "2026-10-02",
+    "fam": "sma_trend",
+    "name": "Majors above their 200-day average",
+    "desc": "Holds 4 coins while each is above its 200-day average.",
+    "by": "scout",
+    "v": "failed-holdout",
+    "stage": "exam",
+    "fail": [
+     "holdout"
+    ],
+    "sh": 1.11,
+    "cagr": 16.0,
+    "dd": 17.5,
+    "dfl": 0.966,
+    "secs": 1.1,
+    "coins_n": 4,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "BNB"
+    ],
+    "hold": -0.12,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-c206",
+    "at": "2026-10-01T14:05:40Z",
+    "day": "2026-10-01",
+    "fam": "bull_momentum",
+    "name": "Campaign: leaders with a breadth filter",
+    "desc": "Holds the 3 strongest coins while most coins are rising.",
+    "by": "campaign",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "not a copy of a fleet bot"
+    ],
+    "sh": 1.18,
+    "cagr": 19.4,
+    "dd": 15.0,
+    "dfl": 0.97,
+    "secs": 7.5,
+    "coins_n": 6,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK",
+     "DOGE"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-c205",
+    "at": "2026-10-01T14:05:30Z",
+    "day": "2026-10-01",
+    "fam": "bull_momentum",
+    "name": "Campaign: leaders, 90-day lookback",
+    "desc": "Holds the 3 strongest coins over 90 days in a bull market.",
+    "by": "campaign",
+    "v": "passed-dev",
+    "stage": "waiting",
+    "fail": [],
+    "sh": 1.24,
+    "cagr": 22.1,
+    "dd": 13.9,
+    "dfl": 0.975,
+    "secs": 6.8,
+    "coins_n": 5,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-c204",
+    "at": "2026-10-01T14:05:21Z",
+    "day": "2026-10-01",
+    "fam": "bull_momentum",
+    "name": "Campaign: leaders, 30-day lookback",
+    "desc": "Holds the 3 strongest coins over 30 days in a bull market.",
+    "by": "campaign",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "Sharpe",
+     "no one-year wonder"
+    ],
+    "sh": 0.66,
+    "cagr": 11.0,
+    "dd": 24.0,
+    "dfl": 0.7,
+    "secs": 6.1,
+    "coins_n": 3,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-c203",
+    "at": "2026-10-01T14:05:12Z",
+    "day": "2026-10-01",
+    "fam": "bull_momentum",
+    "name": "Campaign: leaders, 180-day lookback",
+    "desc": "Holds the 3 strongest coins over 180 days in a bull market.",
+    "by": "campaign",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "worst regime"
+    ],
+    "sh": 0.92,
+    "cagr": 14.5,
+    "dd": 28.0,
+    "dfl": 0.91,
+    "secs": 6.4,
+    "coins_n": 4,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "LINK"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-c202",
+    "at": "2026-10-01T14:05:03Z",
+    "day": "2026-10-01",
+    "fam": "bull_momentum",
+    "name": "Campaign: leaders, top 4",
+    "desc": "Holds the 4 strongest coins while the market rises.",
+    "by": "campaign",
+    "v": "passed-dev",
+    "stage": "waiting",
+    "fail": [],
+    "sh": 1.15,
+    "cagr": 18.8,
+    "dd": 15.5,
+    "dfl": 0.968,
+    "secs": 6.0,
+    "coins_n": 4,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-c201",
+    "at": "2026-10-01T14:04:55Z",
+    "day": "2026-10-01",
+    "fam": "bull_momentum",
+    "name": "Campaign: leaders, top 1",
+    "desc": "Holds the single strongest coin while the market rises.",
+    "by": "campaign",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "max drawdown",
+     "costs doubled"
+    ],
+    "sh": 0.88,
+    "cagr": 17.0,
+    "dd": 48.0,
+    "dfl": 0.88,
+    "secs": 5.9,
+    "coins_n": 3,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 2
+   },
+   {
+    "id": "fx-n304",
+    "at": "2026-09-30T04:50:09Z",
+    "day": "2026-09-30",
+    "fam": "rs_rotation",
+    "name": "Leaders rotation, 30-day lookback",
+    "desc": "Holds the 3 strongest of 8 coins, re-ranked weekly.",
+    "by": "scout",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "beats holding the coins"
+    ],
+    "sh": 0.84,
+    "cagr": 12.2,
+    "dd": 23.0,
+    "dfl": 0.83,
+    "secs": 2.2,
+    "coins_n": 3,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 1
+   },
+   {
+    "id": "fx-n303",
+    "at": "2026-09-30T04:50:06Z",
+    "day": "2026-09-30",
+    "fam": "donchian",
+    "name": "Fifty-day high breakout",
+    "desc": "Buys a new 50-day high and sells at a 20-day low.",
+    "by": "auto",
+    "v": "killed-cheap",
+    "stage": "quick",
+    "fail": [
+     "cheap: earns anything"
+    ],
+    "sh": -0.4,
+    "cagr": -3.0,
+    "dd": 30.0,
+    "dfl": null,
+    "secs": 0.3,
+    "coins_n": 1,
+    "coins": [
+     "BTC"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 1
+   },
+   {
+    "id": "fx-n302",
+    "at": "2026-09-30T04:50:05Z",
+    "day": "2026-09-30",
+    "fam": "sma_trend",
+    "name": "Bitcoin above its 150-day average",
+    "desc": "Holds Bitcoin while it is above its 150-day average.",
+    "by": "seed",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "return on capital"
+    ],
+    "sh": 0.9,
+    "cagr": 8.0,
+    "dd": 20.0,
+    "dfl": 0.9,
+    "secs": 0.7,
+    "coins_n": 1,
+    "coins": [
+     "BTC"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 1
+   },
+   {
+    "id": "fx-n301",
+    "at": "2026-09-30T04:50:03Z",
+    "day": "2026-09-30",
+    "fam": "meanrev",
+    "name": "Weekly dips in majors",
+    "desc": "Buys a weekly dip in 4 coins while the trend is up.",
+    "by": "auto",
+    "v": "failed-audit",
+    "stage": "audit",
+    "fail": [
+     "positive years"
+    ],
+    "sh": 0.81,
+    "cagr": 7.1,
+    "dd": 15.0,
+    "dfl": 0.8,
+    "secs": 1.0,
+    "coins_n": 4,
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "ADA"
+    ],
+    "hold": null,
+    "veto": false,
+    "arena": null,
+    "gv": 1
+   }
+  ],
+  "rows_total": 20
+ },
+ "exec:lab:day:2026-10-02": {
+  "v": 1,
+  "date": "2026-10-02",
+  "trials": [
+   {
+    "id": "fx-a101",
+    "at": "2026-10-02T04:41:00Z",
+    "name": "Majors above their 200-day average",
+    "fam": "sma_trend",
+    "verdict": "failed-holdout",
+    "stage": "exam",
+    "hypothesis": "An invented idea: holds 4 coins while each is above its 200-day average.",
+    "source": "Fixture notes",
+    "by": "scout",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "BNB"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds 4 coins while each is above its 200-day average.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     },
+     {
+      "check": "holdout",
+      "ok": false,
+      "detail": "unseen year Sharpe -0.12"
+     }
+    ],
+    "dev": {
+     "sharpe": 1.11,
+     "cagr_pct": 16.0,
+     "ann_ret_pct": 16.0,
+     "vol_pct": 15.0,
+     "max_dd_pct": 17.5,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.966,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": {
+     "sharpe": -0.12,
+     "cagr_pct": -2.0,
+     "max_dd_pct": 9.0,
+     "days": 366
+    },
+    "tag": "fixture",
+    "secs": 1.1,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-a102",
+    "at": "2026-10-02T04:41:01Z",
+    "name": "Short dips inside uptrends",
+    "fam": "meanrev",
+    "verdict": "killed-cheap",
+    "stage": "quick",
+    "hypothesis": "An invented idea: buys a 5-day dip in a coin whose 50-day trend is up.",
+    "source": "Fixture notes",
+    "by": "scout",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Buys a 5-day dip in a coin whose 50-day trend is up.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": false,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     }
+    ],
+    "dev": {
+     "sharpe": 0.12,
+     "cagr_pct": 1.9,
+     "ann_ret_pct": 1.9,
+     "vol_pct": 15.0,
+     "max_dd_pct": 18.0,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": null,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": null,
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 0.4,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-a103",
+    "at": "2026-10-02T04:41:04Z",
+    "name": "Twenty-day high breakout on majors",
+    "fam": "donchian",
+    "verdict": "failed-audit",
+    "stage": "audit",
+    "hypothesis": "An invented idea: buys when a coin makes a new 20-day high and sells at a 10-day low.",
+    "source": "Fixture notes",
+    "by": "scout",
+    "coins": [
+     "BTC",
+     "ETH"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Buys when a coin makes a new 20-day high and sells at a 10-day low.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": false,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": false,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 0.71,
+     "cagr_pct": 9.8,
+     "ann_ret_pct": 9.8,
+     "vol_pct": 15.0,
+     "max_dd_pct": 26.0,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.61,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 2.4,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-a104",
+    "at": "2026-10-02T04:41:08Z",
+    "name": "Leaders rotation, 60-day lookback",
+    "fam": "rs_rotation",
+    "verdict": "failed-audit",
+    "stage": "audit",
+    "hypothesis": "An invented idea: holds the 2 strongest of 10 coins, re-ranked every 14 days.",
+    "source": "Fixture notes",
+    "by": "auto",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "ADA",
+     "XRP",
+     "DOT"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 2 strongest of 10 coins, re-ranked every 14 days.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": false,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 0.98,
+     "cagr_pct": 13.4,
+     "ann_ret_pct": 13.4,
+     "vol_pct": 15.0,
+     "max_dd_pct": 21.1,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.957,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 3.2,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-a105",
+    "at": "2026-10-02T04:41:10Z",
+    "name": "Majors above their 100-day average",
+    "fam": "sma_trend",
+    "verdict": "passed-dev",
+    "stage": "waiting",
+    "hypothesis": "An invented idea: holds 4 coins while each is above its 100-day average.",
+    "source": "Fixture notes",
+    "by": "scout",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "BNB"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds 4 coins while each is above its 100-day average.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 1.05,
+     "cagr_pct": 15.2,
+     "ann_ret_pct": 15.2,
+     "vol_pct": 15.0,
+     "max_dd_pct": 19.9,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.962,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 1.3,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-a106",
+    "at": "2026-10-02T04:41:14Z",
+    "name": "Bull-only leaders, top 2, fortnightly",
+    "fam": "bull_momentum",
+    "verdict": "survivor",
+    "stage": "review",
+    "hypothesis": "An invented idea: holds the 2 strongest coins while the whole market rises.",
+    "source": "Fixture notes",
+    "by": "scout",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 2 strongest coins while the whole market rises.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     },
+     {
+      "check": "holdout",
+      "ok": true,
+      "detail": "unseen year Sharpe 0.31"
+     }
+    ],
+    "dev": {
+     "sharpe": 1.22,
+     "cagr_pct": 21.0,
+     "ann_ret_pct": 21.0,
+     "vol_pct": 15.0,
+     "max_dd_pct": 16.8,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.971,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": {
+     "sharpe": 0.31,
+     "cagr_pct": -2.0,
+     "max_dd_pct": 9.0,
+     "days": 366
+    },
+    "tag": "fixture",
+    "secs": 4.1,
+    "veto": "An invented reason: the unseen year was much weaker than the past.",
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-a107",
+    "at": "2026-10-02T04:41:19Z",
+    "name": "Bull-only leaders, top 3, weekly",
+    "fam": "bull_momentum",
+    "verdict": "survivor",
+    "stage": "passed",
+    "hypothesis": "An invented idea: holds the 3 strongest coins while the whole market rises.",
+    "source": "Fixture notes",
+    "by": "scout",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK",
+     "DOGE"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 3 strongest coins while the whole market rises.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     },
+     {
+      "check": "holdout",
+      "ok": true,
+      "detail": "unseen year Sharpe 1.02"
+     }
+    ],
+    "dev": {
+     "sharpe": 1.31,
+     "cagr_pct": 24.6,
+     "ann_ret_pct": 24.6,
+     "vol_pct": 15.0,
+     "max_dd_pct": 14.2,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.982,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": {
+     "sharpe": 1.02,
+     "cagr_pct": 12.0,
+     "max_dd_pct": 9.0,
+     "days": 366
+    },
+    "tag": "fixture",
+    "secs": 4.6,
+    "veto": null,
+    "review": "An invented note: steady across years.",
+    "arena": "arena-09",
+    "gates_version": 2
+   },
+   {
+    "id": "fx-a108",
+    "at": "2026-10-02T04:41:20Z",
+    "name": "Quiet-range breakout on five large coins",
+    "fam": "vol_squeeze",
+    "verdict": "killed-cheap",
+    "stage": "quick",
+    "hypothesis": "An invented idea: buys a coin when its price leaves a long quiet range upward.",
+    "source": "Fixture notes",
+    "by": "auto",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "ADA",
+     "XRP"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Buys a coin when its price leaves a long quiet range upward.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": false,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     }
+    ],
+    "dev": {
+     "sharpe": -0.2,
+     "cagr_pct": -1.1,
+     "ann_ret_pct": -1.1,
+     "vol_pct": 15.0,
+     "max_dd_pct": 22.4,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": null,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": null,
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 0.21,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   }
+  ]
+ },
+ "exec:lab:day:2026-10-01": {
+  "v": 1,
+  "date": "2026-10-01",
+  "trials": [
+   {
+    "id": "fx-c201",
+    "at": "2026-10-01T14:04:55Z",
+    "name": "Campaign: leaders, top 1",
+    "fam": "bull_momentum",
+    "verdict": "failed-audit",
+    "stage": "audit",
+    "hypothesis": "An invented idea: holds the single strongest coin while the market rises.",
+    "source": "Fixture notes",
+    "by": "campaign",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the single strongest coin while the market rises.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": false,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": false,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 0.88,
+     "cagr_pct": 17.0,
+     "ann_ret_pct": 17.0,
+     "vol_pct": 15.0,
+     "max_dd_pct": 48.0,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.88,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 5.9,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-c202",
+    "at": "2026-10-01T14:05:03Z",
+    "name": "Campaign: leaders, top 4",
+    "fam": "bull_momentum",
+    "verdict": "passed-dev",
+    "stage": "waiting",
+    "hypothesis": "An invented idea: holds the 4 strongest coins while the market rises.",
+    "source": "Fixture notes",
+    "by": "campaign",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 4 strongest coins while the market rises.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 1.15,
+     "cagr_pct": 18.8,
+     "ann_ret_pct": 18.8,
+     "vol_pct": 15.0,
+     "max_dd_pct": 15.5,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.968,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 6.0,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-c203",
+    "at": "2026-10-01T14:05:12Z",
+    "name": "Campaign: leaders, 180-day lookback",
+    "fam": "bull_momentum",
+    "verdict": "failed-audit",
+    "stage": "audit",
+    "hypothesis": "An invented idea: holds the 3 strongest coins over 180 days in a bull market.",
+    "source": "Fixture notes",
+    "by": "campaign",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "LINK"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 3 strongest coins over 180 days in a bull market.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": false,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 0.92,
+     "cagr_pct": 14.5,
+     "ann_ret_pct": 14.5,
+     "vol_pct": 15.0,
+     "max_dd_pct": 28.0,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.91,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 6.4,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-c204",
+    "at": "2026-10-01T14:05:21Z",
+    "name": "Campaign: leaders, 30-day lookback",
+    "fam": "bull_momentum",
+    "verdict": "failed-audit",
+    "stage": "audit",
+    "hypothesis": "An invented idea: holds the 3 strongest coins over 30 days in a bull market.",
+    "source": "Fixture notes",
+    "by": "campaign",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 3 strongest coins over 30 days in a bull market.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": false,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": false,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 0.66,
+     "cagr_pct": 11.0,
+     "ann_ret_pct": 11.0,
+     "vol_pct": 15.0,
+     "max_dd_pct": 24.0,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.7,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 6.1,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-c205",
+    "at": "2026-10-01T14:05:30Z",
+    "name": "Campaign: leaders, 90-day lookback",
+    "fam": "bull_momentum",
+    "verdict": "passed-dev",
+    "stage": "waiting",
+    "hypothesis": "An invented idea: holds the 3 strongest coins over 90 days in a bull market.",
+    "source": "Fixture notes",
+    "by": "campaign",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 3 strongest coins over 90 days in a bull market.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": true,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 1.24,
+     "cagr_pct": 22.1,
+     "ann_ret_pct": 22.1,
+     "vol_pct": 15.0,
+     "max_dd_pct": 13.9,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.975,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 6.8,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   },
+   {
+    "id": "fx-c206",
+    "at": "2026-10-01T14:05:40Z",
+    "name": "Campaign: leaders with a breadth filter",
+    "fam": "bull_momentum",
+    "verdict": "failed-audit",
+    "stage": "audit",
+    "hypothesis": "An invented idea: holds the 3 strongest coins while most coins are rising.",
+    "source": "Fixture notes",
+    "by": "campaign",
+    "coins": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "AVAX",
+     "LINK",
+     "DOGE"
+    ],
+    "params": {
+     "n": 90,
+     "stop_pct": 20.0,
+     "vol_target": 0.25,
+     "vol_days": 30,
+     "short": false,
+     "long_regimes": [
+      "bull"
+     ],
+     "rebalance_days": 7
+    },
+    "desc": "Holds the 3 strongest coins while most coins are rising.",
+    "checks": [
+     {
+      "check": "cheap: Sharpe and trades",
+      "ok": true,
+      "detail": "invented detail for cheap: Sharpe and trades"
+     },
+     {
+      "check": "trade count",
+      "ok": true,
+      "detail": "invented detail for trade count"
+     },
+     {
+      "check": "Sharpe",
+      "ok": true,
+      "detail": "invented detail for Sharpe"
+     },
+     {
+      "check": "deflated Sharpe",
+      "ok": true,
+      "detail": "invented detail for deflated Sharpe"
+     },
+     {
+      "check": "max drawdown",
+      "ok": true,
+      "detail": "invented detail for max drawdown"
+     },
+     {
+      "check": "costs doubled",
+      "ok": true,
+      "detail": "invented detail for costs doubled"
+     },
+     {
+      "check": "neighbours",
+      "ok": true,
+      "detail": "invented detail for neighbours"
+     },
+     {
+      "check": "beats holding the coins",
+      "ok": true,
+      "detail": "invented detail for beats holding the coins"
+     },
+     {
+      "check": "positive years",
+      "ok": true,
+      "detail": "invented detail for positive years"
+     },
+     {
+      "check": "no one-year wonder",
+      "ok": true,
+      "detail": "invented detail for no one-year wonder"
+     },
+     {
+      "check": "worst regime",
+      "ok": true,
+      "detail": "invented detail for worst regime"
+     },
+     {
+      "check": "no lookahead",
+      "ok": true,
+      "detail": "invented detail for no lookahead"
+     },
+     {
+      "check": "works on other coins",
+      "ok": true,
+      "detail": "invented detail for works on other coins"
+     },
+     {
+      "check": "not a copy of a fleet bot",
+      "ok": false,
+      "detail": "invented detail for not a copy of a fleet bot"
+     }
+    ],
+    "dev": {
+     "sharpe": 1.18,
+     "cagr_pct": 19.4,
+     "ann_ret_pct": 19.4,
+     "vol_pct": 15.0,
+     "max_dd_pct": 15.0,
+     "days": 2780,
+     "years": 7.6,
+     "total_pct": 80.0
+    },
+    "deflated": {
+     "prob": 0.97,
+     "trials": 9,
+     "sd": 0.3,
+     "luck_bar": 0.5
+    },
+    "alpha": {
+     "ann_pct": 1.2,
+     "beta": 0.4,
+     "t": 2.3
+    },
+    "regimes": {
+     "bull": {
+      "days": 1500,
+      "ann_ret_pct": 20.0,
+      "sharpe": 1.1,
+      "invested": 0.8
+     },
+     "bear": {
+      "days": 1100,
+      "ann_ret_pct": -1.0,
+      "sharpe": -0.1,
+      "invested": 0.0
+     },
+     "crisis": {
+      "days": 170,
+      "ann_ret_pct": -4.0,
+      "sharpe": -0.3,
+      "invested": 0.0
+     }
+    },
+    "years": {
+     "2019": 5.0,
+     "2020": 40.0,
+     "2021": 30.0,
+     "2022": -2.0,
+     "2023": 12.0,
+     "2024": 9.0,
+     "2025": -3.0
+    },
+    "other_coins": [
+     {
+      "coins": [
+       "DOT",
+       "ATOM"
+      ],
+      "sharpe": 0.7
+     }
+    ],
+    "holdout": null,
+    "tag": "fixture",
+    "secs": 7.5,
+    "veto": null,
+    "review": null,
+    "arena": null,
+    "gates_version": 2
+   }
+  ]
+ }
+}

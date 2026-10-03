@@ -168,7 +168,7 @@ Contents: `[Ex mark → /] [h1#ttl "Command center" (visually hidden ≤640px)] 
 
 - Tapping the capsule opens `SHEETS.fleethealth`.
 - The mode pill reads "6 paper", or "2 live · 4 paper", from `A.mode`.
-- There is no tabbar on the master. The rail (≥641px) holds: brand, "Command center" (current), `#roster` (dot + name + short status word), "Rules & docs" (→ `/doc/how_it_works`), `#railstat`, and Log out.
+- There is no tabbar on the master. The rail (≥641px) holds: brand, "Command center" (current), "AiFi Lab" (→ `/lab`, §11), "Rules & docs" (→ `/doc/how_it_works`), `#roster` (dot + name + short status word), `#railstat`, and Log out. The footer repeats "AiFi Lab · Rules & docs · Log out" for phones.
 
 ### 3.1 Alert rail (`#alerts`)
 
@@ -284,6 +284,7 @@ would be off the first scroll on a laptop and three screens down on a phone.
   | trading in the arena (paper) | `X.shortlist[]` enabled and not live ("—" without a shortlist) | "n bots retired" (`lab.retired` > 0) |
   | ready for you | `X.shortlist[]` ready and not live | "n already live" |
 
+- Two links to the AiFi Lab page (§11): "Watch last night's run ›" (`/lab#floor`) and "Every strategy tested ›" (`/lab#log`).
 - **Last night** (`X.lab.last {date, tried, passed}`): "Last night: 18 recipes tested, 0 passed" while the date is
   today or yesterday (phone-local), else "Latest batch, Sep 30: …". Without `last`, `lab.last_batch` gives "Latest
   batch, Oct 1" alone.
@@ -1197,5 +1198,87 @@ Statements are tested with `window.__exNow` / `--now`, against `fx_agents_v2.jso
 28. `scrub_assert` passes on every `exec:agents` row and on the envelope. No new key matches `FORBIDDEN_KEY`. No carry key carries a price or money amount.
 29. Rows-dir push bulk-writes exactly `latest`, `ledger`, `stamp` (+ changed docs). One sync job writes `exec:agents` exactly once, and `exec:factory` only when it changed.
 30. The modelled writes/day for the 6-bot schedule are ≤ 225, and for the 17-bot schedule ≤ 400.
-31. `node tests/client_join_check.mjs` reports `ok:true`: the new ORDER with `fleet` and `bot`, both shells valid, the clock harness passing. `client_bytes < 420,000`.
+31. `node tests/client_join_check.mjs` reports `ok:true`: the new ORDER with `fleet` and `bot`, both shells valid, the clock harness passing. `client_bytes < 440,000` (420,000 until the hover tips of §3.11; the AiFi Lab page of §11 has its own bundle).
 32. Under `prefers-reduced-motion: reduce`, there are no view transitions, pulses, count-ups or bead grows, and the only change per second is the ticker's digits.
+---
+
+## 11. AiFi Lab page (`/lab`, 2026-10-03)
+
+The owner asked to *see* the lab's tests ("agents being spawned and running tests") and to keep a log of every
+strategy tried. `/lab` answers both, from the lab's own log.
+
+**Data.** The AiFi Lab writes two kinds of key straight to KV (never through this public repo):
+- `exec:lab` (tens of KB, may reach about 1 MB): `{v, gen, gates_version, rules {nightly_minutes, arena_slots}, totals
+  {tested, killed-cheap, failed-audit, passed-dev, failed-holdout, survivor, vetoed, enrolled}, families {id: {name,
+  tested, passed}}, runs [{date, tested, start, end, secs, by {scout|auto|campaign: n}, verdicts, passed}], studies,
+  rows [newest first, up to 2,500], rows_total}`. A row: `id at day fam name desc by v stage fail sh cagr dd dfl secs
+  coins_n coins hold veto arena gv`.
+- `exec:lab:day:<YYYY-MM-DD>` (about 100 KB a night, up to about 1.5 MB on a big night): `{v, date, trials[]}` in time
+  order, each with `hypothesis source params checks[{check, ok, detail}] dev deflated alpha regimes years other_coins
+  holdout veto review arena gates_version` besides the row's fields.
+
+**Routes.** `/lab` (a third shell, `data-view="lab"`), `/api/lab` (→ `exec:lab`, 404 when missing) and
+`/api/lab/day?d=YYYY-MM-DD` (a real calendar date or 400; 404 when that night has no record). Same cookie auth as every
+route. The page is linked from the master's rail ("AiFi Lab"), its footer, and the Bot factory card ("Watch last
+night's run ›" → `/lab#floor`, "Every strategy tested ›" → `/lab#log`).
+
+**Its own bundle.** `/lab` loads `core + lab + boot` (about 145 KB) and `design.js` + `mission.js` + `ui/lab.css`. The
+lab module never reaches the Command Center's or a bot page's script, so their budget (`client_bytes < 440,000`) does
+not carry it. Core routes the page (`PAGE === 'lab'`: `ready()` at once, no polling, no capsule); `lab.js` fetches
+`/api/lab` itself and reloads it when the page is shown again after 30 minutes.
+
+**Page, top to bottom.**
+1. **What the lab has tested.** One sentence ("Nothing here trades…"), six cells (tested · killed early · failed the
+   audit · waiting for the exam · failed the exam · passed every check, with "n turned down by the auditor · n in the
+   arena"), "Rulebook vN · about 25 min of testing a night · 25 arena slots", every strategy type with tested and passed
+   (plain names from `families[].name`, else core's `FAM`, else the id in words), and any research study.
+2. **Lab floor** (`#floor`): an honest **replay** of one recorded run, said so on screen ("Last night's run, replayed · 8
+   tests · 12 s of compute · started 12:43 am"; "Latest campaign" / "Run of Oct 1" / "Campaign of Oct 1" otherwise),
+   with a run picker (`runs[]`), Play / Pause / Resume / Play again, speed 1× / 4× and Replay.
+   - Lanes, left to right from 1300 px (else stacked: scouts, bench, then auditor | arena): **Scouts** (Claude scout,
+     auto scout, campaign: "3 of 8 sent", the next idea's name) → **Test bench** (12 / 9 / 6 slots on desktop / tablet /
+     phone) → **Auditor** (each recipe that passed the exam: Approved or Turned down) → **Arena** ("T-07 → arena-09").
+   - Each test is a pod: a numbered avatar ("T-07") ringed in its family's tone, the family and the plain name, and four
+     pips **Quick check → Full audit → Other coins → Final exam** that fill in turn (Web Animations, so pause and speed
+     follow one virtual clock), then a stamp: Killed early / Failed: <first failed check in plain words> / Waiting for
+     the exam / Failed the exam / Turned down by the auditor / Passed → <arena id>. A pip that failed is hatched; an exam
+     still to come is outlined in accent; "Other coins" is outlined only for a rulebook before v2.
+   - Timing: the run's tests in their real order, each starting at its real start (log time less its duration) and
+     lasting its real duration, scaled by one factor so the run takes 15–60 s (8 s + 0.9 s a test); a quiet gap over 20 s
+     is cut to 20 s. A finished pod keeps its slot, stamp showing, until a new test needs it (the earliest finished one
+     leaves first); at the end the rest leave one by one. Each leaving pod becomes a dot on the **results wall**
+     (coloured by verdict, a tap opens its sheet); the counters (tested, killed early, failed, waiting, passed) count
+     each verdict as it lands.
+   - It plays once when first scrolled into view (a hidden page plays when shown), pauses when the page is hidden, and
+     under `prefers-reduced-motion` shows the finished run with no motion. Transforms and opacity only; no library.
+3. **Strategy log** (`#log`): chips All · Passed · Failed · Killed early · Waiting for exam (with counts), a strategy-type
+   select, a search over name, idea, type and coins; grouped by day, newest first; each row: name, what it does, type,
+   who proposed it, "stopped at: <plain check>", Sharpe and a verdict chip. 80 rows, then "Show 100 more". "Showing the
+   2,500 newest of N." when `rows_total` is larger.
+4. **Detail sheet** (`SHEETS.lab(id)`, from a row, a pod, a dot or a lane item): name; type, proposer, test time and
+   rulebook; verdict chip and the four pips with words; "Open arena-09 in the arena ›" when enrolled; what it does, the
+   idea (hypothesis) and its source, the coins; settings in plain words where obvious (stop, swing target, swing window,
+   re-rank days, averages, markets it holds in, betting on falls) plus every raw setting in a disclosure; every check
+   ✓ / ✗ with the lab's own detail; the backtest (return a year, Sharpe, worst drop, years, luck test as "n% sure it isn't
+   luck", against just holding); by kind of market; year by year; on other coins; the final exam's numbers; the
+   auditor's note or reason. The day key is fetched on first open and cached; without it the sheet shows the log's
+   summary and says so; a failed fetch offers Retry.
+
+**Words.** Every check has a plain name and a tip (`TIP.chk`): Quick check, Enough history, Enough trades, Return on
+capital, Steady returns (Sharpe), Luck test (deflated Sharpe), Worst drop, Double costs, Nearby settings, Beats just
+holding, Most years positive, No one-year wonder, Worst market, No peeking ahead, Other coins, Different from the fleet,
+Final exam (holdout), Exam budget (rulebook 1). Lanes, counters, pips, proposers and verdicts carry tips too (`TIP.lab`,
+`TIP.lbby`, `TIP.lbv`, added by lab.js to core's registry). Only % and Sharpe, never money; "—" when missing. Colour: a
+passed recipe is solid magenta, one waiting for its exam a magenta tint, a turned-down one violet, the rest neutral; no
+green, amber or red (no health is shown here).
+
+**States.** No `exec:lab`: "The lab's log isn't connected yet — one setup step on the owner's side (a Cloudflare key in
+the lab's GitHub secrets)." Signed out, no connection and unreadable data get their own card with Retry. An empty or
+older payload renders with "—" for what it lacks (totals counted from the rows when `totals` is missing).
+
+**Tests.** `tests/client_join_check.mjs` checks the shell (one h1, its mounts, its own ETag), that the lab bundle is
+exactly core + lab + boot and the main bundle has no lab module, the two routes (404, 400 for bad dates, 401 without a
+cookie), every lab tip key, and renders the page and sheets from the invented `cloud/dev/fx_lab.json` (full, empty, old
+shape; with and without a day record) and the replay plan (real order, within its 15–60 s, never two pods in a slot).
+`tests/test_dashboard_client.py` asserts the words. Preview with `node cloud/dev/preview.mjs cloud/dev/kv.json 8788
+--overlay cloud/dev/fx_lab.json`.

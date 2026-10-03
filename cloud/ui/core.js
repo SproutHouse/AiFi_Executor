@@ -64,7 +64,8 @@
                    tick30s() · route(tab, sub) · theme(theme) · hide() · show() · status(st) (after every
                    refreshShell(): the 30 s tick, a landed bundle, or a module that saw the phase flip) ·
                    agents(rows, envelope) after every /api/agents (re)load (boot, each bot arrival, each master poll)
- Pages           PAGE 'fleet' (the Command Center, "/") | 'bot' ("/?a=<id>") · AGENT the bot id, null on the master
+ Pages           PAGE 'fleet' (the Command Center, "/") | 'bot' ("/?a=<id>") | 'lab' ("/lab": VIEWS.lab, no polling) · AGENT
+                 the bot id, null on the master and the lab page
                  AGENTS rows of exec:agents (null until loaded) · S.E the exec:agents envelope · rowOf(id) → row | null
                  rowBundle(row, env?) → a status pseudo-bundle (§6.7) or null for a v1 row · kindOf(b?) → 'flip' |
                  'target' | 'carry' (cfg.kind → row.kind → inference) · kindInfo(b?) → {kind, inferred}
@@ -496,11 +497,11 @@ function runHooks(name, ...a) { hooksOf(name).forEach(fn => call(fn, ...a)); }
 // ============================================================================================ state ==
 // The bot page's tabs (COMMAND_CENTER_SPEC §2.2), in key order 1–4. The master has one view, 'fleet'.
 const TABS = ['overview', 'results', 'activity', 'rules'];
-const TITLE = { overview: 'Overview', results: 'Trades', activity: 'Activity', rules: 'Rules', fleet: 'Command center' };
+const TITLE = { overview: 'Overview', results: 'Trades', activity: 'Activity', rules: 'Rules', fleet: 'Command center', lab: 'AiFi Lab' };
 const S = { b: null, ledger: null, ledgerGen: null, ledgerErr: null, cursor: null, tab: 'overview', sub: null, prev: null,
             st: null, net: 'checking', seenAt: 0, seenEv: 0, sheet: null, bootErr: null, booting: false, E: null, prevE: null, agentsErr: null };
 // Whether the page has its data: the bundle on a bot page, the exec:agents envelope on the master.
-function ready() { return PAGE === 'fleet' ? !!S.E : !!S.b; }
+function ready() { return PAGE === 'lab' || (PAGE === 'fleet' ? !!S.E : !!S.b); }
 function runsOf(b) { b = b || S.b; return b && Array.isArray(b.runs) ? b.runs : []; }
 function modeOf(b) {
   const m = b && b.mode;
@@ -649,7 +650,8 @@ const AGENT = (function () {
   try { a = new URLSearchParams(location.search).get('a'); } catch (e) {}
   return AGENT_RE.test(a || '') ? a : null;
 })();
-const PAGE = AGENT ? 'bot' : 'fleet';
+// "/lab" is the AiFi Lab page (COMMAND_CENTER_SPEC §11): its own bundle (core + lab + boot); lab.js loads its data, core only routes.
+const PAGE = AGENT ? 'bot' : location.pathname === '/lab' ? 'lab' : 'fleet';
 AGENT_NS = AGENT && AGENT !== 'core' ? AGENT : '';
 function api(path) { return !AGENT || AGENT === 'core' ? path : path + (path.indexOf('?') < 0 ? '?' : '&') + 'a=' + encodeURIComponent(AGENT); }
 function botHref(id, hash) { const h = hash == null ? '' : String(hash).replace(/^#/, ''); return '/?a=' + encodeURIComponent(id) + (h ? '#' + h : ''); }
@@ -891,8 +893,8 @@ function initTips() {
   document.addEventListener('click', e => {
     const t = e.target; if (!(t instanceof Element)) return;
     if (tipbox && tipbox.contains(t)) return;                    // a button inside the tip acts; the shell then closes it
-    const el = t.closest(TIPSEL);
-    if (el && tipOwn(el)) { e.preventDefault(); if (tipEl === el && tipBy !== 'hover' && performance.now() - tipAt > 350) hideTip(); else showTip(el, null, 'click'); return; }
+    const el = t.closest(TIPSEL), act = t.closest(TIPACT);
+    if (el && tipOwn(el) && !(act && act !== el && el.contains(act))) { e.preventDefault(); if (tipEl === el && tipBy !== 'hover' && performance.now() - tipAt > 350) hideTip(); else showTip(el, null, 'click'); return; }
     if (tipEl) hideTip();
   });
   // Touch: a long press shows the tip. The tap that ends it, and the next tap outside the bubble, only close or keep it.
@@ -1313,7 +1315,7 @@ function paintRoster() {
 const REDIRECT = { now: ['overview'], positions: ['overview', 'holding'], book: ['overview', 'holding'], trades: ['results'],
                    refused: ['activity', 'signals'], logic: ['rules'] };
 function parseHash() {
-  if (PAGE === 'fleet') return { tab: 'fleet', sub: null };
+  if (PAGE !== 'bot') return { tab: PAGE, sub: null };
   const raw = (location.hash || '').slice(1);
   let h; try { h = decodeURIComponent(raw); } catch (e) { h = raw; }
   const parts = h.split('/');
@@ -1353,7 +1355,7 @@ function redraw() { if (!ready()) return; const y = scrollY; renderView('redraw'
 function botName() { const r = rowOf(AGENT); return (r && r.name) || AGENT || ''; }
 function paintTitle() {
   const h1 = $('#ttl');
-  if (PAGE === 'fleet') { document.title = 'Command center · AiFi Executor'; return; }
+  if (PAGE !== 'bot') { document.title = TITLE[PAGE] + ' · AiFi Executor'; return; }
   const n = botName(), tt = TITLE[S.tab] || (VIEWS[S.tab] && VIEWS[S.tab].title) || '';
   if (h1 && h1.textContent !== n) h1.textContent = n;                // §5.0: the h1 is the bot's name
   document.title = n + ' · ' + tt + ' · AiFi Executor';
@@ -1370,7 +1372,7 @@ function route() {
   renderView('route');
   if (tab === 'activity' && S.b) markEvSeen(); else paintNewDot();
   runHooks('route', tab, sub);
-  if (PAGE === 'fleet') return;                                     // fleet.js restores the master's own scroll
+  if (PAGE !== 'bot') return;                                       // fleet.js and lab.js place their own scroll
   const a = sub && document.getElementById(tab + '-' + sub);
   if (a) { if (a.tagName === 'DETAILS') a.open = true; into(a, false); holdAnchor(a); } else jump(0);
 }
@@ -1421,7 +1423,7 @@ function nudgePoll() {                                             // the due wi
   if (!P.t || P.due > next + 1000) schedulePoll(next - Date.now());
 }
 async function poll(user) {
-  if (P.busy || S.booting) return;
+  if (P.busy || S.booting || PAGE === 'lab') return;
   P.busy = true; clearTimeout(P.t); P.t = 0;
   if (user) { S.net = 'checking'; paintCapsule(); }
   try {
@@ -1547,6 +1549,7 @@ async function boot() {
   if (S.booting) return;
   S.booting = true; S.net = 'checking'; paintCapsule();
   if (PAGE === 'fleet') return bootFleet();
+  if (PAGE === 'lab') { S.booting = false; S.net = 'ok'; return start(null); }
   // The bot page reads its exec:agents row in parallel: barOf() falls back to the row's tf for an older bundle.
   const ag = loadAgents();
   let b = null, err = null;
@@ -1648,7 +1651,7 @@ function onKey(e) {
   if (e.key === '[' || e.key === ']') { e.preventDefault(); botStep(e.key === ']' ? 1 : -1); }
 }
 function initShell() {
-  addEventListener('hashchange', () => { if (PAGE === 'fleet') legacyHash(); else route(); });
+  addEventListener('hashchange', () => { if (PAGE === 'fleet') legacyHash(); else if (PAGE === 'bot') route(); });
   document.addEventListener('keydown', onKey);
   document.addEventListener('click', onClick);
   const bg = $('#sheetbg'); if (bg) bg.addEventListener('click', closeSheet);

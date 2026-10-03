@@ -22,8 +22,10 @@ const bad = (m) => problems.push(m);
 
 // ------------------------------------------------------------------ module contract (source files) --
 const ORDER = ["core", "gaterun", "now", "activity", "positions", "results", "rules", "arrival", "factory", "fleet", "bot", "boot"];
+// The AiFi Lab page ("/lab", COMMAND_CENTER_SPEC §11) joins its own bundle: core + lab + boot.
+const LAB_ORDER = ["core", "lab", "boot"];
 const code = (src) => src.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n").replace(/\/\*[\s\S]*?\*\//g, "").trim();
-for (const n of ORDER) {
+for (const n of [...ORDER, "lab"]) {
   const p = path.join(cloud, "ui", n + ".js");
   if (!fs.existsSync(p)) { bad(`ui/${n}.js is missing`); continue; }
   const src = fs.readFileSync(p, "utf8");
@@ -53,6 +55,7 @@ const PW = "check";
 const exp = Math.floor(Date.now() / 1000) + 3600;
 const cookie = "ex=" + exp + "." + crypto.createHmac("sha256", PW).update("exec|" + exp).digest("hex");
 const KV = {
+  "exec:lab:day:2026-10-02": '{"v":1,"date":"2026-10-02","trials":[]}',
   "exec:ledger": JSON.stringify({ v: 2, review: { date: "2026-09-20", md: "# Review\n\n1. one\n   wrapped\n2. two" } }),
   "doc:how_it_works": "# How it works\n\n1. first\n   still first\n2. second\n3. third",
 };
@@ -124,16 +127,47 @@ if (unauth.status !== 401) bad(`/api/latest without a cookie returned ${unauth.s
 const st = await (await get("/api/stamp")).text();
 if (st !== "{}") bad(`/api/stamp without data returned ${st}, not {}`);
 for (const gone of ["/api/dates", "/api/day"]) if ((await get(gone)).status !== 404) bad(`${gone} still answers`);
+// the AiFi Lab page: its own shell and bundle, and the lab's two routes (§11)
+{
+  const r = await get("/lab"), t = await r.text();
+  if (r.status !== 200) bad(`/lab returned ${r.status}`);
+  if ((t.match(/<h1[\s>]/g) || []).length !== 1) bad("/lab: the lab page has not exactly one h1");
+  for (const id of ["ttl", "view", "sheet", "sheetbg", "toast", "app"]) if (!t.includes(`id="${id}"`)) bad(`/lab: the lab shell has no #${id}`);
+  if (!t.includes('data-view="lab"')) bad('/lab: data-view is not "lab"');
+  if ((t.match(/aria-live=/g) || []).length > 1) bad("/lab: more than one aria-live region");
+  if (r.headers.get("cache-control") !== "private, no-cache" || !/^"[0-9a-f]{64}"$/.test(r.headers.get("etag") || "")) bad("/lab: not cached like the other shells");
+  const lab = [...t.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((x) => x.startsWith('(function(){"use strict";'));
+  if (!lab) bad("/lab carries no joined client script");
+  else {
+    facts.lab_client_bytes = Buffer.byteLength(lab);
+    try { new vm.Script(lab, { filename: "joined-lab-client.js" }); } catch (e) { bad("the lab client does not compile: " + e.message); }
+    const at = LAB_ORDER.map((n) => lab.indexOf("/* ui/" + n + ".js */"));
+    if (at.some((v) => v < 0) || at.some((v, i) => i && v < at[i - 1])) bad("the lab client is not core + lab + boot, in that order");
+    if (lab.includes("/* ui/fleet.js */") || lab.includes("/* ui/bot.js */")) bad("the lab client carries the Command Center's modules");
+  }
+  if (client && client.includes("/* ui/lab.js */")) bad("the Command Center's client carries the lab module");
+  if (!page.includes('href="/lab"')) bad("the Command Center does not link the AiFi Lab page");
+  const miss = await get("/api/lab");
+  if (miss.status !== 404) bad(`/api/lab without data returned ${miss.status}, not 404`);
+  const d0 = await get("/api/lab/day?d=2026-10-02");
+  if (d0.status !== 200 || (await d0.json()).date !== "2026-10-02") bad("/api/lab/day did not return the stored day");
+  for (const q of ["", "?d=2026-13-01", "?d=26-10-02", "?d=2026-10-02x", "?d=..%2Fexec:agents"]) {
+    const x = await get("/api/lab/day" + q);
+    if (x.status !== 400) bad(`/api/lab/day${q} returned ${x.status}, not 400`);
+  }
+  if ((await get("/api/lab/day?d=2026-01-01")).status !== 404) bad("/api/lab/day for a day without a record is not 404");
+  if ((await get("/api/lab", false)).status !== 401) bad("/api/lab without a cookie is not 401");
+}
 fs.rmSync(out, { recursive: true, force: true });
 
 // ------------------------------------------------------------------ the clock harness (core.js in a vm) --
-function coreContext(search) {
+function coreContext(search, pathname) {
   const store = {}, ls = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
   const el = { dataset: {}, classList: { add() {}, remove() {}, toggle() {} }, style: {} };
   const ctx = {
     console, URLSearchParams, setTimeout, clearTimeout, setInterval, clearInterval,
     document: { documentElement: el, querySelector: () => null, querySelectorAll: () => [], getElementById: () => null, addEventListener() {} },
-    location: { search, hash: "", pathname: "/", href: "http://localhost/" + search, replace() {} },
+    location: { search, hash: "", pathname: pathname || "/", href: "http://localhost" + (pathname || "/") + search, replace() {} },
     matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
     localStorage: ls, sessionStorage: ls, history: { replaceState() {}, back() {} }, addEventListener() {},
     getComputedStyle: () => ({ getPropertyValue: () => "" }),
@@ -272,5 +306,50 @@ try {
   for (const [k, t] of Object.entries(facts.factory)) if (/undefined|NaN|null/.test(t)) bad("factory (" + k + ") has broken words: " + t);
 } catch (e) {
   bad("the tips and factory harness threw: " + (e && e.stack || e));
+}
+// ------------------------------------------------------------------ the AiFi Lab page (core + lab in a vm) --
+// COMMAND_CENTER_SPEC §11 on the invented log in cloud/dev/fx_lab.json (never the lab's real data): the header and
+// the Strategy log for the full payload, an empty one and an old / partial one; one strategy's sheet with and without
+// its day record; and the Lab floor's replay plan (real order, 15–60 s, never more pods than slots).
+try {
+  const C = coreContext("", "/lab");
+  vm.runInContext(fs.readFileSync(path.join(cloud, "ui", "lab.js"), "utf8"), C, { filename: "ui/lab.js" });
+  const run = (src) => vm.runInContext(src, C);
+  const text = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+  C.__exNow = Date.parse("2026-10-02T15:00:00Z");
+  if (run("PAGE") !== "lab") bad("lab harness: PAGE is not 'lab' on /lab");
+  const FX = JSON.parse(fs.readFileSync(path.join(cloud, "dev", "fx_lab.json"), "utf8"));
+  const L = FX["exec:lab"], D = FX["exec:lab:day:2026-10-02"];
+  const page = (x) => { C.__L = x; return text(run("COMP.labPage(__L)")); };
+  const old = { v: 1, rows: L.rows.slice(10).map(({ stage, gv, fail, veto, arena, hold, dfl, ...r }) => r) };
+  facts.lab = { full: page(L), empty: page({ v: 1 }), old: page(old) };
+  C.__L = L; C.__D = D;
+  facts.lab.sheet_full = text(run("COMP.labSheet(__L, 'fx-a107', __D)"));
+  facts.lab.sheet_summary = text(run("COMP.labSheet(__L, 'fx-n304', null)"));
+  facts.lab.sheet_veto = text(run("COMP.labSheet(__L, 'fx-a106', __D)"));
+  for (const [k, t] of Object.entries(facts.lab)) if (/undefined|NaN|\bnull\b|\$/.test(t)) bad("lab (" + k + ") has broken words: " + t.slice(0, 300));
+  // the replay plan: run 0 (8 tests) on 9 slots and on 2 (a full bench makes the earliest finished test leave first)
+  const plans = {};
+  for (const [i, c] of [[0, 9], [0, 2], [1, 6]]) {
+    const P = JSON.parse(run("JSON.stringify((function(){ const p = COMP.labPlan(__L, " + i + ", " + c + "); return { end: p.end, T: p.T, out: p.out.map(x => ({ id: x.r.id, at: x.r.at, slot: x.slot, s: x.s, done: x.done, out: x.out })) }; })())"));
+    const key = i + "/" + c; plans[key] = { n: P.out.length, end: Math.round(P.end), T: P.T };
+    const o = P.out;
+    if (o.some((x, j) => j && (x.at < o[j - 1].at || x.s < o[j - 1].s))) bad("lab plan " + key + ": tests are not replayed in their real order");
+    if (P.end > P.T + 1 || P.end < 15000 * 0.3) bad("lab plan " + key + ": the replay lasts " + Math.round(P.end) + " ms, not within its " + P.T + " ms");
+    if (o.some((x) => !(x.s < x.done && x.done <= x.out))) bad("lab plan " + key + ": a test leaves before its verdict");
+    for (const x of o) for (const y of o) if (x !== y && x.slot === y.slot && x.s < y.s && y.s < x.out) bad("lab plan " + key + ": two tests share slot " + x.slot);
+    if (o.some((x) => x.slot < 0 || x.slot >= c)) bad("lab plan " + key + ": a slot outside the bench");
+  }
+  facts.lab.plans = plans;
+  // the page's own tip words (added to core's TIP): every lane, counter, pip, check, proposer and verdict has words
+  const specs = ["floor", "scouts", "bench", "auditor", "arena", "wall", "tested", "killed", "failed", "audit", "waiting", "exam", "passed", "rulebook", "log", "pip0", "pip1", "pip2", "pip3"].map((k) => "lab:" + k)
+    .concat(["enough history", "cheap: Sharpe and trades", "cheap: earns anything", "trade count", "return on capital", "Sharpe", "deflated Sharpe", "max drawdown", "costs doubled",
+      "neighbours", "beats holding the coins", "positive years", "no one-year wonder", "worst regime", "no lookahead", "works on other coins", "not a copy of a fleet bot", "holdout",
+      "holdout budget"].map((k) => "chk:" + k), ["scout", "auto", "campaign", "seed"].map((k) => "lbby:" + k), ["k", "f", "w", "x", "t", "p", "a"].map((k) => "lbv:" + k));
+  const silent = specs.filter((k) => { C.__k = k; const t = text(run("tipText(__k, null)")); return !t || /undefined|NaN|null/.test(t); });
+  if (silent.length) bad("lab tips without words: " + silent.join(", "));
+  facts.lab.tips = specs.length;
+} catch (e) {
+  bad("the lab harness threw: " + (e && e.stack || e));
 }
 console.log(JSON.stringify({ ok: problems.length === 0, problems, facts }));

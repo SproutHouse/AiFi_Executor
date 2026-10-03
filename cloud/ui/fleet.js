@@ -494,6 +494,7 @@
     const ls = isObj(L.last) ? L.last : null, day = ymdS(ls ? ls.date : L.last_batch);
     const when = day == null ? '' : ls && Math.round((nowS() - day) / D) <= 1 ? 'Last night' : 'Latest batch, ' + fmt.md(day);
     if (when) h += '<p class="fl-fxl"' + hint('fx', 'last') + '><b>' + esc(when) + '</b>' + (ls ? ': ' + esc((num(ls.tried) == null ? '—' : word.plural(ls.tried, 'recipe')) + ' tested, ' + (num(ls.passed) == null ? '—' : fmt.int(ls.passed)) + ' passed') : '') + '</p>';
+    h += '<p class="fl-fxa"><a class="btn small ghost" href="/lab#floor">Watch last night’s run ›</a><a class="btn small ghost" href="/lab#log">Every strategy tested ›</a></p>';
     const fam = isObj(L.by_family) ? Object.keys(L.by_family).map(id => { const f = isObj(L.by_family[id]) ? L.by_family[id] : {}; return { id, n: num(f.tried), p: num(f.survived) ?? num(f.passed) }; }) : [];
     fam.sort((a, z) => (z.n ?? -1) - (a.n ?? -1) || famName(a.id).localeCompare(famName(z.id)));
     if (fam.length) h += '<h3 class="fl-fxh"' + hint('fx', 'fam') + '>By strategy type</h3><ul class="fl-fam">' + fam.map(f => '<li class="tc"' + hint('fam', f.id) + '><span class="fl-fmn tl">' + esc(famName(f.id)) + '</span><span class="fl-fmc">'
