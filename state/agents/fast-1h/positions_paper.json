@@ -1,5 +1,51 @@
 {
-  "updated": "2026-10-03T09:06:37.048060Z",
+  "updated": "2026-10-03T10:06:46.655703Z",
   "mode": "paper",
-  "positions": {}
+  "positions": {
+    "CRV": {
+      "coin": "CRV",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 0.38071026,
+      "stop": 0.36222450532752276,
+      "initial_stop": 0.36222450532752276,
+      "notional": 192.2713857088864,
+      "sz": 505.0333702823938,
+      "risk_amt": 9.791893729032042,
+      "leverage": 3,
+      "notional_pct_equity": 19.635771284855746,
+      "entry_fee": 0.08652212356899888,
+      "funding_paid": 0.0,
+      "opened": "2026-10-03T10:05:45Z",
+      "opened_ts": 1791021945,
+      "last_bar_t": 1791018000,
+      "last_funding_ts": 1791021945,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:fast-1h",
+        "trigger:flip",
+        "tier:A",
+        "stop:1h-line",
+        "long-only",
+        "book:eth-defi"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "eth-defi",
+      "benchmark": "ETH",
+      "bench_entry": 2679.7,
+      "mark": 0.38052,
+      "upnl_pct": -0.04997501249375258
+    }
+  }
 }
