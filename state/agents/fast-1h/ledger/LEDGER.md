@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-03T21:06:35.039371Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-03T22:06:36.835441Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -30,6 +30,4 @@ _Rendered 2026-10-03T21:06:35.039371Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- CRV: stop trailed to 0.36927
-- AVAX: stop trailed to 10.842
 - evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
