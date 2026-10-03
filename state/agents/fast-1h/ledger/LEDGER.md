@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-03T19:06:41.433884Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-03T20:07:46.489569Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| eth-defi | CRV | flip | A | 0.38071 | 0.36619 | 19.6% | 3x | 2026-10-03T10:05 |
-| l1s | AVAX | flip | A | 11.1396 | 10.7957 | 24.7% | 3x | 2026-10-03T12:06 |
+| eth-defi | CRV | flip | A | 0.38071 | 0.367414 | 19.6% | 3x | 2026-10-03T10:05 |
+| l1s | AVAX | flip | A | 11.1396 | 10.8196 | 24.7% | 3x | 2026-10-03T12:06 |
 
 ## Closed trades, summary
 
@@ -25,10 +25,12 @@ _Rendered 2026-10-03T19:06:41.433884Z in paper mode from state/positions_paper.j
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 113 recorded (state/ledger/refused.jsonl)
+## Refused signals: 114 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- INJ: signal pullback tier B REFUSED: universe filters (24h volume 3.3M below 5M)
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
+- CRV: stop trailed to 0.36741
+- AVAX: stop trailed to 10.82
+- DOT: signal pullback tier B REFUSED: universe filters (24h volume 1.7M below 5M)
 - evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
