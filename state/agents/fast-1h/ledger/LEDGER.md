@@ -1,23 +1,23 @@
 # Ledger
 
-_Rendered 2026-10-04T11:06:39.517549Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-04T12:07:52.071680Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| eth-defi | CRV | flip | A | 0.38071 | 0.369267 | 19.6% | 3x | 2026-10-03T10:05 |
 | l1s | AVAX | flip | A | 11.1396 | 10.8917 | 24.7% | 3x | 2026-10-03T12:06 |
 | bitcoin | BTC | flip | A | 85294.6 | 84825.6 | 106.8% | 3x | 2026-10-04T10:05 |
 
 ## Closed trades, summary
 
-- Trades 7 · win rate 29% · average -0.30 R · total -2.1 R · profit factor 0.22 · worst losing streak 3 · costs 0.02 R per trade · average -0.10 R against holding the benchmark
+- Trades 8 · win rate 25% · average -0.34 R · total -2.7 R · profit factor 0.18 · worst losing streak 3 · costs 0.02 R per trade · average -0.18 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-04T11:00 | eth-defi | CRV | flip | A | 0.38071 | 0.369083 | -0.62 | -0.78 | stop | 25 |
 | 2026-10-02T18:00 | solana | JUP | flip | A | 0.332256 | 0.319031 | -0.80 | -0.51 | stop | 15 |
 | 2026-10-02T17:00 | l1s | XLM | flip | A | 0.224792 | 0.218967 | -0.77 | -0.30 | stop | 8 |
 | 2026-10-01T13:00 | eth-defi | CRV | flip | A | 0.361701 | 0.377451 | +0.35 | +0.39 | stop | 67 |
@@ -30,8 +30,6 @@ _Rendered 2026-10-04T11:06:39.517549Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- BTC: stop trailed to 84826
-- ZRO: signal pullback tier B REFUSED: open-risk cap (4.02% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 2.01% after entry, cap 2.0%)
-- DOT: signal pullback tier B REFUSED: open-risk cap (4.02% of equity after entry, cap 4.0%); book open-risk cap (book l1s: 2.01% after entry, cap 2.0%); universe filters (24h volume 1.6M below 5M)
-- evaluated 28 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 3 open
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
+- CRV [eth-defi]: closed on stop at 0.36908 → -0.62 R · -0.78 R vs ETH
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
