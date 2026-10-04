@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-04T00:08:42.159012Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-04T01:07:36.757977Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -17,11 +17,11 @@ No closed trades yet.
 
 None yet.
 
-## Refused signals: 1 recorded (state/ledger/refused.jsonl)
+## Refused signals: 2 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 67 min after the bar close
 - AAVE: target 0% of pot, holding 0% → none
 - ADA: target 0% of pot, holding 0% → none
 - APT: target 0% of pot, holding 0% → none
@@ -43,14 +43,12 @@ None yet.
 - LDO: target 0% of pot, holding 0% → none
 - LINK: target 0% of pot, holding 0% → none
 - LTC: target 0% of pot, holding 0% → none
-- NEAR: target 6% of pot, holding 0% → open
-- NEAR: ENTERED NEAR long [arena] · target tier T · stop 3.8574 (20.0% away) · size 6.2% of pot at 3x · risk 1.24% of pot
+- NEAR: target 6% of pot, holding 6% → hold
 - ONDO: target 0% of pot, holding 0% → none
 - PENDLE: target 0% of pot, holding 0% → none
 - PUMP: target 0% of pot, holding 0% → none
 - SOL: target 0% of pot, holding 0% → none
-- SUI: target 8% of pot, holding 0% → open
-- SUI: ENTERED SUI long [arena] · target tier T · stop 0.94696 (20.0% away) · size 8.5% of pot at 3x · risk 1.70% of pot
+- SUI: target 8% of pot, holding 8% → hold
 - TAO: target 0% of pot, holding 0% → none
 - UNI: target 0% of pot, holding 0% → none
 - WLD: target 0% of pot, holding 0% → none
@@ -59,5 +57,5 @@ None yet.
 - XRP: target 0% of pot, holding 0% → none
 - ZEC: target 0% of pot, holding 0% → none
 - ZRO: target 8% of pot, holding 0% → open
-- ZRO: signal open tier T REFUSED: universe filters (funding 79%/yr against longs above 30%)
-- evaluated 35 names · 0 triggers · 1 refused · 0 proposed · 2 entered · 2 open
+- ZRO: signal open tier T REFUSED: universe filters (funding 60%/yr against longs above 30%)
+- evaluated 35 names · 0 triggers · 1 refused · 0 proposed · 0 entered · 2 open
