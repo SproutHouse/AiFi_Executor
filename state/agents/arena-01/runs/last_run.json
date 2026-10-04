@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-04T01:07:07Z",
+  "t": "2026-10-04T02:07:09Z",
   "agent": "arena-01",
   "tf": "1d",
   "mode": "paper",
-  "hours": "approval",
+  "hours": "auto",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -17,7 +17,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 0.2375599562270782,
+    "drawdown_pct": 0.2151340823383825,
     "halt": false,
     "peak": 1006.9064592245495
   },
@@ -31,7 +31,7 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 67 min after the bar close",
+    "BTC weekly Bullish · daily Bullish · data 127 min after the bar close",
     "AAVE: target 0% of pot, holding 0% → none",
     "ADA: target 0% of pot, holding 0% → none",
     "AVAX: target 9% of pot, holding 9% → hold",
@@ -60,9 +60,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": 5.614459200000001,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 182.51
+      "mark": 182.56
     },
     {
       "coin": "ADA",
@@ -76,9 +76,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": -3.6580884,
+      "funding_pct": -15.221638800000004,
       "days": 1500,
-      "mark": 0.24367
+      "mark": 0.244
     },
     {
       "coin": "AVAX",
@@ -94,7 +94,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 11.091
+      "mark": 11.079
     },
     {
       "coin": "BNB",
@@ -110,7 +110,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 784.65
+      "mark": 784.06
     },
     {
       "coin": "BTC",
@@ -124,9 +124,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": 9.2559912,
+      "funding_pct": 10.208290800000002,
       "days": 1500,
-      "mark": 84749.0
+      "mark": 84800.0
     },
     {
       "coin": "DOGE",
@@ -142,7 +142,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.092883
+      "mark": 0.092875
     },
     {
       "coin": "ETH",
@@ -158,7 +158,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 2693.6
+      "mark": 2693.9
     },
     {
       "coin": "LINK",
@@ -174,7 +174,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 14.127
+      "mark": 14.069
     },
     {
       "coin": "LTC",
@@ -190,7 +190,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 70.866
+      "mark": 69.899
     },
     {
       "coin": "NEAR",
@@ -206,7 +206,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 4.8359
+      "mark": 4.87445
     },
     {
       "coin": "SOL",
@@ -220,9 +220,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": 6.550728,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 120.225
+      "mark": 120.12
     },
     {
       "coin": "UNI",
@@ -238,7 +238,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 9.0651
+      "mark": 9.0434
     },
     {
       "coin": "XRP",
@@ -254,9 +254,9 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 1.4878
+      "mark": 1.4899
     }
   ],
-  "equity": 1004.5116873618024,
-  "hours_local": "21:07 EDT"
+  "equity": 1004.7374457073156,
+  "hours_local": "22:07 EDT"
 }

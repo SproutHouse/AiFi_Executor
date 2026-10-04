@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-04T01:07:36.757977Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-04T02:07:36.556347Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -17,11 +17,11 @@ No closed trades yet.
 
 None yet.
 
-## Refused signals: 2 recorded (state/ledger/refused.jsonl)
+## Refused signals: 3 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 67 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 127 min after the bar close
 - AAVE: target 0% of pot, holding 0% → none
 - ADA: target 0% of pot, holding 0% → none
 - APT: target 0% of pot, holding 0% → none
@@ -57,5 +57,5 @@ None yet.
 - XRP: target 0% of pot, holding 0% → none
 - ZEC: target 0% of pot, holding 0% → none
 - ZRO: target 8% of pot, holding 0% → open
-- ZRO: signal open tier T REFUSED: universe filters (funding 60%/yr against longs above 30%)
+- ZRO: signal open tier T REFUSED: universe filters (funding 88%/yr against longs above 30%)
 - evaluated 35 names · 0 triggers · 1 refused · 0 proposed · 0 entered · 2 open
