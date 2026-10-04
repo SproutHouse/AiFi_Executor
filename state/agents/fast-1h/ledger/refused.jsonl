@@ -123,3 +123,5 @@
 {"t": "2026-10-04T13:05:45Z", "coin": "ETH", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}
 {"t": "2026-10-04T14:05:45Z", "coin": "ZRO", "kind": "pullback", "tier": "B", "stage": "pre-trade", "detail": [{"check": "universe filters", "ok": false, "detail": "funding 32%/yr against longs above 30%"}]}
 {"t": "2026-10-04T14:05:45Z", "coin": "DOT", "kind": "pullback", "tier": "B", "stage": "pre-trade", "detail": [{"check": "book open-risk cap", "ok": false, "detail": "book l1s: 2.01% after entry, cap 2.0%"}, {"check": "universe filters", "ok": false, "detail": "24h volume 1.4M below 5M"}]}
+{"t": "2026-10-04T16:06:39Z", "coin": "XLM", "kind": "flip", "tier": "A", "stage": "pre-trade", "detail": [{"check": "book open-risk cap", "ok": false, "detail": "book l1s: 2.01% after entry, cap 2.0%"}, {"check": "universe filters", "ok": false, "detail": "24h volume 2.3M below 5M"}]}
+{"t": "2026-10-04T16:06:39Z", "coin": "WLD", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}

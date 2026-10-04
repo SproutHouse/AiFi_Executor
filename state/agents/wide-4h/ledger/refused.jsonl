@@ -61,3 +61,4 @@
 {"t": "2026-10-04T04:06:00Z", "coin": "AVAX", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}
 {"t": "2026-10-04T12:06:01Z", "coin": "LTC", "kind": "flip", "tier": "A", "stage": "pre-trade", "detail": [{"check": "book open-risk cap", "ok": false, "detail": "book bitcoin: 2.01% after entry, cap 1.5%"}]}
 {"t": "2026-10-04T12:06:01Z", "coin": "ETH", "kind": "pullback", "tier": "B", "stage": "policy", "detail": "tier B is not automated and approvals are disabled"}
+{"t": "2026-10-04T16:06:00Z", "coin": "FET", "kind": "flip", "tier": "A", "stage": "pre-trade", "detail": [{"check": "book open-risk cap", "ok": false, "detail": "book ai: 2.01% after entry, cap 1.5%"}, {"check": "universe filters", "ok": false, "detail": "24h volume 4.2M below 5M"}]}

@@ -1,12 +1,12 @@
 # Ledger
 
-_Rendered 2026-10-04T12:06:38.267375Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-04T16:06:39.013262Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| bitcoin | BTC | flip | A | 85544.8 | 83598.6 | 30.2% | 3x | 2026-10-02T04:06 |
+| bitcoin | BTC | flip | A | 85544.8 | 83617.6 | 30.2% | 3x | 2026-10-02T04:06 |
 | ai | WLD | flip | A | 0.577439 | 0.516373 | 6.2% | 2x | 2026-10-02T16:06 |
 
 ## Closed trades, summary
@@ -19,11 +19,11 @@ _Rendered 2026-10-04T12:06:38.267375Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 63 recorded (state/ledger/refused.jsonl)
+## Refused signals: 64 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- LTC: signal flip tier A REFUSED: book open-risk cap (book bitcoin: 2.01% after entry, cap 1.5%)
-- ETH: signal pullback tier B recorded, not traded (tier not automated)
-- evaluated 29 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 2 open
+- BTC: stop trailed to 83618
+- FET: signal flip tier A REFUSED: book open-risk cap (book ai: 2.01% after entry, cap 1.5%); universe filters (24h volume 4.2M below 5M)
+- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
