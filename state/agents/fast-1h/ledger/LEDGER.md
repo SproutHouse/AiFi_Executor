@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-04T10:06:38.865967Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-04T11:06:39.517549Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -8,7 +8,7 @@ _Rendered 2026-10-04T10:06:38.865967Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|
 | eth-defi | CRV | flip | A | 0.38071 | 0.369267 | 19.6% | 3x | 2026-10-03T10:05 |
 | l1s | AVAX | flip | A | 11.1396 | 10.8917 | 24.7% | 3x | 2026-10-03T12:06 |
-| bitcoin | BTC | flip | A | 85294.6 | 84707.1 | 106.8% | 3x | 2026-10-04T10:05 |
+| bitcoin | BTC | flip | A | 85294.6 | 84825.6 | 106.8% | 3x | 2026-10-04T10:05 |
 
 ## Closed trades, summary
 
@@ -26,11 +26,12 @@ _Rendered 2026-10-04T10:06:38.865967Z in paper mode from state/positions_paper.j
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 120 recorded (state/ledger/refused.jsonl)
+## Refused signals: 122 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- BTC: ENTERED BTC long [bitcoin] · flip tier A · stop 84707 (0.9% away) · size 106.8% of pot at 3x · risk 1.00% of pot
-- AAVE: signal pullback tier B REFUSED: open-risk cap (4.01% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 2.01% after entry, cap 2.0%)
-- evaluated 29 names · 2 triggers · 1 refused · 0 proposed · 1 entered · 3 open
+- BTC: stop trailed to 84826
+- ZRO: signal pullback tier B REFUSED: open-risk cap (4.02% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 2.01% after entry, cap 2.0%)
+- DOT: signal pullback tier B REFUSED: open-risk cap (4.02% of equity after entry, cap 4.0%); book open-risk cap (book l1s: 2.01% after entry, cap 2.0%); universe filters (24h volume 1.6M below 5M)
+- evaluated 28 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 3 open
