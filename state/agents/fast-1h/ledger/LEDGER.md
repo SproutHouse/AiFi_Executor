@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-04T06:06:33.616503Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-04T07:06:34.034766Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -25,10 +25,10 @@ _Rendered 2026-10-04T06:06:33.616503Z in paper mode from state/positions_paper.j
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 116 recorded (state/ledger/refused.jsonl)
+## Refused signals: 117 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- AVAX: stop trailed to 10.892
-- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- INJ: signal pullback tier B REFUSED: book open-risk cap (book l1s: 2.00% after entry, cap 2.0%); universe filters (24h volume 2.2M below 5M)
+- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
