@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-04T16:06:39.013262Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-04T20:06:37.767394Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| bitcoin | BTC | flip | A | 85544.8 | 83617.6 | 30.2% | 3x | 2026-10-02T04:06 |
-| ai | WLD | flip | A | 0.577439 | 0.516373 | 6.2% | 2x | 2026-10-02T16:06 |
+| bitcoin | BTC | flip | A | 85544.8 | 83752 | 30.2% | 3x | 2026-10-02T04:06 |
+| ai | WLD | flip | A | 0.577439 | 0.518739 | 6.2% | 2x | 2026-10-02T16:06 |
 
 ## Closed trades, summary
 
@@ -24,6 +24,6 @@ _Rendered 2026-10-04T16:06:39.013262Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- BTC: stop trailed to 83618
-- FET: signal flip tier A REFUSED: book open-risk cap (book ai: 2.01% after entry, cap 1.5%); universe filters (24h volume 4.2M below 5M)
-- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
+- BTC: stop trailed to 83752
+- WLD: stop trailed to 0.51874
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
