@@ -1,22 +1,22 @@
 # Ledger
 
-_Rendered 2026-10-05T04:07:43.711234Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-05T05:06:40.012048Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| bitcoin | BTC | flip | A | 85294.6 | 85699.5 | 106.8% | 3x | 2026-10-04T10:05 |
 | eth-defi | CRV | flip | A | 0.379009 | 0.371425 | 25.6% | 3x | 2026-10-05T00:06 |
 
 ## Closed trades, summary
 
-- Trades 9 · win rate 22% · average -0.36 R · total -3.2 R · profit factor 0.16 · worst losing streak 4 · costs 0.02 R per trade · average -0.27 R against holding the benchmark
+- Trades 10 · win rate 30% · average -0.29 R · total -2.9 R · profit factor 0.24 · worst losing streak 4 · costs 0.03 R per trade · average -0.24 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-05T04:00 | bitcoin | BTC | flip | A | 85294.6 | 85656.7 | +0.33 | -0.02 | stop | 18 |
 | 2026-10-05T03:00 | l1s | AVAX | flip | A | 11.1396 | 10.9161 | -0.53 | -0.94 | stop | 39 |
 | 2026-10-04T11:00 | eth-defi | CRV | flip | A | 0.38071 | 0.369083 | -0.62 | -0.78 | stop | 25 |
 | 2026-10-02T18:00 | solana | JUP | flip | A | 0.332256 | 0.319031 | -0.80 | -0.51 | stop | 15 |
@@ -27,10 +27,12 @@ _Rendered 2026-10-05T04:07:43.711234Z in paper mode from state/positions_paper.j
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 132 recorded (state/ledger/refused.jsonl)
+## Refused signals: 134 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
-- AVAX [l1s]: closed on stop at 10.916 → -0.53 R · -0.94 R vs BTC
-- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- BTC [bitcoin]: closed on stop at 85657 → +0.33 R · -0.02 R vs BTC
+- ETH: signal pullback tier B REFUSED: gross exposure cap (3.26x after entry, cap 3.0x)
+- INJ: signal pullback tier B REFUSED: universe filters (24h volume 2.1M below 5M)
+- evaluated 30 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 1 open

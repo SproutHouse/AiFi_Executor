@@ -1,52 +1,7 @@
 {
-  "updated": "2026-10-05T04:07:43.705020Z",
+  "updated": "2026-10-05T05:06:39.993033Z",
   "mode": "paper",
   "positions": {
-    "BTC": {
-      "coin": "BTC",
-      "side": "long",
-      "kind": "flip",
-      "tier": "A",
-      "mode": "paper",
-      "entry": 85294.62599999999,
-      "stop": 85699.50047747164,
-      "initial_stop": 84707.09458487874,
-      "notional": 1038.8249113014526,
-      "sz": 0.012179253957939305,
-      "risk_amt": 9.727152979500884,
-      "leverage": 3,
-      "notional_pct_equity": 106.79639905845877,
-      "entry_fee": 0.4674712100856537,
-      "funding_paid": 0.23391234955898577,
-      "opened": "2026-10-04T10:05:45Z",
-      "opened_ts": 1791108345,
-      "last_bar_t": 1791169200,
-      "last_funding_ts": 1791173194,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "Bullish",
-        "pair_daily": "Bullish",
-        "h4_range": "Overextended",
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "auto"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:fast-1h",
-        "trigger:flip",
-        "tier:A",
-        "stop:1h-line",
-        "long-only",
-        "book:bitcoin"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "bitcoin",
-      "benchmark": "BTC",
-      "bench_entry": 85252.0,
-      "mark": 86057.0,
-      "upnl_pct": 0.8938124659811697
-    },
     "CRV": {
       "coin": "CRV",
       "side": "long",
@@ -62,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 25.641700877066476,
       "entry_fee": 0.11365112041518609,
-      "funding_paid": 0.012627025330696488,
+      "funding_paid": 0.015741030952566286,
       "opened": "2026-10-05T00:06:35Z",
       "opened_ts": 1791158795,
-      "last_bar_t": 1791169200,
-      "last_funding_ts": 1791173194,
+      "last_bar_t": 1791172800,
+      "last_funding_ts": 1791176745,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +44,8 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2725.1,
-      "mark": 0.38049,
-      "upnl_pct": 0.3906472928996596
+      "mark": 0.38405,
+      "upnl_pct": 1.3299379558940227
     }
   }
 }
