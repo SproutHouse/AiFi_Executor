@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-05T08:06:01.778194Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-05T12:06:02.982174Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | bitcoin | BTC | flip | A | 85540.7 | 84490.1 | 30.2% | 3x | 2026-10-02T04:05 |
-| hype | HYPE | flip | A | 93.2826 | 87.1229 | 14.6% | 3x | 2026-10-05T08:05 |
+| hype | HYPE | flip | A | 93.2826 | 88.8383 | 14.6% | 3x | 2026-10-05T08:05 |
 
 ## Closed trades, summary
 
@@ -19,10 +19,11 @@ _Rendered 2026-10-05T08:06:01.778194Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.97 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 33 recorded (state/ledger/refused.jsonl)
+## Refused signals: 34 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- HYPE: ENTERED HYPE long [hype] · flip tier A · stop 87.123 (6.8% away) · size 14.6% of pot at 3x · risk 1.00% of pot
-- evaluated 13 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 2 open
+- HYPE: stop trailed to 88.838
+- CRV: signal pullback tier B REFUSED: universe filters (24h volume 6.6M below 30M)
+- evaluated 12 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
