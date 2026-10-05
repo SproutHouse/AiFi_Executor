@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-05T12:06:46.213917Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-05T16:06:44.322189Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -20,14 +20,13 @@ _Rendered 2026-10-05T12:06:46.213917Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 69 recorded (state/ledger/refused.jsonl)
+## Refused signals: 73 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- WLD: stop trailed to 0.52038
-- HYPE: stop trailed to 88.838
-- CRV: signal pullback tier B REFUSED: open-risk cap (4.01% of equity after entry, cap 4.0%)
-- ENA: signal flip tier A REFUSED: open-risk cap (4.01% of equity after entry, cap 4.0%); universe filters (funding 51%/yr against longs above 30%)
-- XLM: signal pullback tier B REFUSED: open-risk cap (4.01% of equity after entry, cap 4.0%); universe filters (24h volume 2.8M below 5M)
-- evaluated 28 names · 3 triggers · 3 refused · 0 proposed · 0 entered · 3 open
+- LTC: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%); book open-risk cap (book bitcoin: 2.01% after entry, cap 1.5%)
+- ETH: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%)
+- ENA: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%)
+- DOT: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%); universe filters (24h volume 1.8M below 5M)
+- evaluated 28 names · 4 triggers · 4 refused · 0 proposed · 0 entered · 3 open
