@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-05T04:06:00.749252Z",
+  "updated": "2026-10-05T08:06:01.769025Z",
   "mode": "paper",
   "positions": {
     "BTC": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 30.197771503391913,
       "entry_fee": 0.1358899717652636,
-      "funding_paid": 0.24071827417996633,
+      "funding_paid": 0.25581715993166226,
       "opened": "2026-10-02T04:05:45Z",
       "opened_ts": 1790913945,
-      "last_bar_t": 1791158400,
-      "last_funding_ts": 1791173145,
+      "last_bar_t": 1791172800,
+      "last_funding_ts": 1791187545,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,53 @@
       "book": "bitcoin",
       "benchmark": "BTC",
       "bench_entry": 85498.0,
-      "mark": 86047.5,
-      "upnl_pct": 0.5924088880727485
+      "mark": 86349.0,
+      "upnl_pct": 0.9448724841069733
+    },
+    "HYPE": {
+      "coin": "HYPE",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 93.282618,
+      "stop": 87.12286395692483,
+      "initial_stop": 87.12286395692483,
+      "notional": 145.43605267596266,
+      "sz": 1.5590905979500131,
+      "risk_amt": 9.942180013200486,
+      "leverage": 3,
+      "notional_pct_equity": 14.628185416363765,
+      "entry_fee": 0.0654462237041832,
+      "funding_paid": 0.0,
+      "opened": "2026-10-05T08:05:45Z",
+      "opened_ts": 1791187545,
+      "last_bar_t": 1791172800,
+      "last_funding_ts": 1791187545,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 21.690373200000003,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:core",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:hype"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "hype",
+      "benchmark": "HYPE",
+      "bench_entry": 93.236,
+      "mark": 93.236,
+      "upnl_pct": -0.04997501249375258
     }
   }
 }
