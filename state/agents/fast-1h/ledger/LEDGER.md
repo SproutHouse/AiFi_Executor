@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-05T22:06:45.312985Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-05T23:06:40.047906Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -31,5 +31,4 @@ None.
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- CRV: signal pullback tier B recorded, not traded (tier not automated)
-- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open
+- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
