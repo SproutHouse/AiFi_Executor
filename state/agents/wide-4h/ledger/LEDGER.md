@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-04T20:06:37.767394Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-05T00:06:35.733858Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| bitcoin | BTC | flip | A | 85544.8 | 83752 | 30.2% | 3x | 2026-10-02T04:06 |
-| ai | WLD | flip | A | 0.577439 | 0.518739 | 6.2% | 2x | 2026-10-02T16:06 |
+| bitcoin | BTC | flip | A | 85544.8 | 84211.2 | 30.2% | 3x | 2026-10-02T04:06 |
+| ai | WLD | flip | A | 0.577439 | 0.520266 | 6.2% | 2x | 2026-10-02T16:06 |
 
 ## Closed trades, summary
 
@@ -19,11 +19,12 @@ _Rendered 2026-10-04T20:06:37.767394Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 64 recorded (state/ledger/refused.jsonl)
+## Refused signals: 65 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- BTC: stop trailed to 83752
-- WLD: stop trailed to 0.51874
-- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- BTC: stop trailed to 84211
+- WLD: stop trailed to 0.52027
+- DOT: signal pullback tier B REFUSED: universe filters (24h volume 1.8M below 5M)
+- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-04T02:07:36.539788Z",
+  "updated": "2026-10-05T00:08:39.255701Z",
   "mode": "paper",
   "positions": {
     "NEAR": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 6.191567205696403,
       "entry_fee": 0.02786205242563381,
-      "funding_paid": 0.0015347777181064799,
+      "funding_paid": 0.023629976042820224,
       "opened": "2026-10-04T00:08:17Z",
       "opened_ts": 1791072497,
-      "last_bar_t": 1790985600,
-      "last_funding_ts": 1791079636,
+      "last_bar_t": 1791072000,
+      "last_funding_ts": 1791158898,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,8 +45,8 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 4.8218,
-      "mark": 4.8742,
-      "upnl_pct": 1.0362129897762307
+      "mark": 4.9096,
+      "upnl_pct": 1.7700117546685323
     },
     "SUI": {
       "coin": "SUI",
@@ -63,11 +63,11 @@
       "leverage": 3,
       "notional_pct_equity": 8.495447667132106,
       "entry_fee": 0.03822951450209448,
-      "funding_paid": 0.004971893104546862,
+      "funding_paid": 0.02835266300011024,
       "opened": "2026-10-04T00:08:17Z",
       "opened_ts": 1791072497,
-      "last_bar_t": 1790985600,
-      "last_funding_ts": 1791079636,
+      "last_bar_t": 1791072000,
+      "last_funding_ts": 1791158898,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -91,8 +91,54 @@
       "book": "arena",
       "benchmark": "SUI",
       "bench_entry": 1.1837,
-      "mark": 1.1842,
-      "upnl_pct": -0.007755689613164751
+      "mark": 1.2068,
+      "upnl_pct": 1.9005577045894784
+    },
+    "ZRO": {
+      "coin": "ZRO",
+      "side": "long",
+      "kind": "target",
+      "tier": "T",
+      "mode": "paper",
+      "entry": 1.9719855,
+      "stop": 1.5775884,
+      "initial_stop": 1.5775884,
+      "notional": 85.39677457826494,
+      "sz": 43.30497084195849,
+      "risk_amt": 17.07935491565299,
+      "leverage": 3,
+      "notional_pct_equity": 8.517209694993893,
+      "entry_fee": 0.038428548560219225,
+      "funding_paid": 0.0,
+      "opened": "2026-10-05T00:08:18Z",
+      "opened_ts": 1791158898,
+      "last_bar_t": 1791072000,
+      "last_funding_ts": 1791158898,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "No data",
+        "pair_daily": "No data",
+        "h4_range": null,
+        "funding_annual_pct": 14.825511599999999,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:arena-02",
+        "trigger:target",
+        "tier:T",
+        "stop:1d-line",
+        "long-only",
+        "book:arena",
+        "target:bull_momentum: weight 0.09 of equity"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "arena",
+      "benchmark": "ZRO",
+      "bench_entry": 1.971,
+      "mark": 1.971,
+      "upnl_pct": -0.04997501249374148
     }
   }
 }

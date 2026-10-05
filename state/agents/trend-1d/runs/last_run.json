@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-04T02:06:39Z",
+  "t": "2026-10-05T00:07:46Z",
   "agent": "trend-1d",
   "tf": "1d",
   "mode": "paper",
-  "hours": "auto",
+  "hours": "approval",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -16,9 +16,9 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 0.3851022794452453,
+    "drawdown_pct": 0.0,
     "halt": false,
-    "peak": 1004.8557604923233
+    "peak": 1011.0991776689831
   },
   "halt": false,
   "fleet_mult": 1.0,
@@ -30,7 +30,7 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 127 min after the bar close",
+    "BTC weekly Bullish · daily Bullish · data 8 min after the bar close",
     "BTC: target 40% of pot, holding 35% → hold",
     "ETH: target 37% of pot, holding 33% → hold",
     "evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open"
@@ -44,13 +44,13 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 84716.0,
+      "close": 86504.0,
       "trigger": null,
-      "why": "close 84716 above its 50-day average 78563; volatility 38% → weight 0.79",
+      "why": "close 86504 above its 50-day average 79031; volatility 38% → weight 0.79",
       "vol_m": null,
-      "funding_pct": 10.6960476,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 84810.0
+      "mark": 86409.0
     },
     {
       "coin": "ETH",
@@ -60,15 +60,15 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 2686.9,
+      "close": 2726.8,
       "trigger": null,
-      "why": "close 2686.9 above its 50-day average 2484.6; volatility 40% → weight 0.74",
+      "why": "close 2726.8 above its 50-day average 2501.5; volatility 40% → weight 0.75",
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 2694.4
+      "mark": 2723.46
     }
   ],
-  "equity": 1000.9777137517756,
-  "hours_local": "22:06 EDT"
+  "equity": 1010.9136659173679,
+  "hours_local": "20:07 EDT"
 }

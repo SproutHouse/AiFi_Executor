@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-04T02:07:36.556347Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-05T00:08:39.264069Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -8,6 +8,7 @@ _Rendered 2026-10-04T02:07:36.556347Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|
 | arena | NEAR | target | T | 4.82421 | 3.85937 | 6.2% | 3x | 2026-10-04T00:08 |
 | arena | SUI | target | T | 1.18429 | 0.947433 | 8.5% | 3x | 2026-10-04T00:08 |
+| arena | ZRO | target | T | 1.97199 | 1.57759 | 8.5% | 3x | 2026-10-05T00:08 |
 
 ## Closed trades, summary
 
@@ -21,7 +22,7 @@ None yet.
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 127 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
 - AAVE: target 0% of pot, holding 0% → none
 - ADA: target 0% of pot, holding 0% → none
 - APT: target 0% of pot, holding 0% → none
@@ -48,7 +49,7 @@ None yet.
 - PENDLE: target 0% of pot, holding 0% → none
 - PUMP: target 0% of pot, holding 0% → none
 - SOL: target 0% of pot, holding 0% → none
-- SUI: target 8% of pot, holding 8% → hold
+- SUI: target 9% of pot, holding 9% → hold
 - TAO: target 0% of pot, holding 0% → none
 - UNI: target 0% of pot, holding 0% → none
 - WLD: target 0% of pot, holding 0% → none
@@ -56,6 +57,6 @@ None yet.
 - XPL: target 0% of pot, holding 0% → none
 - XRP: target 0% of pot, holding 0% → none
 - ZEC: target 0% of pot, holding 0% → none
-- ZRO: target 8% of pot, holding 0% → open
-- ZRO: signal open tier T REFUSED: universe filters (funding 88%/yr against longs above 30%)
-- evaluated 35 names · 0 triggers · 1 refused · 0 proposed · 0 entered · 2 open
+- ZRO: target 9% of pot, holding 0% → open
+- ZRO: ENTERED ZRO long [arena] · target tier T · stop 1.5768 (20.0% away) · size 8.5% of pot at 3x · risk 1.70% of pot
+- evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 1 entered · 3 open

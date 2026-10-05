@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-04T20:06:37.755962Z",
+  "updated": "2026-10-05T00:06:35.727689Z",
   "mode": "paper",
   "positions": {
     "BTC": {
@@ -9,7 +9,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 85544.75099999999,
-      "stop": 83751.97101498008,
+      "stop": 84211.22391348207,
       "initial_stop": 82914.73166885023,
       "notional": 301.5657925477058,
       "sz": 0.0035252401698814446,
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 30.156579254770584,
       "entry_fee": 0.1357046066464676,
-      "funding_paid": 0.21068493689851364,
+      "funding_paid": 0.22576322652589892,
       "opened": "2026-10-02T04:06:02Z",
       "opened_ts": 1790913962,
-      "last_bar_t": 1791129600,
-      "last_funding_ts": 1791144362,
+      "last_bar_t": 1791144000,
+      "last_funding_ts": 1791158762,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "bitcoin",
       "benchmark": "BTC",
       "bench_entry": 85502.0,
-      "mark": 85380.0,
-      "upnl_pct": -0.19259042556566408
+      "mark": 86429.1,
+      "upnl_pct": 1.0337852289733274
     },
     "WLD": {
       "coin": "WLD",
@@ -54,7 +54,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 0.5774385750000001,
-      "stop": 0.5187394440210854,
+      "stop": 0.5202659996189768,
       "initial_stop": 0.48592442245787265,
       "notional": 61.993366136050675,
       "sz": 107.35923926809127,
@@ -62,11 +62,11 @@
       "leverage": 2,
       "notional_pct_equity": 6.227409215915986,
       "entry_fee": 0.0278970147612228,
-      "funding_paid": 0.04472689483406569,
+      "funding_paid": 0.04782656314086822,
       "opened": "2026-10-02T16:06:02Z",
       "opened_ts": 1790957162,
-      "last_bar_t": 1791129600,
-      "last_funding_ts": 1791144362,
+      "last_bar_t": 1791144000,
+      "last_funding_ts": 1791158762,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "ai",
       "benchmark": "BTC",
       "bench_entry": 85386.0,
-      "mark": 0.57863,
-      "upnl_pct": 0.20632930524253634
+      "mark": 0.5821,
+      "upnl_pct": 0.8072590231783305
     }
   }
 }
