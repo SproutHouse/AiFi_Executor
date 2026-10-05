@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-05T00:08:39.264069Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-05T01:07:35.606072Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -22,7 +22,7 @@ None yet.
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 67 min after the bar close
 - AAVE: target 0% of pot, holding 0% → none
 - ADA: target 0% of pot, holding 0% → none
 - APT: target 0% of pot, holding 0% → none
@@ -57,6 +57,5 @@ None yet.
 - XPL: target 0% of pot, holding 0% → none
 - XRP: target 0% of pot, holding 0% → none
 - ZEC: target 0% of pot, holding 0% → none
-- ZRO: target 9% of pot, holding 0% → open
-- ZRO: ENTERED ZRO long [arena] · target tier T · stop 1.5768 (20.0% away) · size 8.5% of pot at 3x · risk 1.70% of pot
-- evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 1 entered · 3 open
+- ZRO: target 9% of pot, holding 8% → hold
+- evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
