@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-05T20:06:40.062818Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-06T00:06:33.989385Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -8,7 +8,7 @@ _Rendered 2026-10-05T20:06:40.062818Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|
 | bitcoin | BTC | flip | A | 85544.8 | 84490.1 | 30.2% | 3x | 2026-10-02T04:06 |
 | ai | WLD | flip | A | 0.577439 | 0.520376 | 6.2% | 2x | 2026-10-02T16:06 |
-| hype | HYPE | flip | A | 93.3236 | 88.8383 | 14.5% | 3x | 2026-10-05T08:06 |
+| hype | HYPE | flip | A | 93.3236 | 89.9372 | 14.5% | 3x | 2026-10-05T08:06 |
 
 ## Closed trades, summary
 
@@ -25,6 +25,5 @@ _Rendered 2026-10-05T20:06:40.062818Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- JUP: signal flip tier A REFUSED: open-risk cap (4.02% of equity after entry, cap 4.0%)
-- NEAR: signal flip tier A REFUSED: open-risk cap (4.02% of equity after entry, cap 4.0%); universe filters (funding 47%/yr against longs above 30%)
-- evaluated 28 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 3 open
+- HYPE: stop trailed to 89.937
+- evaluated 28 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open

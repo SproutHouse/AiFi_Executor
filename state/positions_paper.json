@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-05T20:06:02.289834Z",
+  "updated": "2026-10-06T00:06:00.395744Z",
   "mode": "paper",
   "positions": {
     "BTC": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 30.197771503391913,
       "entry_fee": 0.1358899717652636,
-      "funding_paid": 0.3011148657204829,
+      "funding_paid": 0.3162127029384461,
       "opened": "2026-10-02T04:05:45Z",
       "opened_ts": 1790913945,
-      "last_bar_t": 1791216000,
-      "last_funding_ts": 1791230746,
+      "last_bar_t": 1791230400,
+      "last_funding_ts": 1791245145,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "bitcoin",
       "benchmark": "BTC",
       "bench_entry": 85498.0,
-      "mark": 85632.0,
-      "upnl_pct": 0.1066754746325671
+      "mark": 85774.0,
+      "upnl_pct": 0.2726782296470276
     },
     "HYPE": {
       "coin": "HYPE",
@@ -54,7 +54,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 93.282618,
-      "stop": 88.83832756123233,
+      "stop": 89.93724079213838,
       "initial_stop": 87.12286395692483,
       "notional": 145.43605267596266,
       "sz": 1.5590905979500131,
@@ -62,11 +62,11 @@
       "leverage": 3,
       "notional_pct_equity": 14.628185416363765,
       "entry_fee": 0.0654462237041832,
-      "funding_paid": 0.021815912887688412,
+      "funding_paid": 0.02908721053519253,
       "opened": "2026-10-05T08:05:45Z",
       "opened_ts": 1791187545,
-      "last_bar_t": 1791216000,
-      "last_funding_ts": 1791230746,
+      "last_bar_t": 1791230400,
+      "last_funding_ts": 1791245145,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "hype",
       "benchmark": "HYPE",
       "bench_entry": 93.236,
-      "mark": 94.103,
-      "upnl_pct": 0.8794585932397236
+      "mark": 94.245,
+      "upnl_pct": 1.0316841664971266
     }
   }
 }
