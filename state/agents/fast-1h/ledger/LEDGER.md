@@ -1,12 +1,12 @@
 # Ledger
 
-_Rendered 2026-10-06T11:06:36.653953Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-06T12:07:39.729112Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| l1s | AVAX | flip | A | 11.2366 | 10.988 | 29.7% | 3x | 2026-10-06T01:05 |
+| l1s | AVAX | flip | A | 11.2366 | 11.0363 | 29.7% | 3x | 2026-10-06T01:05 |
 
 ## Closed trades, summary
 
@@ -32,5 +32,6 @@ _Rendered 2026-10-06T11:06:36.653953Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
+- AVAX: stop trailed to 11.036
 - evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
