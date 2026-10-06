@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-06T15:06:41.386750Z",
+  "updated": "2026-10-06T16:07:36.884987Z",
   "mode": "paper",
   "positions": {
     "AVAX": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 29.741781447805383,
       "entry_fee": 0.1292436702458756,
-      "funding_paid": 0.05080075882419928,
+      "funding_paid": 0.05444570955528474,
       "opened": "2026-10-06T01:05:45Z",
       "opened_ts": 1791248745,
-      "last_bar_t": 1791295200,
-      "last_funding_ts": 1791299146,
+      "last_bar_t": 1791298800,
+      "last_funding_ts": 1791302801,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "l1s",
       "benchmark": "BTC",
       "bench_entry": 86100.0,
-      "mark": 11.6169,
-      "upnl_pct": 3.384333120591343
+      "mark": 11.507,
+      "upnl_pct": 2.406280610028877
     },
     "BTC": {
       "coin": "BTC",
@@ -62,11 +62,11 @@
       "leverage": 3,
       "notional_pct_equity": 52.10918206566202,
       "entry_fee": 0.22867967819745202,
-      "funding_paid": 0.0,
+      "funding_paid": 0.00644926098620129,
       "opened": "2026-10-06T15:05:46Z",
       "opened_ts": 1791299146,
-      "last_bar_t": 1791295200,
-      "last_funding_ts": 1791299146,
+      "last_bar_t": 1791298800,
+      "last_funding_ts": 1791302801,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "bitcoin",
       "benchmark": "BTC",
       "bench_entry": 86579.0,
-      "mark": 86579.0,
-      "upnl_pct": -0.04997501249375258
+      "mark": 85804.0,
+      "upnl_pct": -0.9446639020087355
     }
   }
 }
