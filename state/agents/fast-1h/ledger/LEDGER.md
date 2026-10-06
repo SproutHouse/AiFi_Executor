@@ -1,12 +1,12 @@
 # Ledger
 
-_Rendered 2026-10-06T05:06:42.144796Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-06T06:06:41.104170Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| l1s | AVAX | flip | A | 11.2366 | 10.9709 | 29.7% | 3x | 2026-10-06T01:05 |
+| l1s | AVAX | flip | A | 11.2366 | 10.988 | 29.7% | 3x | 2026-10-06T01:05 |
 
 ## Closed trades, summary
 
@@ -28,10 +28,12 @@ _Rendered 2026-10-06T05:06:42.144796Z in paper mode from state/positions_paper.j
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 149 recorded (state/ledger/refused.jsonl)
+## Refused signals: 151 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- AVAX: stop trailed to 10.971
-- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
+- AVAX: stop trailed to 10.988
+- AAVE: signal pullback tier B recorded, not traded (tier not automated)
+- HYPE: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 30 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 1 open
