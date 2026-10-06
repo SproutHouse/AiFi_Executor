@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-06T16:07:36.893217Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-06T17:06:34.917383Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -33,6 +33,5 @@ _Rendered 2026-10-06T16:07:36.893217Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
-- AAVE: signal pullback tier B recorded, not traded (tier not automated)
-- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
+- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
