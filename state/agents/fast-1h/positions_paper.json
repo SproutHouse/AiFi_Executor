@@ -1,5 +1,51 @@
 {
-  "updated": "2026-10-06T00:07:37.596209Z",
+  "updated": "2026-10-06T01:06:38.828363Z",
   "mode": "paper",
-  "positions": {}
+  "positions": {
+    "AVAX": {
+      "coin": "AVAX",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 11.2366155,
+      "stop": 10.885943226057618,
+      "initial_stop": 10.885943226057618,
+      "notional": 287.2081561019458,
+      "sz": 25.560023487672584,
+      "risk_amt": 9.656723374353845,
+      "leverage": 3,
+      "notional_pct_equity": 29.741781447805383,
+      "entry_fee": 0.1292436702458756,
+      "funding_paid": 0.0,
+      "opened": "2026-10-06T01:05:45Z",
+      "opened_ts": 1791248745,
+      "last_bar_t": 1791244800,
+      "last_funding_ts": 1791248745,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:fast-1h",
+        "trigger:flip",
+        "tier:A",
+        "stop:1h-line",
+        "long-only",
+        "book:l1s"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "l1s",
+      "benchmark": "BTC",
+      "bench_entry": 86100.0,
+      "mark": 11.231,
+      "upnl_pct": -0.04997501249375258
+    }
+  }
 }
