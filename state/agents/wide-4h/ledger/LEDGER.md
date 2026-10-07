@@ -1,29 +1,32 @@
 # Ledger
 
-_Rendered 2026-10-07T00:06:43.631886Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-07T04:06:40.219625Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
-|---|---|---|---|---|---|---|---|---|
-| bitcoin | BTC | flip | A | 85544.8 | 84490.1 | 30.2% | 3x | 2026-10-02T04:06 |
-| ai | WLD | flip | A | 0.577439 | 0.520376 | 6.2% | 2x | 2026-10-02T16:06 |
-| hype | HYPE | flip | A | 93.3236 | 89.9372 | 14.5% | 3x | 2026-10-05T08:06 |
+None.
 
 ## Closed trades, summary
 
-- Trades 1 · win rate 0% · average -0.82 R · total -0.8 R · profit factor 0.00 · worst losing streak 1 · costs 0.02 R per trade · average -0.20 R against holding the benchmark
+- Trades 4 · win rate 0% · average -0.62 R · total -2.5 R · profit factor 0.00 · worst losing streak 4 · costs 0.03 R per trade · average -0.21 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-07T00:00 | hype | HYPE | flip | A | 93.3236 | 89.8923 | -0.55 | -0.12 | stop | 40 |
+| 2026-10-07T00:00 | ai | WLD | flip | A | 0.577439 | 0.520115 | -0.63 | -0.54 | stop | 104 |
+| 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 82 recorded (state/ledger/refused.jsonl)
+## Refused signals: 84 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- NEAR: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%)
-- evaluated 28 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 3 open
+- BTC [bitcoin]: closed on stop at 84448 → -0.46 R · +0.03 R vs BTC
+- WLD [ai]: closed on stop at 0.52012 → -0.63 R · -0.54 R vs BTC
+- HYPE [hype]: closed on stop at 89.892 → -0.55 R · -0.12 R vs HYPE
+- AVAX: signal pullback tier B recorded, not traded (tier not automated)
+- HYPE: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 31 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 0 open
