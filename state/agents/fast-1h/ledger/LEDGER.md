@@ -1,12 +1,12 @@
 # Ledger
 
-_Rendered 2026-10-07T08:07:39.142338Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-07T09:06:36.425430Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| eth-defi | ENA | flip | A | 0.238669 | 0.224044 | 15.7% | 3x | 2026-10-07T08:06 |
+| eth-defi | ENA | flip | A | 0.238669 | 0.224267 | 15.7% | 3x | 2026-10-07T08:06 |
 
 ## Closed trades, summary
 
@@ -34,6 +34,6 @@ _Rendered 2026-10-07T08:07:39.142338Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
-- ENA: ENTERED ENA long [eth-defi] · flip tier A · stop 0.22404 (6.4% away) · size 15.7% of pot at 3x · risk 1.00% of pot
-- evaluated 31 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 1 open
+- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- ENA: stop trailed to 0.22427
+- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
