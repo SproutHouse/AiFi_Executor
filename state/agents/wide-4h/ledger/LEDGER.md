@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-07T08:06:34.543341Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-07T12:06:40.747941Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -19,9 +19,11 @@ None.
 | 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 84 recorded (state/ledger/refused.jsonl)
+## Refused signals: 86 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
+- NEAR: signal pullback tier B recorded, not traded (tier not automated)
+- AVAX: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 31 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 0 open
