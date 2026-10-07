@@ -1,63 +1,63 @@
 {
  "v": 1,
- "gen": "2026-10-05T05:12:03Z",
+ "gen": "2026-10-07T05:00:31Z",
  "lab": {
-  "tried": 1071,
-  "survivors": 55,
+  "tried": 2071,
+  "survivors": 79,
   "by_family": {
    "rs_rotation": {
-    "tried": 7,
+    "tried": 10,
     "survived": 1
    },
    "tsmom": {
-    "tried": 10,
+    "tried": 12,
     "survived": 0
    },
    "donchian": {
-    "tried": 8,
+    "tried": 11,
     "survived": 0
    },
    "meanrev": {
-    "tried": 5,
+    "tried": 7,
     "survived": 0
    },
    "carry": {
-    "tried": 957,
-    "survived": 48
+    "tried": 1927,
+    "survived": 72
    },
    "cloud_trend": {
-    "tried": 9,
+    "tried": 12,
     "survived": 0
    },
    "sma_trend": {
-    "tried": 10,
+    "tried": 11,
     "survived": 0
    },
    "bull_momentum": {
-    "tried": 63,
+    "tried": 76,
     "survived": 6
    },
    "dual_ma": {
-    "tried": 2,
+    "tried": 5,
     "survived": 0
    }
   },
-  "last_batch": "2026-10-05",
+  "last_batch": "2026-10-07",
   "gates_version": 3,
-  "vetoed": 3,
+  "vetoed": 50,
   "retired": 0,
   "funnel": {
-   "tested": 1071,
-   "passed_cheap": 1055,
-   "passed_audit": 75,
+   "tested": 2071,
+   "passed_cheap": 2047,
+   "passed_audit": 100,
    "waiting_holdout": 14,
-   "passed_holdout": 55,
-   "vetoed": 3
+   "passed_holdout": 79,
+   "vetoed": 50
   },
   "last": {
-   "date": "2026-10-05",
+   "date": "2026-10-07",
    "tried": 1000,
-   "passed": 47
+   "passed": 24
   },
   "studies": [
    {
@@ -72,7 +72,7 @@
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-10-04"
+  "as_of": "2026-10-06"
  },
  "shortlist": [
   {
@@ -86,7 +86,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 6.2,
+   "days": 8.2,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -103,15 +103,15 @@
     }
    },
    "paper": {
-    "ret_pct": 0.52,
-    "dd_pct": 0.75,
+    "ret_pct": -0.36,
+    "dd_pct": 1.58,
     "weight_match_pct": 100,
-    "weight_checks": 78,
+    "weight_checks": 104,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "6 of 42 days in the arena"
+    "8 of 42 days in the arena"
    ]
   },
   {
@@ -125,7 +125,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 2.2,
+   "days": 4.2,
    "backtest": {
     "sharpe": 1.609,
     "cagr_pct": 31.29,
@@ -142,15 +142,15 @@
     }
    },
    "paper": {
-    "ret_pct": 0.27,
-    "dd_pct": 0.02,
+    "ret_pct": 0.53,
+    "dd_pct": 1.16,
     "weight_match_pct": 100,
-    "weight_checks": 70,
+    "weight_checks": 140,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "2 of 42 days in the arena"
+    "4 of 42 days in the arena"
    ]
   },
   {
@@ -164,7 +164,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 0.2,
+   "days": 2.2,
    "backtest": {
     "sharpe": 1.751,
     "cagr_pct": 32.29,
@@ -181,22 +181,21 @@
     }
    },
    "paper": {
-    "ret_pct": null,
-    "dd_pct": null,
-    "weight_match_pct": null,
-    "weight_checks": 0,
+    "ret_pct": -0.23,
+    "dd_pct": 0.96,
+    "weight_match_pct": 100,
+    "weight_checks": 70,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "0 of 42 days in the arena",
-    "fewer than 10 weight checks"
+    "2 of 42 days in the arena"
    ]
   }
  ],
  "fleet": {
   "regime": "bull",
-  "window": "2023-06-01 → 2026-10-04",
+  "window": "2023-06-01 → 2026-10-06",
   "members": [
    {
     "agent": "trend-1d",
@@ -311,9 +310,9 @@
   ],
   "totals": {
    "paper": {
-    "agents": 7,
-    "ret_pct": -0.42,
-    "dd_pct": 1.21
+    "agents": 8,
+    "ret_pct": -1.39,
+    "dd_pct": 2.41
    }
   },
   "kill": {
