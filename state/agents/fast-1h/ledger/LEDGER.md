@@ -1,21 +1,20 @@
 # Ledger
 
-_Rendered 2026-10-07T17:06:35.669476Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-07T18:06:40.961727Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
-|---|---|---|---|---|---|---|---|---|
-| eth-defi | ENA | flip | A | 0.238669 | 0.224267 | 15.7% | 3x | 2026-10-07T08:06 |
+None.
 
 ## Closed trades, summary
 
-- Trades 13 · win rate 31% · average -0.34 R · total -4.4 R · profit factor 0.18 · worst losing streak 4 · costs 0.03 R per trade · average -0.09 R against holding the benchmark
+- Trades 14 · win rate 29% · average -0.38 R · total -5.3 R · profit factor 0.15 · worst losing streak 4 · costs 0.03 R per trade · average -0.13 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-07T17:00 | eth-defi | ENA | flip | A | 0.238669 | 0.224155 | -0.97 | -0.66 | stop | 9 |
 | 2026-10-07T02:00 | l1s | AVAX | flip | A | 11.2366 | 11.2665 | +0.04 | +0.77 | stop | 25 |
 | 2026-10-07T01:00 | bitcoin | BTC | flip | A | 86622.3 | 85129.7 | -0.95 | +0.75 | stop | 10 |
 | 2026-10-05T16:00 | eth-defi | CRV | flip | A | 0.379009 | 0.37124 | -0.55 | -0.26 | stop | 16 |
@@ -35,4 +34,5 @@ _Rendered 2026-10-07T17:06:35.669476Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
+- ENA [eth-defi]: closed on stop at 0.22416 → -0.97 R · -0.66 R vs ETH
+- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open

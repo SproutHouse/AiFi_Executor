@@ -1,51 +1,5 @@
 {
-  "updated": "2026-10-07T17:06:35.661740Z",
+  "updated": "2026-10-07T18:06:40.952231Z",
   "mode": "paper",
-  "positions": {
-    "ENA": {
-      "coin": "ENA",
-      "side": "long",
-      "kind": "flip",
-      "tier": "A",
-      "mode": "paper",
-      "entry": 0.238669275,
-      "stop": 0.224267365998758,
-      "initial_stop": 0.22404373999862004,
-      "notional": 150.3957955244833,
-      "sz": 630.1430945582891,
-      "risk_amt": 9.568073244360933,
-      "leverage": 3,
-      "notional_pct_equity": 15.718503786864401,
-      "entry_fee": 0.06767810798601748,
-      "funding_paid": 0.016893938822960277,
-      "opened": "2026-10-07T08:06:34Z",
-      "opened_ts": 1791360394,
-      "last_bar_t": 1791388800,
-      "last_funding_ts": 1791392745,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "Bullish",
-        "pair_daily": "Bullish",
-        "h4_range": "In Range",
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "auto"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:fast-1h",
-        "trigger:flip",
-        "tier:A",
-        "stop:1h-line",
-        "long-only",
-        "book:eth-defi"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "eth-defi",
-      "benchmark": "ETH",
-      "bench_entry": 2614.9,
-      "mark": 0.22702,
-      "upnl_pct": -4.880927802709412
-    }
-  }
+  "positions": {}
 }
