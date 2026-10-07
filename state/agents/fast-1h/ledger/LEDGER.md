@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-07T18:06:40.961727Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-07T19:06:43.050820Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -29,10 +29,10 @@ None.
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 162 recorded (state/ledger/refused.jsonl)
+## Refused signals: 163 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ENA [eth-defi]: closed on stop at 0.22416 → -0.97 R · -0.66 R vs ETH
-- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
+- NEAR: signal flip tier A REFUSED: universe filters (funding 55%/yr against longs above 30%)
+- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open
