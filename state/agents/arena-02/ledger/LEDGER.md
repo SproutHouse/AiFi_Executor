@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-07T01:07:32.813149Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-07T02:07:34.120386Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -22,7 +22,7 @@ None yet.
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 67 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 127 min after the bar close
 - AAVE: target 0% of pot, holding 0% → none
 - ADA: target 0% of pot, holding 0% → none
 - APT: target 0% of pot, holding 0% → none
@@ -57,5 +57,5 @@ None yet.
 - XPL: target 0% of pot, holding 0% → none
 - XRP: target 0% of pot, holding 0% → none
 - ZEC: target 0% of pot, holding 0% → none
-- ZRO: target 8% of pot, holding 10% → hold
+- ZRO: target 8% of pot, holding 9% → hold
 - evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
