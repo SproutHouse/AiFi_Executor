@@ -1,15 +1,15 @@
 # Ledger
 
-_Rendered 2026-10-08T12:08:28.193037Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-08T13:07:00.928015Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| carry | PUMP | carry | None | 0.00486544 | — | 0.0% | —x | 2026-09-27T02:14 |
+| carry | PUMP | carry | None | 0.00490861 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | XPL | carry | None | 0.104369 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | ETH | carry | None | 2694.68 | — | 0.0% | —x | 2026-09-27T02:14 |
-| carry | ZEC | carry | None | 1531.98 | — | 0.0% | —x | 2026-09-27T02:14 |
+| carry | ZEC | carry | None | 1521.22 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | BTC | carry | None | 84740 | — | 0.0% | —x | 2026-09-27T20:15 |
 | carry | HYPE | carry | None | 87.7282 | — | 0.0% | —x | 2026-10-01T21:06 |
 
@@ -27,6 +27,5 @@ _Rendered 2026-10-08T12:08:28.193037Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
-- ZEC: carry safety override · legs out of balance for 3h, lagging leg completed at market
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
 - evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 6 open
