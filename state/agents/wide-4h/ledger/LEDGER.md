@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-08T08:06:40.133043Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-08T12:06:49.224382Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | eth-defi | CRV | flip | A | 0.382211 | 0.354546 | 7.9% | 3x | 2026-10-08T00:06 |
-| solana | JUP | flip | A | 0.357489 | 0.328031 | 6.2% | 2x | 2026-10-08T00:06 |
+| solana | JUP | flip | A | 0.357489 | 0.3297 | 6.2% | 2x | 2026-10-08T00:06 |
 
 ## Closed trades, summary
 
@@ -22,10 +22,12 @@ _Rendered 2026-10-08T08:06:40.133043Z in paper mode from state/positions_paper.j
 | 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 86 recorded (state/ledger/refused.jsonl)
+## Refused signals: 88 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- JUP: stop trailed to 0.32803
-- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- JUP: stop trailed to 0.3297
+- ZRO: signal pullback tier B recorded, not traded (tier not automated)
+- NEAR: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 29 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 2 open
