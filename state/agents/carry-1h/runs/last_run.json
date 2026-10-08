@@ -1,5 +1,5 @@
 {
-  "t": "2026-10-08T04:08:06Z",
+  "t": "2026-10-08T05:06:45Z",
   "agent": "carry-1h",
   "tf": "1h",
   "mode": "paper",
@@ -20,9 +20,9 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 0.4922744978441404,
+    "drawdown_pct": 0.0,
     "halt": false,
-    "peak": 1000.7171516561625
+    "peak": 1001.0726252431389
   },
   "halt": false,
   "fleet_mult": 1.0,
@@ -34,8 +34,7 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 8 min after the bar close",
-    "ZEC: carry safety override · legs out of balance for 3h, lagging leg completed at market",
+    "BTC weekly Bullish · daily Bullish · data 7 min after the bar close",
     "evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 6 open"
   ],
   "readings": [
@@ -50,10 +49,10 @@
       "close": null,
       "trigger": null,
       "why": "funding 2.0%/yr (24h mean)",
-      "vol_m": 60.32671515052995,
+      "vol_m": 62.59641480007994,
       "funding_pct": 2.0085804000000005,
       "days": null,
-      "mark": 87.662
+      "mark": 86.957
     },
     {
       "coin": "PUMP",
@@ -65,11 +64,11 @@
       "line": null,
       "close": null,
       "trigger": null,
-      "why": "funding 10.9%/yr (24h mean)",
-      "vol_m": 5.499253423716101,
-      "funding_pct": 10.95,
+      "why": "funding 10.8%/yr (24h mean)",
+      "vol_m": 6.050247160578998,
+      "funding_pct": 10.76075115,
       "days": null,
-      "mark": 0.00608
+      "mark": 0.006015
     },
     {
       "coin": "XPL",
@@ -82,10 +81,10 @@
       "close": null,
       "trigger": null,
       "why": "funding 9.9%/yr (24h mean)",
-      "vol_m": 0.2085463897964998,
+      "vol_m": 0.1852245473134001,
       "funding_pct": 9.85991655,
       "days": null,
-      "mark": 0.087041
+      "mark": 0.08615
     },
     {
       "coin": "BTC",
@@ -98,10 +97,10 @@
       "close": null,
       "trigger": null,
       "why": "funding 10.9%/yr (24h mean)",
-      "vol_m": 29.68442823561998,
+      "vol_m": 30.52247989042001,
       "funding_pct": 10.95,
       "days": null,
-      "mark": 82754.0
+      "mark": 82600.9
     },
     {
       "coin": "ETH",
@@ -113,11 +112,11 @@
       "line": null,
       "close": null,
       "trigger": null,
-      "why": "funding 9.3%/yr (24h mean)",
-      "vol_m": 28.71721725532999,
-      "funding_pct": 9.31033605,
+      "why": "funding 9.1%/yr (24h mean)",
+      "vol_m": 29.27147681214,
+      "funding_pct": 9.131263400000002,
       "days": null,
-      "mark": 2565.73
+      "mark": 2560.3
     },
     {
       "coin": "ZEC",
@@ -130,12 +129,12 @@
       "close": null,
       "trigger": null,
       "why": "funding 10.9%/yr (24h mean)",
-      "vol_m": 9.668958279709999,
+      "vol_m": 11.507797644020005,
       "funding_pct": 10.95,
       "days": null,
-      "mark": 1297.4
+      "mark": 1241.0
     }
   ],
-  "equity": 989.3602455086102,
-  "hours_local": "00:08 EDT"
+  "equity": 989.4011378183432,
+  "hours_local": "01:06 EDT"
 }
