@@ -1,5 +1,96 @@
 {
-  "updated": "2026-10-07T20:06:35.166295Z",
+  "updated": "2026-10-08T00:06:39.238813Z",
   "mode": "paper",
-  "positions": {}
+  "positions": {
+    "CRV": {
+      "coin": "CRV",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 0.38221101,
+      "stop": 0.3348005347726777,
+      "initial_stop": 0.3348005347726777,
+      "notional": 77.27364631767016,
+      "sz": 202.17535417849464,
+      "risk_amt": 9.753944517905516,
+      "leverage": 3,
+      "notional_pct_equity": 7.922297094864272,
+      "entry_fee": 0.03477314084295157,
+      "funding_paid": 0.0,
+      "opened": "2026-10-08T00:06:03Z",
+      "opened_ts": 1791417963,
+      "last_bar_t": 1791403200,
+      "last_funding_ts": 1791417963,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:wide-4h",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:eth-defi"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "eth-defi",
+      "benchmark": "ETH",
+      "bench_entry": 2571.2,
+      "mark": 0.38202,
+      "upnl_pct": -0.04997501249375258
+    },
+    "JUP": {
+      "coin": "JUP",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 0.357488655,
+      "stop": 0.3004968541647023,
+      "initial_stop": 0.3004968541647023,
+      "notional": 60.389269790129525,
+      "sz": 168.92639513309737,
+      "risk_amt": 9.753944517905516,
+      "leverage": 2,
+      "notional_pct_equity": 6.191266484986838,
+      "entry_fee": 0.027175171405558286,
+      "funding_paid": 0.0,
+      "opened": "2026-10-08T00:06:03Z",
+      "opened_ts": 1791417963,
+      "last_bar_t": 1791403200,
+      "last_funding_ts": 1791417963,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:wide-4h",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:solana"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "solana",
+      "benchmark": "SOL",
+      "bench_entry": 116.145,
+      "mark": 0.35731,
+      "upnl_pct": -0.04997501249374148
+    }
+  }
 }

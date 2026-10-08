@@ -1,10 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-07T20:06:35.179365Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-08T00:06:39.248306Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-None.
+| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
+|---|---|---|---|---|---|---|---|---|
+| eth-defi | CRV | flip | A | 0.382211 | 0.334801 | 7.9% | 3x | 2026-10-08T00:06 |
+| solana | JUP | flip | A | 0.357489 | 0.300497 | 6.2% | 2x | 2026-10-08T00:06 |
 
 ## Closed trades, summary
 
@@ -24,4 +27,6 @@ None.
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
+- CRV: ENTERED CRV long [eth-defi] · flip tier A · stop 0.3348 (12.6% away) · size 7.9% of pot at 3x · risk 1.00% of pot
+- JUP: ENTERED JUP long [solana] · flip tier A · stop 0.3005 (16.2% away) · size 6.2% of pot at 2x · risk 1.00% of pot
+- evaluated 31 names · 2 triggers · 0 refused · 0 proposed · 2 entered · 2 open
