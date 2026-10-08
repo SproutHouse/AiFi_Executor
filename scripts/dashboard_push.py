@@ -1667,7 +1667,9 @@ def scrub_assert(obj, where="bundle", money=()):
         o, path = stack.pop()
         if isinstance(o, dict):
             for k, v in o.items():
-                if FORBIDDEN_KEY.match(str(k)) or FORBIDDEN_STR.search(str(k)):
+                # by_check maps pre-trade check NAMES to counts ("gross" is the gross-exposure check, not an amount)
+                named = path.endswith(".by_check") or path.endswith(".checks")
+                if (not named and FORBIDDEN_KEY.match(str(k))) or FORBIDDEN_STR.search(str(k)):
                     raise AssertionError(f"forbidden key {k!r} at {path}")
                 stack.append((v, f"{path}.{k}"))
         elif isinstance(o, (list, tuple)):

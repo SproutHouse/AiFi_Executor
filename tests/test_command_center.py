@@ -591,3 +591,13 @@ class Workflow(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CheckNamesAreNotMoney(unittest.TestCase):
+    """2026-10-08: Fast's page stopped updating for 3 days because a refusal by the "gross" exposure check put the key
+    "gross" under funnel.week.by_check, and the money scrub refused the whole payload."""
+    def test_check_names_pass_but_money_keys_still_fail(self):
+        import dashboard_push as D
+        D.scrub_assert({"funnel": {"week": {"by_check": {"gross": 2, "funding": 1}}}}, "exec:latest")
+        with self.assertRaises(AssertionError):
+            D.scrub_assert({"pos": {"gross": 12.5}}, "exec:latest")
