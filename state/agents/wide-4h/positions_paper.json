@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-08T00:06:39.238813Z",
+  "updated": "2026-10-08T04:07:01.438207Z",
   "mode": "paper",
   "positions": {
     "CRV": {
@@ -9,7 +9,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 0.38221101,
-      "stop": 0.3348005347726777,
+      "stop": 0.3545459812954099,
       "initial_stop": 0.3348005347726777,
       "notional": 77.27364631767016,
       "sz": 202.17535417849464,
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 7.922297094864272,
       "entry_fee": 0.03477314084295157,
-      "funding_paid": 0.0,
+      "funding_paid": 0.003863682315883508,
       "opened": "2026-10-08T00:06:03Z",
       "opened_ts": 1791417963,
-      "last_bar_t": 1791403200,
-      "last_funding_ts": 1791417963,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791432363,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2571.2,
-      "mark": 0.38202,
-      "upnl_pct": -0.04997501249375258
+      "mark": 0.39206,
+      "upnl_pct": 2.5768462295212347
     },
     "JUP": {
       "coin": "JUP",
@@ -54,7 +54,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 0.357488655,
-      "stop": 0.3004968541647023,
+      "stop": 0.322098668748232,
       "initial_stop": 0.3004968541647023,
       "notional": 60.389269790129525,
       "sz": 168.92639513309737,
@@ -62,11 +62,11 @@
       "leverage": 2,
       "notional_pct_equity": 6.191266484986838,
       "entry_fee": 0.027175171405558286,
-      "funding_paid": 0.0,
+      "funding_paid": 0.0030194634895064766,
       "opened": "2026-10-08T00:06:03Z",
       "opened_ts": 1791417963,
-      "last_bar_t": 1791403200,
-      "last_funding_ts": 1791417963,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791432363,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "solana",
       "benchmark": "SOL",
       "bench_entry": 116.145,
-      "mark": 0.35731,
-      "upnl_pct": -0.04997501249374148
+      "mark": 0.370476,
+      "upnl_pct": 3.6329390648774718
     }
   }
 }
