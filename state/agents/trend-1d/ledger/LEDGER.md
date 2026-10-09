@@ -1,27 +1,29 @@
 # Ledger
 
-_Rendered 2026-10-08T02:07:05.387319Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T00:08:13.344001Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | trend | BTC | target | T | 84285.1 | 71642.4 | 34.8% | 3x | 2026-09-27T00:22 |
-| trend | ETH | target | T | 2692.75 | 2288.83 | 32.6% | 3x | 2026-09-27T00:22 |
 
 ## Closed trades, summary
 
-No closed trades yet.
+- Trades 1 · win rate 0% · average -0.57 R · total -0.6 R · profit factor 0.00 · worst losing streak 1 · costs 0.03 R per trade · average -0.03 R against holding the benchmark
 
 ## Last 50 closed trades
 
-None yet.
+| Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-09T00:08 | trend | ETH | target | T | 2692.75 | 2473.46 | -0.57 | -0.03 | below its average | 288 |
 
 ## Refused signals: 0 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 127 min after the bar close
-- BTC: target 39% of pot, holding 35% → hold
-- ETH: target 35% of pot, holding 32% → hold
-- evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
+- BTC: target 38% of pot, holding 35% → hold
+- ETH: target 0% of pot, holding 31% → close
+- ETH [trend]: closed on below its average at 2473.5 → -0.57 R · -0.03 R vs ETH
+- evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open

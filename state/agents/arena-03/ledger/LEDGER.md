@@ -1,29 +1,32 @@
 # Ledger
 
-_Rendered 2026-10-08T02:08:13.226536Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T00:09:21.996000Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| arena | LTC | target | T | 70.02 | 56.016 | 13.4% | 3x | 2026-10-06T00:09 |
 | arena | ZRO | target | T | 2.05823 | 1.64658 | 8.2% | 3x | 2026-10-06T01:07 |
 | arena | NEAR | target | T | 5.07224 | 4.0578 | 6.5% | 3x | 2026-10-07T00:08 |
+| arena | AAVE | target | T | 166.663 | 133.331 | 11.6% | 3x | 2026-10-09T00:08 |
 
 ## Closed trades, summary
 
-No closed trades yet.
+- Trades 1 · win rate 0% · average -0.50 R · total -0.5 R · profit factor 0.00 · worst losing streak 1 · costs 0.01 R per trade · average -0.01 R against holding the benchmark
 
 ## Last 50 closed trades
 
-None yet.
+| Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-09T00:08 | arena | LTC | target | T | 70.02 | 63.1804 | -0.50 | -0.01 | target weight zero | 72 |
 
 ## Refused signals: 4 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 128 min after the bar close
-- AAVE: target 0% of pot, holding 0% → none
+- BTC weekly Bullish · daily Bullish · data 9 min after the bar close
+- AAVE: target 12% of pot, holding 0% → open
+- AAVE: ENTERED AAVE long [arena] · target tier T · stop 133.26 (20.0% away) · size 11.6% of pot at 3x · risk 2.32% of pot
 - ADA: target 0% of pot, holding 0% → none
 - APT: target 0% of pot, holding 0% → none
 - ARB: target 0% of pot, holding 0% → none
@@ -43,8 +46,9 @@ None yet.
 - JUP: target 0% of pot, holding 0% → none
 - LDO: target 0% of pot, holding 0% → none
 - LINK: target 0% of pot, holding 0% → none
-- LTC: target 13% of pot, holding 13% → hold
-- NEAR: target 6% of pot, holding 7% → hold
+- LTC: target 0% of pot, holding 12% → close
+- LTC [arena]: closed on target weight zero at 63.18 → -0.50 R · -0.01 R vs LTC
+- NEAR: target 6% of pot, holding 6% → hold
 - ONDO: target 0% of pot, holding 0% → none
 - PENDLE: target 0% of pot, holding 0% → none
 - PUMP: target 0% of pot, holding 0% → none
@@ -57,5 +61,5 @@ None yet.
 - XPL: target 0% of pot, holding 0% → none
 - XRP: target 0% of pot, holding 0% → none
 - ZEC: target 0% of pot, holding 0% → none
-- ZRO: target 8% of pot, holding 9% → hold
-- evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
+- ZRO: target 8% of pot, holding 8% → hold
+- evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 1 entered · 3 open

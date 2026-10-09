@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-08T02:07:23.450431Z",
+  "updated": "2026-10-09T00:08:32.195519Z",
   "mode": "paper",
   "positions": {
     "NEAR": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 6.42572916852508,
       "entry_fee": 0.028915781258362853,
-      "funding_paid": 0.3117086251422406,
+      "funding_paid": 0.3293947753318175,
       "opened": "2026-09-30T00:23:22Z",
       "opened_ts": 1790727802,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425234,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791504503,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,54 +45,8 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 4.9127,
-      "mark": 5.3348,
-      "upnl_pct": 8.53774773614273
-    },
-    "UNI": {
-      "coin": "UNI",
-      "side": "long",
-      "kind": "target",
-      "tier": "T",
-      "mode": "paper",
-      "entry": 8.8076016,
-      "stop": 7.04608128,
-      "initial_stop": 7.04608128,
-      "notional": 72.77663330565059,
-      "sz": 8.26293429367316,
-      "risk_amt": 14.555326661130119,
-      "leverage": 3,
-      "notional_pct_equity": 7.277663330565059,
-      "entry_fee": 0.032749484987542765,
-      "funding_paid": 0.23429833650743828,
-      "opened": "2026-09-30T00:23:22Z",
-      "opened_ts": 1790727802,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425234,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "No data",
-        "pair_daily": "No data",
-        "h4_range": null,
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "approval"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:arena-01",
-        "trigger:target",
-        "tier:T",
-        "stop:1d-line",
-        "long-only",
-        "book:arena",
-        "target:rs_rotation: weight 0.07 of equity · regime bull"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "arena",
-      "benchmark": "UNI",
-      "bench_entry": 8.8032,
-      "mark": 7.9347,
-      "upnl_pct": -9.910775255774507
+      "mark": 4.4843,
+      "upnl_pct": -8.765872727527778
     },
     "AVAX": {
       "coin": "AVAX",
@@ -109,11 +63,11 @@
       "leverage": 3,
       "notional_pct_equity": 8.773137519270257,
       "entry_fee": 0.03960213639510539,
-      "funding_paid": 0.12358965510206091,
+      "funding_paid": 0.10059117398073004,
       "opened": "2026-10-02T00:08:08Z",
       "opened_ts": 1790899688,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425234,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791504503,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -137,8 +91,54 @@
       "book": "arena",
       "benchmark": "AVAX",
       "bench_entry": 10.984,
-      "mark": 11.069,
-      "upnl_pct": 0.7234911313461989
+      "mark": 10.055,
+      "upnl_pct": -8.503504984579823
+    },
+    "AAVE": {
+      "coin": "AAVE",
+      "side": "long",
+      "kind": "target",
+      "tier": "T",
+      "mode": "paper",
+      "entry": 166.68329999999997,
+      "stop": 133.34663999999998,
+      "initial_stop": 133.34663999999998,
+      "notional": 113.38699458203601,
+      "sz": 0.6802540781352183,
+      "risk_amt": 22.677398916407203,
+      "leverage": 3,
+      "notional_pct_equity": 11.623549286952386,
+      "entry_fee": 0.0510241475619162,
+      "funding_paid": 0.0,
+      "opened": "2026-10-09T00:08:23Z",
+      "opened_ts": 1791504503,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791504503,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "No data",
+        "pair_daily": "No data",
+        "h4_range": null,
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:arena-01",
+        "trigger:target",
+        "tier:T",
+        "stop:1d-line",
+        "long-only",
+        "book:arena",
+        "target:rs_rotation: weight 0.12 of equity · regime bull"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "arena",
+      "benchmark": "AAVE",
+      "bench_entry": 166.6,
+      "mark": 166.6,
+      "upnl_pct": -0.04997501249374148
     }
   }
 }

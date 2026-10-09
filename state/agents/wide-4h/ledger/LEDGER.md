@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-08T20:06:44.240236Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T00:06:37.032093Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -26,5 +26,4 @@ None.
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- JUP [solana]: closed on stop at 0.32953 → -0.49 R · -0.11 R vs SOL
 - evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open

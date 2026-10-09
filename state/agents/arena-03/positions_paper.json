@@ -1,53 +1,7 @@
 {
-  "updated": "2026-10-08T02:08:13.220185Z",
+  "updated": "2026-10-09T00:09:21.987748Z",
   "mode": "paper",
   "positions": {
-    "LTC": {
-      "coin": "LTC",
-      "side": "long",
-      "kind": "target",
-      "tier": "T",
-      "mode": "paper",
-      "entry": 70.0199925,
-      "stop": 56.015994000000006,
-      "initial_stop": 56.015994000000006,
-      "notional": 133.9880597107753,
-      "sz": 1.9135686098620377,
-      "risk_amt": 26.79761194215506,
-      "leverage": 3,
-      "notional_pct_equity": 13.398805971077529,
-      "entry_fee": 0.060294626869848884,
-      "funding_paid": 0.08370020081425651,
-      "opened": "2026-10-06T00:09:15Z",
-      "opened_ts": 1791245355,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425264,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "No data",
-        "pair_daily": "No data",
-        "h4_range": null,
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "approval"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:arena-03",
-        "trigger:target",
-        "tier:T",
-        "stop:1d-line",
-        "long-only",
-        "book:arena",
-        "target:bull_momentum: weight 0.13 of equity"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "arena",
-      "benchmark": "LTC",
-      "bench_entry": 69.985,
-      "mark": 65.922,
-      "upnl_pct": -5.852603454649053
-    },
     "ZRO": {
       "coin": "ZRO",
       "side": "long",
@@ -63,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 8.195682716317298,
       "entry_fee": 0.036870938834329514,
-      "funding_paid": 0.044858329042152,
+      "funding_paid": 0.06741105329581688,
       "opened": "2026-10-06T01:07:30Z",
       "opened_ts": 1791248850,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425264,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791504536,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -91,8 +45,8 @@
       "book": "arena",
       "benchmark": "ZRO",
       "bench_entry": 2.0572,
-      "mark": 2.2382,
-      "upnl_pct": 8.743994714678461
+      "mark": 1.9642,
+      "upnl_pct": -4.568423546344647
     },
     "NEAR": {
       "coin": "NEAR",
@@ -109,11 +63,11 @@
       "leverage": 3,
       "notional_pct_equity": 6.457516039700901,
       "entry_fee": 0.0292436705366355,
-      "funding_paid": 0.05743382600030729,
+      "funding_paid": 0.07532120447854934,
       "opened": "2026-10-07T00:08:42Z",
       "opened_ts": 1791331722,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425264,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791504536,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -137,8 +91,54 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 5.06971,
-      "mark": 5.3312,
-      "upnl_pct": 5.105336047504361
+      "mark": 4.4933,
+      "upnl_pct": -11.413976879079502
+    },
+    "AAVE": {
+      "coin": "AAVE",
+      "side": "long",
+      "kind": "target",
+      "tier": "T",
+      "mode": "paper",
+      "entry": 166.66329,
+      "stop": 133.330632,
+      "initial_stop": 133.330632,
+      "notional": 113.38765368299626,
+      "sz": 0.6803397057804167,
+      "risk_amt": 22.677530736599252,
+      "leverage": 3,
+      "notional_pct_equity": 11.623549286952386,
+      "entry_fee": 0.05102444415734832,
+      "funding_paid": 0.0,
+      "opened": "2026-10-09T00:08:56Z",
+      "opened_ts": 1791504536,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791504536,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "No data",
+        "pair_daily": "No data",
+        "h4_range": null,
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:arena-03",
+        "trigger:target",
+        "tier:T",
+        "stop:1d-line",
+        "long-only",
+        "book:arena",
+        "target:bull_momentum: weight 0.12 of equity"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "arena",
+      "benchmark": "AAVE",
+      "bench_entry": 166.58,
+      "mark": 166.58,
+      "upnl_pct": -0.04997501249374148
     }
   }
 }

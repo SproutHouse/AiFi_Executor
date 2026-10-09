@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-08T02:07:05.381261Z",
+  "updated": "2026-10-09T00:08:13.338101Z",
   "mode": "paper",
   "positions": {
     "BTC": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 34.813104995719186,
       "entry_fee": 0.15665897248073635,
-      "funding_paid": 0.8110062902004724,
+      "funding_paid": 0.811812184018995,
       "opened": "2026-09-27T00:22:28Z",
       "opened_ts": 1790468548,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425198,
+      "last_bar_t": 1791417600,
+      "last_funding_ts": 1791504491,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,54 +45,8 @@
       "book": "trend",
       "benchmark": "BTC",
       "bench_entry": 84243.0,
-      "mark": 83023.0,
-      "upnl_pct": -1.4974428197270795
-    },
-    "ETH": {
-      "coin": "ETH",
-      "side": "long",
-      "kind": "target",
-      "tier": "T",
-      "mode": "paper",
-      "entry": 2692.7457,
-      "stop": 2288.833845,
-      "initial_stop": 2288.833845,
-      "notional": 325.88694574333374,
-      "sz": 0.12102403347755183,
-      "risk_amt": 48.88304186150006,
-      "leverage": 3,
-      "notional_pct_equity": 32.588694574333374,
-      "entry_fee": 0.1466491255845002,
-      "funding_paid": 1.0675310704891532,
-      "opened": "2026-09-27T00:22:28Z",
-      "opened_ts": 1790468548,
-      "last_bar_t": 1791331200,
-      "last_funding_ts": 1791425198,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "No data",
-        "pair_daily": "No data",
-        "h4_range": null,
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "approval"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:trend-1d",
-        "trigger:target",
-        "tier:T",
-        "stop:1d-line",
-        "long-only",
-        "book:trend",
-        "target:close 2697 above its 50-day average 2373; volatility 46% → w"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "trend",
-      "benchmark": "ETH",
-      "bench_entry": 2691.4,
-      "mark": 2576.7,
-      "upnl_pct": -4.309567739723807
+      "mark": 81729.0,
+      "upnl_pct": -3.032707854612271
     }
   }
 }
