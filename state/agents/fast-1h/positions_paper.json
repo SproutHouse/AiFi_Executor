@@ -1,52 +1,7 @@
 {
-  "updated": "2026-10-09T18:06:39.741256Z",
+  "updated": "2026-10-09T19:06:44.810780Z",
   "mode": "paper",
   "positions": {
-    "ZRO": {
-      "coin": "ZRO",
-      "side": "long",
-      "kind": "flip",
-      "tier": "A",
-      "mode": "paper",
-      "entry": 2.1640814999999995,
-      "stop": 1.9905222187569875,
-      "initial_stop": 1.9683928626629479,
-      "notional": 102.22053774961049,
-      "sz": 47.23506843416503,
-      "risk_amt": 9.475113862279526,
-      "leverage": 3,
-      "notional_pct_equity": 10.788317611311347,
-      "entry_fee": 0.04599924198732472,
-      "funding_paid": 0.012759465665141485,
-      "opened": "2026-10-09T08:06:37Z",
-      "opened_ts": 1791533197,
-      "last_bar_t": 1791565200,
-      "last_funding_ts": 1791569146,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "Bullish",
-        "pair_daily": "Bullish",
-        "h4_range": "Overextended",
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "auto"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:fast-1h",
-        "trigger:flip",
-        "tier:A",
-        "stop:1h-line",
-        "long-only",
-        "book:eth-defi"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "eth-defi",
-      "benchmark": "ETH",
-      "bench_entry": 2501.5,
-      "mark": 2.0157,
-      "upnl_pct": -6.856557851448741
-    },
     "JUP": {
       "coin": "JUP",
       "side": "long",
@@ -62,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 12.729392502441812,
       "entry_fee": 0.054275599511227554,
-      "funding_paid": 0.010794946749594851,
+      "funding_paid": 0.01230218349836729,
       "opened": "2026-10-09T08:06:37Z",
       "opened_ts": 1791533197,
-      "last_bar_t": 1791565200,
-      "last_funding_ts": 1791569146,
+      "last_bar_t": 1791568800,
+      "last_funding_ts": 1791572745,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +44,8 @@
       "book": "solana",
       "benchmark": "SOL",
       "bench_entry": 110.45,
-      "mark": 0.38292,
-      "upnl_pct": 4.598958647874407
+      "mark": 0.373178,
+      "upnl_pct": 1.9378204071254457
     }
   }
 }

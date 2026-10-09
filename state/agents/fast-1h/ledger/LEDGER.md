@@ -1,22 +1,22 @@
 # Ledger
 
-_Rendered 2026-10-09T18:06:39.751866Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T19:06:44.820720Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| eth-defi | ZRO | flip | A | 2.16408 | 1.99052 | 10.8% | 3x | 2026-10-09T08:06 |
 | solana | JUP | flip | A | 0.366084 | 0.35053 | 12.7% | 3x | 2026-10-09T08:06 |
 
 ## Closed trades, summary
 
-- Trades 14 · win rate 29% · average -0.38 R · total -5.3 R · profit factor 0.15 · worst losing streak 4 · costs 0.03 R per trade · average -0.13 R against holding the benchmark
+- Trades 15 · win rate 27% · average -0.41 R · total -6.2 R · profit factor 0.14 · worst losing streak 4 · costs 0.03 R per trade · average -0.18 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-09T18:00 | eth-defi | ZRO | flip | A | 2.16408 | 1.98953 | -0.88 | -0.82 | stop | 10 |
 | 2026-10-07T17:00 | eth-defi | ENA | flip | A | 0.238669 | 0.224155 | -0.97 | -0.66 | stop | 9 |
 | 2026-10-07T02:00 | l1s | AVAX | flip | A | 11.2366 | 11.2665 | +0.04 | +0.77 | stop | 25 |
 | 2026-10-07T01:00 | bitcoin | BTC | flip | A | 86622.3 | 85129.7 | -0.95 | +0.75 | stop | 10 |
@@ -37,5 +37,5 @@ _Rendered 2026-10-09T18:06:39.751866Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- JUP: stop trailed to 0.35053
-- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- ZRO [eth-defi]: closed on stop at 1.9895 → -0.88 R · -0.82 R vs ETH
+- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
