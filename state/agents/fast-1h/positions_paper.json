@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-09T17:06:38.210914Z",
+  "updated": "2026-10-09T18:06:39.741256Z",
   "mode": "paper",
   "positions": {
     "ZRO": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 10.788317611311347,
       "entry_fee": 0.04599924198732472,
-      "funding_paid": 0.011481354010848611,
+      "funding_paid": 0.012759465665141485,
       "opened": "2026-10-09T08:06:37Z",
       "opened_ts": 1791533197,
-      "last_bar_t": 1791561600,
-      "last_funding_ts": 1791565545,
+      "last_bar_t": 1791565200,
+      "last_funding_ts": 1791569146,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,8 @@
       "book": "eth-defi",
       "benchmark": "ETH",
       "bench_entry": 2501.5,
-      "mark": 2.0127,
-      "upnl_pct": -6.995184793178977
+      "mark": 2.0157,
+      "upnl_pct": -6.856557851448741
     },
     "JUP": {
       "coin": "JUP",
@@ -54,7 +54,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 0.3660839505,
-      "stop": 0.3456892659680128,
+      "stop": 0.3505303393712116,
       "initial_stop": 0.3381678925014156,
       "notional": 120.61244335828346,
       "sz": 329.46662423618994,
@@ -62,11 +62,11 @@
       "leverage": 3,
       "notional_pct_equity": 12.729392502441812,
       "entry_fee": 0.054275599511227554,
-      "funding_paid": 0.009286872414410202,
+      "funding_paid": 0.010794946749594851,
       "opened": "2026-10-09T08:06:37Z",
       "opened_ts": 1791533197,
-      "last_bar_t": 1791561600,
-      "last_funding_ts": 1791565545,
+      "last_bar_t": 1791565200,
+      "last_funding_ts": 1791569146,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -89,8 +89,8 @@
       "book": "solana",
       "benchmark": "SOL",
       "bench_entry": 110.45,
-      "mark": 0.37675,
-      "upnl_pct": 2.9135528846408576
+      "mark": 0.38292,
+      "upnl_pct": 4.598958647874407
     }
   }
 }
