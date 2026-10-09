@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-09T00:08:32.201928Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T01:07:13.447359Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -25,10 +25,8 @@ _Rendered 2026-10-09T00:08:32.201928Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
-- UNI [arena]: closed on protective stop at 7.0426 → -1.02 R · -0.09 R vs UNI
-- AAVE: target 12% of pot, holding 0% → open
-- AAVE: ENTERED AAVE long [arena] · target tier T · stop 133.28 (20.0% away) · size 11.6% of pot at 3x · risk 2.32% of pot
+- BTC weekly Bullish · daily Bullish · data 67 min after the bar close
+- AAVE: target 12% of pot, holding 12% → hold
 - ADA: target 0% of pot, holding 0% → none
 - AVAX: target 8% of pot, holding 8% → hold
 - BNB: target 0% of pot, holding 0% → none
@@ -41,4 +39,4 @@ _Rendered 2026-10-09T00:08:32.201928Z in paper mode from state/positions_paper.j
 - SOL: target 0% of pot, holding 0% → none
 - UNI: target 0% of pot, holding 0% → none
 - XRP: target 0% of pot, holding 0% → none
-- evaluated 13 names · 0 triggers · 0 refused · 0 proposed · 1 entered · 3 open
+- evaluated 13 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open

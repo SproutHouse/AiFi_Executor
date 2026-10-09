@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-09T00:09:21.996000Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T01:08:09.882626Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -24,9 +24,8 @@ _Rendered 2026-10-09T00:09:21.996000Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 9 min after the bar close
-- AAVE: target 12% of pot, holding 0% → open
-- AAVE: ENTERED AAVE long [arena] · target tier T · stop 133.26 (20.0% away) · size 11.6% of pot at 3x · risk 2.32% of pot
+- BTC weekly Bullish · daily Bullish · data 68 min after the bar close
+- AAVE: target 12% of pot, holding 12% → hold
 - ADA: target 0% of pot, holding 0% → none
 - APT: target 0% of pot, holding 0% → none
 - ARB: target 0% of pot, holding 0% → none
@@ -46,8 +45,7 @@ _Rendered 2026-10-09T00:09:21.996000Z in paper mode from state/positions_paper.j
 - JUP: target 0% of pot, holding 0% → none
 - LDO: target 0% of pot, holding 0% → none
 - LINK: target 0% of pot, holding 0% → none
-- LTC: target 0% of pot, holding 12% → close
-- LTC [arena]: closed on target weight zero at 63.18 → -0.50 R · -0.01 R vs LTC
+- LTC: target 0% of pot, holding 0% → none
 - NEAR: target 6% of pot, holding 6% → hold
 - ONDO: target 0% of pot, holding 0% → none
 - PENDLE: target 0% of pot, holding 0% → none
@@ -62,4 +60,4 @@ _Rendered 2026-10-09T00:09:21.996000Z in paper mode from state/positions_paper.j
 - XRP: target 0% of pot, holding 0% → none
 - ZEC: target 0% of pot, holding 0% → none
 - ZRO: target 8% of pot, holding 8% → hold
-- evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 1 entered · 3 open
+- evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
