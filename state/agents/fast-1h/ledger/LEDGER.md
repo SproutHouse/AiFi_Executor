@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-09T10:06:41.016724Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T11:06:36.569379Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -37,5 +37,4 @@ _Rendered 2026-10-09T10:06:41.016724Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ZRO: stop trailed to 1.9905
 - evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
