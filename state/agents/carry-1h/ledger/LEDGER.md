@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-09T02:07:02.865272Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T03:07:07.961958Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
