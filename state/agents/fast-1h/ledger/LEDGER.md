@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-09T08:07:44.894225Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-09T09:06:38.581191Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| eth-defi | ZRO | flip | A | 2.16408 | 1.96839 | 10.8% | 3x | 2026-10-09T08:06 |
-| solana | JUP | flip | A | 0.366084 | 0.338168 | 12.7% | 3x | 2026-10-09T08:06 |
+| eth-defi | ZRO | flip | A | 2.16408 | 1.97911 | 10.8% | 3x | 2026-10-09T08:06 |
+| solana | JUP | flip | A | 0.366084 | 0.340428 | 12.7% | 3x | 2026-10-09T08:06 |
 
 ## Closed trades, summary
 
@@ -36,7 +36,7 @@ _Rendered 2026-10-09T08:07:44.894225Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
-- ZRO: ENTERED ZRO long [eth-defi] · flip tier A · stop 1.9684 (9.3% away) · size 10.8% of pot at 3x · risk 1.00% of pot
-- JUP: ENTERED JUP long [solana] · flip tier A · stop 0.33817 (7.9% away) · size 12.7% of pot at 3x · risk 1.00% of pot
-- evaluated 31 names · 2 triggers · 0 refused · 0 proposed · 2 entered · 2 open
+- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- ZRO: stop trailed to 1.9791
+- JUP: stop trailed to 0.34043
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
