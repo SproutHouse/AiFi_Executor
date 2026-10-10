@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-10T00:06:02Z",
+  "t": "2026-10-10T04:06:02Z",
   "agent": "wide-4h",
   "tf": "4h",
   "mode": "paper",
-  "hours": "approval",
+  "hours": "auto",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -15,7 +15,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 3.1967937238511928,
+    "drawdown_pct": 2.8334990319334117,
     "halt": false,
     "peak": 1002.9462424282524
   },
@@ -30,7 +30,7 @@
   },
   "summary": [
     "BTC weekly Bullish · daily Bullish · data 6 min after the bar close",
-    "DOT: stop trailed to 1.095",
+    "DOT: stop trailed to 1.1242",
     "evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open"
   ],
   "readings": [
@@ -42,13 +42,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 84002.65429918686,
-      "close": 82580.0,
+      "close": 82568.0,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 1845.850663315972,
-      "funding_pct": -3.2761524,
+      "vol_m": 1574.5074050257895,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 82548.0
+      "mark": 82663.0
     },
     {
       "coin": "LTC",
@@ -58,13 +58,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 65.89544335351117,
-      "close": 63.453,
+      "close": 63.503,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 4.57693546937,
-      "funding_pct": 10.621324800000002,
+      "vol_m": 3.3407054423899987,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 63.42
+      "mark": 63.622
     },
     {
       "coin": "BCH",
@@ -74,13 +74,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 294.67339411394227,
-      "close": 276.41,
+      "close": 278.62,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 2.4714467189700002,
-      "funding_pct": 9.9838596,
+      "vol_m": 2.411733404729999,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 276.21
+      "mark": 279.58
     },
     {
       "coin": "ETH",
@@ -90,13 +90,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 2562.3581295546023,
-      "close": 2487.1,
+      "close": 2490.4,
       "trigger": null,
       "why": "daily Momentum Cloud not bullish",
-      "vol_m": 714.6854652719701,
+      "vol_m": 643.7273103106804,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 2485.7
+      "mark": 2493.66
     },
     {
       "coin": "UNI",
@@ -106,13 +106,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 7.942445864677003,
-      "close": 7.3187,
+      "close": 7.339,
       "trigger": null,
       "why": "daily Momentum Cloud not bullish",
-      "vol_m": 17.46071107636,
+      "vol_m": 13.72070611228999,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 7.31677
+      "mark": 7.385
     },
     {
       "coin": "AAVE",
@@ -120,15 +120,15 @@
       "weekly": "Bullish",
       "daily": "Bullish",
       "h4": "Bearish",
-      "range": "Suppressed",
+      "range": "In Range",
       "line": 177.60043140487852,
-      "close": 167.19,
+      "close": 170.96,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 5.7776988890000025,
-      "funding_pct": 10.9379112,
+      "vol_m": 6.958193143399999,
+      "funding_pct": 1.9858919999999998,
       "days": 1500,
-      "mark": 167.07
+      "mark": 171.3
     },
     {
       "coin": "LINK",
@@ -138,13 +138,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 13.266444506253766,
-      "close": 12.806,
+      "close": 12.805,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 5.391934318199998,
-      "funding_pct": 10.950000000000001,
+      "vol_m": 4.956058406899999,
+      "funding_pct": 6.0714684000000005,
       "days": 1500,
-      "mark": 12.78
+      "mark": 12.842
     },
     {
       "coin": "CRV",
@@ -154,13 +154,13 @@
       "h4": "Bearish",
       "range": "In Range",
       "line": 0.38189310467208154,
-      "close": 0.35905,
+      "close": 0.35753,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 9.425587520632002,
+      "vol_m": 9.511065789221004,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.35894
+      "mark": 0.35952
     },
     {
       "coin": "ENA",
@@ -170,13 +170,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 0.23038765032870426,
-      "close": 0.21506,
+      "close": 0.21879,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 30.506355036260004,
+      "vol_m": 29.136467599819998,
       "funding_pct": 10.950000000000001,
       "days": 921,
-      "mark": 0.21494
+      "mark": 0.22015
     },
     {
       "coin": "ONDO",
@@ -186,13 +186,13 @@
       "h4": "Bearish",
       "range": "In Range",
       "line": 0.5067844268775696,
-      "close": 0.48221,
+      "close": 0.48596,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 14.267003436280005,
+      "vol_m": 13.962917098130003,
       "funding_pct": 10.950000000000001,
       "days": 994,
-      "mark": 0.48048
+      "mark": 0.48927
     },
     {
       "coin": "LDO",
@@ -202,13 +202,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 0.4585903930605331,
-      "close": 0.4215,
+      "close": 0.42449,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 1.3042754412059998,
-      "funding_pct": 9.446784000000001,
+      "vol_m": 1.2397488016250007,
+      "funding_pct": 10.950000000000001,
       "days": 1479,
-      "mark": 0.42021
+      "mark": 0.4281
     },
     {
       "coin": "ARB",
@@ -218,13 +218,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 0.18971870431729543,
-      "close": 0.18255,
+      "close": 0.18336,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 6.956677261995,
-      "funding_pct": -15.4768176,
+      "vol_m": 8.390967202555002,
+      "funding_pct": 10.950000000000001,
       "days": 1297,
-      "mark": 0.18232
+      "mark": 0.18454
     },
     {
       "coin": "ZRO",
@@ -234,13 +234,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 2.2844442677246692,
-      "close": 1.9574,
+      "close": 1.957,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 23.869780705230006,
+      "vol_m": 21.307798296140007,
       "funding_pct": 10.950000000000001,
       "days": 1129,
-      "mark": 1.959
+      "mark": 1.9658
     },
     {
       "coin": "SOL",
@@ -250,13 +250,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 114.05940334109854,
-      "close": 109.12,
+      "close": 109.64,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 167.6647945412999,
-      "funding_pct": 10.950000000000001,
+      "vol_m": 154.572802488,
+      "funding_pct": 9.336758399999999,
       "days": 1500,
-      "mark": 108.92
+      "mark": 109.865
     },
     {
       "coin": "JUP",
@@ -266,13 +266,13 @@
       "h4": "Bullish",
       "range": "Overextended",
       "line": 0.329699671686068,
-      "close": 0.3747,
+      "close": 0.37118,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 8.280492537659997,
-      "funding_pct": -12.891128400000001,
+      "vol_m": 8.679046618319994,
+      "funding_pct": -15.531304800000001,
       "days": 1042,
-      "mark": 0.37432
+      "mark": 0.37315
     },
     {
       "coin": "PENGU",
@@ -282,13 +282,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 0.008842293216173374,
-      "close": 0.008211,
+      "close": 0.008306,
       "trigger": null,
       "why": "weekly Momentum Cloud not bullish",
-      "vol_m": 1.9094870051560004,
+      "vol_m": 3.013220534826,
       "funding_pct": 10.950000000000001,
       "days": 662,
-      "mark": 0.008223
+      "mark": 0.008342
     },
     {
       "coin": "XRP",
@@ -298,13 +298,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 1.4408577141396302,
-      "close": 1.3954,
+      "close": 1.403,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 31.81536668990001,
-      "funding_pct": 10.950000000000001,
+      "vol_m": 29.04037683510001,
+      "funding_pct": 1.9878191999999997,
       "days": 1500,
-      "mark": 1.3954
+      "mark": 1.406
     },
     {
       "coin": "NEAR",
@@ -314,13 +314,13 @@
       "h4": "Bearish",
       "range": "In Range",
       "line": 5.386899170158175,
-      "close": 4.8865,
+      "close": 4.9515,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 173.12464544968998,
+      "vol_m": 157.17901875983014,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 4.9026
+      "mark": 5.0094
     },
     {
       "coin": "SUI",
@@ -330,13 +330,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 1.1270271722723249,
-      "close": 1.0693,
+      "close": 1.0811,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 17.31878908503999,
+      "vol_m": 18.27060748633001,
       "funding_pct": 10.950000000000001,
       "days": 1256,
-      "mark": 1.0658
+      "mark": 1.0893
     },
     {
       "coin": "ADA",
@@ -344,15 +344,15 @@
       "weekly": "Bearish",
       "daily": "Bullish",
       "h4": "Bearish",
-      "range": "Suppressed",
+      "range": "In Range",
       "line": 0.2528148590278808,
-      "close": 0.24291,
+      "close": 0.25052,
       "trigger": null,
       "why": "weekly Momentum Cloud not bullish",
-      "vol_m": 4.731212588520001,
-      "funding_pct": 2.0310059999999996,
+      "vol_m": 6.914432439230001,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.24243
+      "mark": 0.25176
     },
     {
       "coin": "AVAX",
@@ -362,13 +362,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 10.990716407326673,
-      "close": 10.331,
+      "close": 10.39,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 4.246748284850001,
+      "vol_m": 3.70979483827,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 10.3085
+      "mark": 10.437
     },
     {
       "coin": "DOGE",
@@ -378,13 +378,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 0.08910679036295309,
-      "close": 0.085345,
+      "close": 0.08623,
       "trigger": null,
       "why": "weekly Momentum Cloud not bullish",
-      "vol_m": 5.072175946634,
-      "funding_pct": 10.950000000000001,
+      "vol_m": 5.305564713257001,
+      "funding_pct": 9.392559599999998,
       "days": 1500,
-      "mark": 0.085263
+      "mark": 0.086549
     },
     {
       "coin": "XLM",
@@ -394,13 +394,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 0.20261245651857468,
-      "close": 0.19467,
+      "close": 0.19578,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 1.2164949773400002,
+      "vol_m": 1.2721868043099998,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.19455
+      "mark": 0.19635
     },
     {
       "coin": "TRX",
@@ -409,14 +409,14 @@
       "daily": "Bullish",
       "h4": "Bearish",
       "range": "Suppressed",
-      "line": 0.33568991922323893,
-      "close": 0.33167,
+      "line": 0.33484242730091507,
+      "close": 0.33059,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 2.0283116127600005,
-      "funding_pct": -45.56531520000001,
+      "vol_m": 1.8089079764000013,
+      "funding_pct": -50.1809592,
       "days": 1500,
-      "mark": 0.33157
+      "mark": 0.33059
     },
     {
       "coin": "INJ",
@@ -426,13 +426,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 7.4948017227091706,
-      "close": 6.9329,
+      "close": 7.0007,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 2.60852405432,
-      "funding_pct": 10.9126824,
+      "vol_m": 2.4033005028399996,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 6.9412
+      "mark": 7.0375
     },
     {
       "coin": "TAO",
@@ -442,13 +442,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 295.0181012258031,
-      "close": 275.0,
+      "close": 276.91,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 8.993996263519998,
+      "vol_m": 8.395321944850004,
       "funding_pct": 10.950000000000001,
       "days": 964,
-      "mark": 274.46
+      "mark": 278.01
     },
     {
       "coin": "FET",
@@ -458,13 +458,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 0.23880485324993322,
-      "close": 0.21706,
+      "close": 0.21636,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 1.7375657612699997,
+      "vol_m": 1.8151164761799998,
       "funding_pct": 10.950000000000001,
       "days": 1362,
-      "mark": 0.21614
+      "mark": 0.21797
     },
     {
       "coin": "WLD",
@@ -472,15 +472,15 @@
       "weekly": "Bullish",
       "daily": "Bullish",
       "h4": "Bearish",
-      "range": "Suppressed",
+      "range": "In Range",
       "line": 0.534605331113779,
-      "close": 0.50717,
+      "close": 0.52107,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 13.573322744319004,
+      "vol_m": 14.872317867285998,
       "funding_pct": 10.950000000000001,
       "days": 1174,
-      "mark": 0.50541
+      "mark": 0.52735
     },
     {
       "coin": "ZEC",
@@ -490,13 +490,13 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 1296.3564360374253,
-      "close": 1206.2,
+      "close": 1215.1,
       "trigger": null,
       "why": "daily Momentum Cloud not bullish",
-      "vol_m": 185.3390424730002,
+      "vol_m": 150.841831169,
       "funding_pct": 10.950000000000001,
       "days": 1372,
-      "mark": 1204.2
+      "mark": 1219.2
     },
     {
       "coin": "HYPE",
@@ -506,15 +506,15 @@
       "h4": "Bearish",
       "range": "Suppressed",
       "line": 88.62602966187643,
-      "close": 84.144,
+      "close": 83.85,
       "trigger": null,
       "why": "no trigger on the last 4-hour bar",
-      "vol_m": 276.53211199716,
+      "vol_m": 246.05416261579987,
       "funding_pct": 10.950000000000001,
       "days": 674,
-      "mark": 84.091
+      "mark": 83.984
     }
   ],
-  "equity": 970.8919088542672,
-  "hours_local": "20:06 EDT"
+  "equity": 974.5233165228508,
+  "hours_local": "00:06 EDT"
 }
