@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-10T04:06:38.969576Z",
+  "updated": "2026-10-10T08:06:35.908345Z",
   "mode": "paper",
   "positions": {
     "DOT": {
@@ -9,7 +9,7 @@
       "tier": "A",
       "mode": "paper",
       "entry": 1.15147545,
-      "stop": 1.1241986456121416,
+      "stop": 1.1259437810509272,
       "initial_stop": 1.029311318735476,
       "notional": 89.07670768977447,
       "sz": 77.35875540357762,
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 9.231765422984072,
       "entry_fee": 0.040084518460398504,
-      "funding_paid": -0.0058587993549577225,
+      "funding_paid": -0.0014052732645929216,
       "opened": "2026-10-09T04:06:04Z",
       "opened_ts": 1791518764,
-      "last_bar_t": 1791590400,
-      "last_funding_ts": 1791605162,
+      "last_bar_t": 1791604800,
+      "last_funding_ts": 1791619561,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "Bullish",
@@ -44,8 +44,53 @@
       "book": "l1s",
       "benchmark": "BTC",
       "bench_entry": 82390.0,
-      "mark": 1.2764,
-      "upnl_pct": 10.849084971807255
+      "mark": 1.24935,
+      "upnl_pct": 8.49992503096788
+    },
+    "WLD": {
+      "coin": "WLD",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 0.555407565,
+      "stop": 0.4826394500348378,
+      "initial_stop": 0.4826394500348378,
+      "notional": 73.01437561650357,
+      "sz": 131.46089505731447,
+      "risk_amt": 9.72430762189184,
+      "leverage": 3,
+      "notional_pct_equity": 7.50843951626232,
+      "entry_fee": 0.0328564690274266,
+      "funding_paid": 0.0,
+      "opened": "2026-10-10T08:06:01Z",
+      "opened_ts": 1791619561,
+      "last_bar_t": 1791604800,
+      "last_funding_ts": 1791619561,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "auto"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:wide-4h",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:ai"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "ai",
+      "benchmark": "BTC",
+      "bench_entry": 82785.0,
+      "mark": 0.55513,
+      "upnl_pct": -0.04997501249375258
     }
   }
 }
