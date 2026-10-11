@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-11T04:06:37.017694Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-11T08:06:36.790050Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -30,5 +30,4 @@ _Rendered 2026-10-11T04:06:37.017694Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ARB: ENTERED ARB long [eth-defi] · flip tier A · stop 0.17742 (7.5% away) · size 13.3% of pot at 3x · risk 1.00% of pot
-- evaluated 29 names · 1 triggers · 0 refused · 0 proposed · 1 entered · 3 open
+- evaluated 28 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
