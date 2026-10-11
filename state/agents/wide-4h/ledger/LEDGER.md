@@ -1,14 +1,15 @@
 # Ledger
 
-_Rendered 2026-10-11T12:06:42.927680Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-11T16:06:43.534469Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
 | l1s | DOT | flip | A | 1.15148 | 1.15014 | 9.2% | 3x | 2026-10-09T04:06 |
-| ai | WLD | flip | A | 0.555408 | 0.50067 | 7.5% | 3x | 2026-10-10T08:06 |
-| eth-defi | ARB | flip | A | 0.191316 | 0.180365 | 13.3% | 3x | 2026-10-11T04:06 |
+| ai | WLD | flip | A | 0.555408 | 0.506683 | 7.5% | 3x | 2026-10-10T08:06 |
+| eth-defi | ARB | flip | A | 0.191316 | 0.181366 | 13.3% | 3x | 2026-10-11T04:06 |
+| eth-defi | ENA | flip | A | 0.231296 | 0.208503 | 9.9% | 3x | 2026-10-11T16:06 |
 
 ## Closed trades, summary
 
@@ -25,10 +26,16 @@ _Rendered 2026-10-11T12:06:42.927680Z in paper mode from state/positions_paper.j
 | 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 91 recorded (state/ledger/refused.jsonl)
+## Refused signals: 95 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ARB: stop trailed to 0.18037
-- evaluated 28 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
+- WLD: stop trailed to 0.50668
+- ARB: stop trailed to 0.18137
+- LINK: signal flip tier A REFUSED: universe filters (24h volume 3.6M below 5M)
+- ENA: ENTERED ENA long [eth-defi] · flip tier A · stop 0.2085 (10.1% away) · size 9.9% of pot at 3x · risk 1.00% of pot
+- NEAR: signal flip tier A REFUSED: open-risk cap (4.96% of equity after entry, cap 4.0%)
+- SUI: signal flip tier A REFUSED: open-risk cap (4.96% of equity after entry, cap 4.0%)
+- XLM: signal flip tier A REFUSED: open-risk cap (4.96% of equity after entry, cap 4.0%); universe filters (24h volume 2.2M below 5M)
+- evaluated 28 names · 5 triggers · 4 refused · 0 proposed · 1 entered · 4 open
