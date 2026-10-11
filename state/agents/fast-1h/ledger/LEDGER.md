@@ -1,21 +1,20 @@
 # Ledger
 
-_Rendered 2026-10-11T03:06:41.136439Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-11T04:08:13.010905Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
-|---|---|---|---|---|---|---|---|---|
-| solana | JUP | flip | A | 0.366084 | 0.356523 | 12.7% | 3x | 2026-10-09T08:06 |
+None.
 
 ## Closed trades, summary
 
-- Trades 15 · win rate 27% · average -0.41 R · total -6.2 R · profit factor 0.14 · worst losing streak 4 · costs 0.03 R per trade · average -0.18 R against holding the benchmark
+- Trades 16 · win rate 25% · average -0.41 R · total -6.6 R · profit factor 0.13 · worst losing streak 4 · costs 0.03 R per trade · average -0.18 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-11T03:00 | solana | JUP | flip | A | 0.366084 | 0.356345 | -0.35 | -0.20 | stop | 43 |
 | 2026-10-09T18:00 | eth-defi | ZRO | flip | A | 2.16408 | 1.98953 | -0.88 | -0.82 | stop | 10 |
 | 2026-10-07T17:00 | eth-defi | ENA | flip | A | 0.238669 | 0.224155 | -0.97 | -0.66 | stop | 9 |
 | 2026-10-07T02:00 | l1s | AVAX | flip | A | 11.2366 | 11.2665 | +0.04 | +0.77 | stop | 25 |
@@ -32,9 +31,11 @@ _Rendered 2026-10-11T03:06:41.136439Z in paper mode from state/positions_paper.j
 | 2026-09-29T16:00 | solana | SOL | flip | A | 121.251 | 117.622 | -0.82 | -0.13 | stop | 3 |
 | 2026-09-27T14:00 | privacy | ZEC | flip | A | 1592.9 | 1612.29 | +0.24 | +0.15 | stop | 17 |
 
-## Refused signals: 165 recorded (state/ledger/refused.jsonl)
+## Refused signals: 166 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 30 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
+- JUP [solana]: closed on stop at 0.35634 → -0.35 R · -0.20 R vs SOL
+- WLD: signal pullback tier B recorded, not traded (tier not automated)
+- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open

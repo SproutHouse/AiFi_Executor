@@ -1,51 +1,5 @@
 {
-  "updated": "2026-10-11T03:06:41.128199Z",
+  "updated": "2026-10-11T04:08:13.003539Z",
   "mode": "paper",
-  "positions": {
-    "JUP": {
-      "coin": "JUP",
-      "side": "long",
-      "kind": "flip",
-      "tier": "A",
-      "mode": "paper",
-      "entry": 0.3660839505,
-      "stop": 0.35652307604087863,
-      "initial_stop": 0.3381678925014156,
-      "notional": 120.61244335828346,
-      "sz": 329.46662423618994,
-      "risk_amt": 9.475113862279526,
-      "leverage": 3,
-      "notional_pct_equity": 12.729392502441812,
-      "entry_fee": 0.054275599511227554,
-      "funding_paid": -0.040604720596385764,
-      "opened": "2026-10-09T08:06:37Z",
-      "opened_ts": 1791533197,
-      "last_bar_t": 1791684000,
-      "last_funding_ts": 1791687946,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "Bullish",
-        "pair_daily": "Bullish",
-        "h4_range": "Overextended",
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "auto"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:fast-1h",
-        "trigger:flip",
-        "tier:A",
-        "stop:1h-line",
-        "long-only",
-        "book:solana"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "solana",
-      "benchmark": "SOL",
-      "bench_entry": 110.45,
-      "mark": 0.35715,
-      "upnl_pct": -2.4404103178513825
-    }
-  }
+  "positions": {}
 }
