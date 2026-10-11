@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-11T01:07:06Z",
+  "t": "2026-10-11T02:07:04Z",
   "agent": "arena-01",
   "tf": "1d",
   "mode": "paper",
-  "hours": "approval",
+  "hours": "auto",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -17,7 +17,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 2.386772197702787,
+    "drawdown_pct": 2.2955104091388385,
     "halt": false,
     "peak": 1012.1385242278044
   },
@@ -31,7 +31,7 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 67 min after the bar close",
+    "BTC weekly Bullish · daily Bullish · data 127 min after the bar close",
     "AAVE: target 12% of pot, holding 12% → hold",
     "ADA: target 0% of pot, holding 0% → none",
     "AVAX: target 9% of pot, holding 8% → hold",
@@ -60,9 +60,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.12 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": -8.518837200000002,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 167.92
+      "mark": 169.08
     },
     {
       "coin": "ADA",
@@ -78,7 +78,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.24748
+      "mark": 0.248841
     },
     {
       "coin": "AVAX",
@@ -92,9 +92,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.09 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": 10.1877924,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 10.342
+      "mark": 10.346
     },
     {
       "coin": "BNB",
@@ -108,9 +108,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": 2.8453356,
+      "funding_pct": 4.487923200000001,
       "days": 1500,
-      "mark": 747.33
+      "mark": 748.07
     },
     {
       "coin": "BTC",
@@ -124,9 +124,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": -20.788356,
+      "funding_pct": -1.3915259999999998,
       "days": 1500,
-      "mark": 82916.0
+      "mark": 82980.0
     },
     {
       "coin": "DOGE",
@@ -142,7 +142,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.085629
+      "mark": 0.08591
     },
     {
       "coin": "ETH",
@@ -156,9 +156,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": -19.4725164,
+      "funding_pct": -8.3586168,
       "days": 1500,
-      "mark": 2504.2
+      "mark": 2508.84
     },
     {
       "coin": "LINK",
@@ -174,7 +174,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 12.979
+      "mark": 13.023
     },
     {
       "coin": "LTC",
@@ -188,9 +188,9 @@
       "trigger": null,
       "why": "rs_rotation: weight 0.00 of equity · regime bull",
       "vol_m": null,
-      "funding_pct": 3.4503012,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 63.601
+      "mark": 63.676
     },
     {
       "coin": "NEAR",
@@ -206,7 +206,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 5.2974
+      "mark": 5.3053
     },
     {
       "coin": "SOL",
@@ -222,7 +222,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 109.95
+      "mark": 109.98
     },
     {
       "coin": "UNI",
@@ -238,7 +238,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 7.574
+      "mark": 7.6355
     },
     {
       "coin": "XRP",
@@ -254,9 +254,9 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 1.3975
+      "mark": 1.4002
     }
   ],
-  "equity": 987.9803729577058,
-  "hours_local": "21:07 EDT"
+  "equity": 988.9014602811133,
+  "hours_local": "22:07 EDT"
 }
