@@ -1,15 +1,15 @@
 # Ledger
 
-_Rendered 2026-10-12T04:06:38.266579Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-12T08:06:44.751520Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| l1s | DOT | flip | A | 1.15148 | 1.16527 | 9.2% | 3x | 2026-10-09T04:06 |
+| l1s | DOT | flip | A | 1.15148 | 1.17598 | 9.2% | 3x | 2026-10-09T04:06 |
 | ai | WLD | flip | A | 0.555408 | 0.50759 | 7.5% | 3x | 2026-10-10T08:06 |
 | eth-defi | ARB | flip | A | 0.191316 | 0.181366 | 13.3% | 3x | 2026-10-11T04:06 |
-| eth-defi | ENA | flip | A | 0.231296 | 0.217039 | 9.9% | 3x | 2026-10-11T16:06 |
+| eth-defi | ENA | flip | A | 0.231296 | 0.217069 | 9.9% | 3x | 2026-10-11T16:06 |
 
 ## Closed trades, summary
 
@@ -26,12 +26,13 @@ _Rendered 2026-10-12T04:06:38.266579Z in paper mode from state/positions_paper.j
 | 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 103 recorded (state/ledger/refused.jsonl)
+## Refused signals: 105 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ENA: stop trailed to 0.21704
-- SUI: signal pullback tier B REFUSED: open-risk cap (4.97% of equity after entry, cap 4.0%)
-- XLM: signal pullback tier B REFUSED: open-risk cap (4.97% of equity after entry, cap 4.0%); universe filters (24h volume 2.7M below 5M)
+- DOT: stop trailed to 1.176
+- ENA: stop trailed to 0.21707
+- ZRO: signal flip tier A REFUSED: open-risk cap (4.98% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 3.00% after entry, cap 2.0%)
+- JUP: signal pullback tier B REFUSED: open-risk cap (4.98% of equity after entry, cap 4.0%)
 - evaluated 27 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 4 open
