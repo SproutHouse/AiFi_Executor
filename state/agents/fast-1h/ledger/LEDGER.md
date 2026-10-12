@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-12T13:06:38.379008Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-12T14:06:41.165065Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -36,5 +36,4 @@ None.
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- LINK: signal pullback tier B recorded, not traded (tier not automated)
-- evaluated 31 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 0 open
+- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
