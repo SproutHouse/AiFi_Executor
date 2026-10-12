@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-12T17:06:43.026901Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-12T18:07:01.886094Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -28,4 +28,5 @@ _Rendered 2026-10-12T17:06:43.026901Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 7 min after the bar close
+- PUMP: carry safety override · legs out of balance for 3h, lagging leg completed at market
 - evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 4 open
