@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-12T12:06:40.193633Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-12T16:06:41.372233Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -26,12 +26,11 @@ _Rendered 2026-10-12T12:06:40.193633Z in paper mode from state/positions_paper.j
 | 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 108 recorded (state/ledger/refused.jsonl)
+## Refused signals: 110 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- LINK: signal pullback tier B REFUSED: open-risk cap (5.00% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 3.01% after entry, cap 2.0%)
-- TAO: signal pullback tier B REFUSED: open-risk cap (5.00% of equity after entry, cap 4.0%); book open-risk cap (book ai: 2.00% after entry, cap 1.5%)
-- FET: signal pullback tier B REFUSED: open-risk cap (5.00% of equity after entry, cap 4.0%); book open-risk cap (book ai: 2.00% after entry, cap 1.5%); universe filters (24h volume 4.2M below 5M)
-- evaluated 27 names · 3 triggers · 3 refused · 0 proposed · 0 entered · 4 open
+- ONDO: signal pullback tier B REFUSED: open-risk cap (5.04% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 3.03% after entry, cap 2.0%)
+- AVAX: signal pullback tier B REFUSED: open-risk cap (5.04% of equity after entry, cap 4.0%); book open-risk cap (book l1s: 2.00% after entry, cap 2.0%)
+- evaluated 27 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 4 open
