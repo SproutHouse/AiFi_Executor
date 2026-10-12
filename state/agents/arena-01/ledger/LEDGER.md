@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-12T00:08:18.948861Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-12T01:07:16.558628Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -25,7 +25,7 @@ _Rendered 2026-10-12T00:08:18.948861Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 67 min after the bar close
 - AAVE: target 12% of pot, holding 12% → hold
 - ADA: target 0% of pot, holding 0% → none
 - AVAX: target 8% of pot, holding 9% → hold
@@ -35,8 +35,7 @@ _Rendered 2026-10-12T00:08:18.948861Z in paper mode from state/positions_paper.j
 - ETH: target 0% of pot, holding 0% → none
 - LINK: target 0% of pot, holding 0% → none
 - LTC: target 0% of pot, holding 0% → none
-- NEAR: target 6% of pot, holding 8% → decrease
-- NEAR: resized to 6% of pot, stop 3.9321
+- NEAR: target 6% of pot, holding 6% → hold
 - SOL: target 0% of pot, holding 0% → none
 - UNI: target 0% of pot, holding 0% → none
 - XRP: target 0% of pot, holding 0% → none
