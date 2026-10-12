@@ -1,15 +1,15 @@
 # Ledger
 
-_Rendered 2026-10-11T20:06:40.228258Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-12T00:06:47.223716Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| l1s | DOT | flip | A | 1.15148 | 1.16507 | 9.2% | 3x | 2026-10-09T04:06 |
+| l1s | DOT | flip | A | 1.15148 | 1.16527 | 9.2% | 3x | 2026-10-09T04:06 |
 | ai | WLD | flip | A | 0.555408 | 0.50759 | 7.5% | 3x | 2026-10-10T08:06 |
 | eth-defi | ARB | flip | A | 0.191316 | 0.181366 | 13.3% | 3x | 2026-10-11T04:06 |
-| eth-defi | ENA | flip | A | 0.231296 | 0.215447 | 9.9% | 3x | 2026-10-11T16:06 |
+| eth-defi | ENA | flip | A | 0.231296 | 0.215971 | 9.9% | 3x | 2026-10-11T16:06 |
 
 ## Closed trades, summary
 
@@ -26,16 +26,13 @@ _Rendered 2026-10-11T20:06:40.228258Z in paper mode from state/positions_paper.j
 | 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 99 recorded (state/ledger/refused.jsonl)
+## Refused signals: 101 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- DOT: stop trailed to 1.1651
-- WLD: stop trailed to 0.50759
-- ENA: stop trailed to 0.21545
-- LINK: signal pullback tier B REFUSED: open-risk cap (4.95% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 2.98% after entry, cap 2.0%)
-- ONDO: signal flip tier A REFUSED: open-risk cap (4.95% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 2.98% after entry, cap 2.0%)
-- SUI: signal pullback tier B REFUSED: open-risk cap (4.95% of equity after entry, cap 4.0%)
-- FET: signal flip tier A REFUSED: open-risk cap (4.95% of equity after entry, cap 4.0%); book open-risk cap (book ai: 1.99% after entry, cap 1.5%); universe filters (24h volume 3.3M below 5M)
-- evaluated 27 names · 4 triggers · 4 refused · 0 proposed · 0 entered · 4 open
+- DOT: stop trailed to 1.1653
+- ENA: stop trailed to 0.21597
+- AVAX: signal flip tier A REFUSED: open-risk cap (4.96% of equity after entry, cap 4.0%)
+- TAO: signal flip tier A REFUSED: open-risk cap (4.96% of equity after entry, cap 4.0%); book open-risk cap (book ai: 1.99% after entry, cap 1.5%); universe filters (funding 31%/yr against longs above 30%)
+- evaluated 27 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 4 open

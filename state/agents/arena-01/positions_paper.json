@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-11T02:07:13.319373Z",
+  "updated": "2026-10-12T00:08:18.942926Z",
   "mode": "paper",
   "positions": {
     "NEAR": {
@@ -11,17 +11,17 @@
       "entry": 4.91515635,
       "stop": 3.9321250800000005,
       "initial_stop": 3.9321250800000005,
-      "notional": 64.25729168525079,
-      "sz": 13.073295559611402,
+      "notional": 48.007369840537514,
+      "sz": 9.767211136739833,
       "risk_amt": 12.85145833705016,
       "leverage": 3,
       "notional_pct_equity": 6.42572916852508,
       "entry_fee": 0.028915781258362853,
-      "funding_paid": 0.3695379565030051,
+      "funding_paid": 0.38722366046138973,
       "opened": "2026-09-30T00:23:22Z",
       "opened_ts": 1790727802,
-      "last_bar_t": 1791590400,
-      "last_funding_ts": 1791684424,
+      "last_bar_t": 1791676800,
+      "last_funding_ts": 1791763691,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,8 +45,9 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 4.9127,
-      "mark": 5.3053,
-      "upnl_pct": 7.937563369677947
+      "mark": 5.9313,
+      "upnl_pct": 20.67367907838782,
+      "realized": 3.340832195164524
     },
     "AVAX": {
       "coin": "AVAX",
@@ -63,11 +64,11 @@
       "leverage": 3,
       "notional_pct_equity": 8.773137519270257,
       "entry_fee": 0.03960213639510539,
-      "funding_paid": 0.15278698981360503,
+      "funding_paid": 0.1770087687150774,
       "opened": "2026-10-02T00:08:08Z",
       "opened_ts": 1790899688,
-      "last_bar_t": 1791590400,
-      "last_funding_ts": 1791684424,
+      "last_bar_t": 1791676800,
+      "last_funding_ts": 1791763691,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -91,8 +92,8 @@
       "book": "arena",
       "benchmark": "AVAX",
       "bench_entry": 10.984,
-      "mark": 10.346,
-      "upnl_pct": -5.855520892139509
+      "mark": 10.9967,
+      "upnl_pct": 0.0655899289976336
     },
     "AAVE": {
       "coin": "AAVE",
@@ -109,11 +110,11 @@
       "leverage": 3,
       "notional_pct_equity": 11.623549286952386,
       "entry_fee": 0.0510241475619162,
-      "funding_paid": 0.06785630608097218,
+      "funding_paid": 0.0990641078154661,
       "opened": "2026-10-09T00:08:23Z",
       "opened_ts": 1791504503,
-      "last_bar_t": 1791590400,
-      "last_funding_ts": 1791684424,
+      "last_bar_t": 1791676800,
+      "last_funding_ts": 1791763691,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -137,8 +138,8 @@
       "book": "arena",
       "benchmark": "AAVE",
       "bench_entry": 166.6,
-      "mark": 169.08,
-      "upnl_pct": 1.437876499925328
+      "mark": 171.81,
+      "upnl_pct": 3.0757130438382463
     }
   }
 }
