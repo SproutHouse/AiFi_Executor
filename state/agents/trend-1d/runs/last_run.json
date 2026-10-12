@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-12T01:06:42Z",
+  "t": "2026-10-12T02:07:02Z",
   "agent": "trend-1d",
   "tf": "1d",
   "mode": "paper",
-  "hours": "approval",
+  "hours": "auto",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -15,7 +15,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 4.245846399840859,
+    "drawdown_pct": 4.3645281812691366,
     "halt": false,
     "peak": 1012.864731247214
   },
@@ -29,7 +29,7 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 67 min after the bar close",
+    "BTC weekly Bullish · daily Bullish · data 127 min after the bar close",
     "BTC: target 39% of pot, holding 36% → hold",
     "ETH: target 0% of pot, holding 0% → none",
     "evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open"
@@ -47,9 +47,9 @@
       "trigger": null,
       "why": "close 83729 above its 50-day average 80945; volatility 39% → weight 0.78",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 10.013556,
       "days": 1500,
-      "mark": 83973.0
+      "mark": 83683.0
     },
     {
       "coin": "ETH",
@@ -63,11 +63,11 @@
       "trigger": null,
       "why": "close 2535.6 at or below its 50-day average 2556.6",
       "vol_m": null,
-      "funding_pct": 7.806824400000001,
+      "funding_pct": 1.6623852,
       "days": 1500,
-      "mark": 2548.3
+      "mark": 2543.9
     }
   ],
-  "equity": 969.8557798709925,
-  "hours_local": "21:06 EDT"
+  "equity": 968.6539630195056,
+  "hours_local": "22:07 EDT"
 }
