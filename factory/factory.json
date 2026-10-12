@@ -1,20 +1,20 @@
 {
  "v": 1,
- "gen": "2026-10-11T04:56:57Z",
+ "gen": "2026-10-12T05:01:35Z",
  "lab": {
-  "tried": 5071,
-  "survivors": 104,
+  "tried": 6071,
+  "survivors": 110,
   "by_family": {
    "rs_rotation": {
-    "tried": 18,
+    "tried": 21,
     "survived": 1
    },
    "tsmom": {
-    "tried": 21,
+    "tried": 22,
     "survived": 0
    },
    "donchian": {
-    "tried": 21,
+    "tried": 24,
     "survived": 0
    },
    "meanrev": {
@@ -22,42 +22,42 @@
     "survived": 0
    },
    "carry": {
-    "tried": 4855,
-    "survived": 97
+    "tried": 5838,
+    "survived": 103
    },
    "cloud_trend": {
     "tried": 25,
     "survived": 0
    },
    "sma_trend": {
-    "tried": 15,
+    "tried": 17,
     "survived": 0
    },
    "bull_momentum": {
-    "tried": 95,
+    "tried": 102,
     "survived": 6
    },
    "dual_ma": {
-    "tried": 11,
+    "tried": 12,
     "survived": 0
    }
   },
-  "last_batch": "2026-10-11",
+  "last_batch": "2026-10-12",
   "gates_version": 3,
-  "vetoed": 96,
+  "vetoed": 99,
   "retired": 0,
   "funnel": {
-   "tested": 5071,
-   "passed_cheap": 5034,
-   "passed_audit": 126,
+   "tested": 6071,
+   "passed_cheap": 6031,
+   "passed_audit": 132,
    "waiting_holdout": 14,
-   "passed_holdout": 104,
-   "vetoed": 96
+   "passed_holdout": 110,
+   "vetoed": 99
   },
   "last": {
-   "date": "2026-10-11",
+   "date": "2026-10-12",
    "tried": 1000,
-   "passed": 3
+   "passed": 6
   },
   "studies": [
    {
@@ -72,7 +72,7 @@
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-10-10"
+  "as_of": "2026-10-11"
  },
  "shortlist": [
   {
@@ -86,7 +86,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 12.2,
+   "days": 13.2,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -103,15 +103,15 @@
     }
    },
    "paper": {
-    "ret_pct": -1.09,
+    "ret_pct": 0.22,
     "dd_pct": 3.74,
     "weight_match_pct": 100,
-    "weight_checks": 156,
+    "weight_checks": 169,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "12 of 42 days in the arena"
+    "13 of 42 days in the arena"
    ]
   },
   {
@@ -125,7 +125,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 8.2,
+   "days": 9.2,
    "backtest": {
     "sharpe": 1.609,
     "cagr_pct": 31.29,
@@ -142,15 +142,15 @@
     }
    },
    "paper": {
-    "ret_pct": -0.18,
+    "ret_pct": 1.22,
     "dd_pct": 3.2,
     "weight_match_pct": 100,
-    "weight_checks": 280,
+    "weight_checks": 315,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "8 of 42 days in the arena"
+    "9 of 42 days in the arena"
    ]
   },
   {
@@ -164,7 +164,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 6.2,
+   "days": 7.2,
    "backtest": {
     "sharpe": 1.751,
     "cagr_pct": 32.29,
@@ -181,21 +181,21 @@
     }
    },
    "paper": {
-    "ret_pct": -1.14,
+    "ret_pct": 0.23,
     "dd_pct": 3.18,
     "weight_match_pct": 100,
-    "weight_checks": 210,
+    "weight_checks": 245,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "6 of 42 days in the arena"
+    "7 of 42 days in the arena"
    ]
   }
  ],
  "fleet": {
   "regime": "bull",
-  "window": "2023-06-01 → 2026-10-10",
+  "window": "2023-06-01 → 2026-10-11",
   "members": [
    {
     "agent": "trend-1d",
@@ -222,7 +222,7 @@
     "name": "A01 Rotation",
     "kind": "directional",
     "mode": "paper",
-    "vol_pct": 15.9,
+    "vol_pct": 16.0,
     "erc_pct": 18.0,
     "regime_w": 1.0,
     "share_pct": 18.0
@@ -232,7 +232,7 @@
     "name": "A02 Bull",
     "kind": "directional",
     "mode": "paper",
-    "vol_pct": 18.6,
+    "vol_pct": 18.7,
     "erc_pct": 14.1,
     "regime_w": 1.0,
     "share_pct": 14.1
@@ -268,7 +268,7 @@
      0.09,
      1.0,
      0.11,
-     0.09,
+     0.08,
      0.09
     ],
     [
@@ -280,7 +280,7 @@
     ],
     [
      0.54,
-     0.09,
+     0.08,
      0.62,
      1.0,
      0.96
@@ -311,8 +311,8 @@
   "totals": {
    "paper": {
     "agents": 8,
-    "ret_pct": -2.27,
-    "dd_pct": 3.28
+    "ret_pct": -1.62,
+    "dd_pct": 2.63
    }
   },
   "kill": {
