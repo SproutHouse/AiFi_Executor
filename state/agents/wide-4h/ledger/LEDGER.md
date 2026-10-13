@@ -1,23 +1,22 @@
 # Ledger
 
-_Rendered 2026-10-12T20:06:37.342451Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-13T00:06:36.064131Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
-|---|---|---|---|---|---|---|---|---|
-| l1s | DOT | flip | A | 1.15148 | 1.17598 | 9.2% | 3x | 2026-10-09T04:06 |
-| ai | WLD | flip | A | 0.555408 | 0.50759 | 7.5% | 3x | 2026-10-10T08:06 |
-| eth-defi | ARB | flip | A | 0.191316 | 0.181366 | 13.3% | 3x | 2026-10-11T04:06 |
+None.
 
 ## Closed trades, summary
 
-- Trades 7 · win rate 0% · average -0.60 R · total -4.2 R · profit factor 0.00 · worst losing streak 7 · costs 0.02 R per trade · average -0.24 R against holding the benchmark
+- Trades 10 · win rate 10% · average -0.54 R · total -5.4 R · profit factor 0.03 · worst losing streak 7 · costs 0.02 R per trade · average -0.23 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-12T20:00 | eth-defi | ARB | flip | A | 0.191316 | 0.181276 | -0.71 | -0.37 | stop | 40 |
+| 2026-10-12T20:00 | ai | WLD | flip | A | 0.555408 | 0.507336 | -0.66 | -0.56 | stop | 60 |
+| 2026-10-12T20:00 | l1s | DOT | flip | A | 1.15148 | 1.1754 | +0.18 | +0.26 | stop | 88 |
 | 2026-10-12T16:00 | eth-defi | ENA | flip | A | 0.231296 | 0.21696 | -0.63 | -0.59 | stop | 24 |
 | 2026-10-08T16:00 | solana | JUP | flip | A | 0.357489 | 0.329535 | -0.49 | -0.11 | stop | 16 |
 | 2026-10-08T12:00 | eth-defi | CRV | flip | A | 0.382211 | 0.354369 | -0.59 | -0.14 | stop | 12 |
@@ -31,5 +30,7 @@ _Rendered 2026-10-12T20:06:37.342451Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ENA [eth-defi]: closed on stop at 0.21696 → -0.63 R · -0.59 R vs ETH
-- evaluated 28 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
+- DOT [l1s]: closed on stop at 1.1754 → +0.18 R · +0.26 R vs BTC
+- WLD [ai]: closed on stop at 0.50734 → -0.66 R · -0.56 R vs BTC
+- ARB [eth-defi]: closed on stop at 0.18128 → -0.71 R · -0.37 R vs ETH
+- evaluated 31 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open
