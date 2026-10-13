@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-13T07:06:58.427378Z",
+  "updated": "2026-10-13T08:08:08.022130Z",
   "mode": "paper",
   "positions": {
     "PUMP": {
@@ -13,76 +13,37 @@
       "book": "carry",
       "opened": "2026-09-27T02:14:13Z",
       "opened_ts": 1790475253,
-      "last_funding_ts": 1791874800026,
+      "last_funding_ts": 1791878400068,
       "legs": {
         "spot": {
           "pair": "@188",
           "sz": 33286.80774638745,
           "entry": 0.005038818826875088,
-          "mark": 0.00506025
+          "mark": 0.00510845
         },
         "perp": {
           "sz": 33295.98434668814,
           "entry": 0.005148722937745904
         }
       },
-      "orders": {},
+      "orders": {
+        "spot": {
+          "side": "sell",
+          "px": 0.00510947169,
+          "sz": 661.0,
+          "t": 1791878872
+        }
+      },
       "rules": [
         "LOGIC v1.3",
         "agent:carry-1h",
         "carry"
       ],
-      "funding_income": 1.1727343303706317,
-      "theo_funding": 1.168324200000007,
+      "funding_income": 1.1748586141719504,
+      "theo_funding": 1.1704075333333404,
       "fees": 0.27766579713667366,
       "spot_pnl": 28.88649107714164,
       "perp_pnl": -35.1834594701468
-    },
-    "XPL": {
-      "coin": "XPL",
-      "kind": "carry",
-      "side": "carry",
-      "mode": "paper",
-      "state": "exiting",
-      "target_n": 166.66666666666666,
-      "capital": 250.0,
-      "book": "carry",
-      "opened": "2026-09-27T02:14:13Z",
-      "opened_ts": 1790475253,
-      "last_funding_ts": 1791874800026,
-      "legs": {
-        "spot": {
-          "pair": "@210",
-          "sz": 0.0,
-          "entry": 0.10205877783266594,
-          "mark": 0.0829995
-        },
-        "perp": {
-          "sz": 2070.1018280870476,
-          "entry": 0.09959151096771968
-        }
-      },
-      "orders": {
-        "perp": {
-          "side": "buy",
-          "px": 0.0832003566,
-          "sz": 2070.0,
-          "t": 1791871598
-        }
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:carry-1h",
-        "carry"
-      ],
-      "funding_income": 0.7675903819226444,
-      "theo_funding": 0.781739399999998,
-      "fees": 0.27140264257034974,
-      "spot_pnl": -52.25793566404495,
-      "perp_pnl": 11.070577846572206,
-      "exit_reason": "funding below exit",
-      "exit_ts": 1791857199,
-      "stuck_since": 1791864491
     },
     "ZEC": {
       "coin": "ZEC",
@@ -95,27 +56,34 @@
       "book": "carry",
       "opened": "2026-09-27T02:14:13Z",
       "opened_ts": 1790475253,
-      "last_funding_ts": 1791874800026,
+      "last_funding_ts": 1791878400068,
       "legs": {
         "spot": {
           "pair": "@272",
           "sz": 0.13983155529219618,
           "entry": 1401.825083136456,
-          "mark": 1211.35
+          "mark": 1229.9
         },
         "perp": {
           "sz": 0.14112193516066704,
           "entry": 1524.57403884971
         }
       },
-      "orders": {},
+      "orders": {
+        "spot": {
+          "side": "sell",
+          "px": 1230.14598,
+          "sz": 0.0043,
+          "t": 1791878872
+        }
+      },
       "rules": [
         "LOGIC v1.3",
         "agent:carry-1h",
         "carry"
       ],
-      "funding_income": 0.907928267557655,
-      "theo_funding": 0.9175393999999979,
+      "funding_income": 0.9100983701155881,
+      "theo_funding": 0.9196227333333312,
       "fees": 0.2603452151907998,
       "spot_pnl": -21.02866297192207,
       "perp_pnl": 2.7002306085844747
@@ -131,13 +99,13 @@
       "book": "carry",
       "opened": "2026-10-01T21:06:38Z",
       "opened_ts": 1790888798,
-      "last_funding_ts": 1791874800026,
+      "last_funding_ts": 1791878400068,
       "legs": {
         "spot": {
           "pair": "@107",
           "sz": 1.33,
           "entry": 87.40106121875363,
-          "mark": 82.7785
+          "mark": 83.1535
         },
         "perp": {
           "sz": 1.33,
@@ -150,8 +118,8 @@
         "agent:carry-1h",
         "carry"
       ],
-      "funding_income": 0.29921553364505643,
-      "theo_funding": 0.29510914544324984,
+      "funding_income": 0.30059708777005645,
+      "theo_funding": 0.2964827055930209,
       "fees": 0.07760181975144995,
       "spot_pnl": 0.3121447669423537,
       "perp_pnl": -0.35927466185050577
