@@ -1,20 +1,20 @@
 {
  "v": 1,
- "gen": "2026-10-12T05:01:35Z",
+ "gen": "2026-10-13T12:24:52Z",
  "lab": {
-  "tried": 6071,
-  "survivors": 110,
+  "tried": 7071,
+  "survivors": 116,
   "by_family": {
    "rs_rotation": {
-    "tried": 21,
+    "tried": 23,
     "survived": 1
    },
    "tsmom": {
-    "tried": 22,
+    "tried": 23,
     "survived": 0
    },
    "donchian": {
-    "tried": 24,
+    "tried": 26,
     "survived": 0
    },
    "meanrev": {
@@ -22,11 +22,11 @@
     "survived": 0
    },
    "carry": {
-    "tried": 5838,
-    "survived": 103
+    "tried": 6827,
+    "survived": 109
    },
    "cloud_trend": {
-    "tried": 25,
+    "tried": 26,
     "survived": 0
    },
    "sma_trend": {
@@ -34,28 +34,28 @@
     "survived": 0
    },
    "bull_momentum": {
-    "tried": 102,
+    "tried": 106,
     "survived": 6
    },
    "dual_ma": {
-    "tried": 12,
+    "tried": 13,
     "survived": 0
    }
   },
-  "last_batch": "2026-10-12",
+  "last_batch": "2026-10-13",
   "gates_version": 3,
-  "vetoed": 99,
+  "vetoed": 105,
   "retired": 0,
   "funnel": {
-   "tested": 6071,
-   "passed_cheap": 6031,
-   "passed_audit": 132,
+   "tested": 7071,
+   "passed_cheap": 7027,
+   "passed_audit": 138,
    "waiting_holdout": 14,
-   "passed_holdout": 110,
-   "vetoed": 99
+   "passed_holdout": 116,
+   "vetoed": 105
   },
   "last": {
-   "date": "2026-10-12",
+   "date": "2026-10-13",
    "tried": 1000,
    "passed": 6
   },
@@ -72,7 +72,7 @@
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-10-11"
+  "as_of": "2026-10-12"
  },
  "shortlist": [
   {
@@ -86,7 +86,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 13.2,
+   "days": 14.5,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -103,15 +103,15 @@
     }
    },
    "paper": {
-    "ret_pct": 0.22,
+    "ret_pct": -1.88,
     "dd_pct": 3.74,
     "weight_match_pct": 100,
-    "weight_checks": 169,
+    "weight_checks": 182,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "13 of 42 days in the arena"
+    "14 of 42 days in the arena"
    ]
   },
   {
@@ -125,7 +125,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 9.2,
+   "days": 10.5,
    "backtest": {
     "sharpe": 1.609,
     "cagr_pct": 31.29,
@@ -142,15 +142,15 @@
     }
    },
    "paper": {
-    "ret_pct": 1.22,
+    "ret_pct": -0.55,
     "dd_pct": 3.2,
     "weight_match_pct": 100,
-    "weight_checks": 315,
+    "weight_checks": 350,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "9 of 42 days in the arena"
+    "10 of 42 days in the arena"
    ]
   },
   {
@@ -164,7 +164,7 @@
    "enabled": true,
    "live": false,
    "status": "incubating",
-   "days": 7.2,
+   "days": 8.5,
    "backtest": {
     "sharpe": 1.751,
     "cagr_pct": 32.29,
@@ -181,21 +181,21 @@
     }
    },
    "paper": {
-    "ret_pct": 0.23,
+    "ret_pct": -1.57,
     "dd_pct": 3.18,
     "weight_match_pct": 100,
-    "weight_checks": 245,
+    "weight_checks": 280,
     "p5_pct": null
    },
    "ready": false,
    "not_ready": [
-    "7 of 42 days in the arena"
+    "8 of 42 days in the arena"
    ]
   }
  ],
  "fleet": {
   "regime": "bull",
-  "window": "2023-06-01 → 2026-10-11",
+  "window": "2023-06-01 → 2026-10-12",
   "members": [
    {
     "agent": "trend-1d",
@@ -203,9 +203,9 @@
     "kind": "directional",
     "mode": "paper",
     "vol_pct": 21.6,
-    "erc_pct": 13.9,
+    "erc_pct": 14.0,
     "regime_w": 1.0,
-    "share_pct": 13.9
+    "share_pct": 14.0
    },
    {
     "agent": "carry-1h",
@@ -242,7 +242,7 @@
     "name": "A03 Bull",
     "kind": "directional",
     "mode": "paper",
-    "vol_pct": 18.6,
+    "vol_pct": 18.7,
     "erc_pct": 14.0,
     "regime_w": 1.0,
     "share_pct": 14.0
@@ -268,7 +268,7 @@
      0.09,
      1.0,
      0.11,
-     0.08,
+     0.09,
      0.09
     ],
     [
@@ -276,11 +276,11 @@
      0.11,
      1.0,
      0.62,
-     0.61
+     0.62
     ],
     [
      0.54,
-     0.08,
+     0.09,
      0.62,
      1.0,
      0.96
@@ -288,7 +288,7 @@
     [
      0.55,
      0.09,
-     0.61,
+     0.62,
      0.96,
      1.0
     ]
@@ -311,8 +311,8 @@
   "totals": {
    "paper": {
     "agents": 8,
-    "ret_pct": -1.62,
-    "dd_pct": 2.63
+    "ret_pct": -2.88,
+    "dd_pct": 3.88
    }
   },
   "kill": {
