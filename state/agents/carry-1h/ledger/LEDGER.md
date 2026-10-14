@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-14T20:08:14.141480Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-14T21:06:45.046630Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -23,10 +23,10 @@ _Rendered 2026-10-14T20:08:14.141480Z in paper mode from state/positions_paper.j
 | 2026-10-11T08:07 | carry | BTC | carry | C | 84628.3 | — | -0.01 | n/a | funding below exit | 324 |
 | 2026-10-01T20:07 | carry | HYPE | carry | C | 91.015 | — | -0.04 | n/a | funding below exit | 104 |
 
-## Refused signals: 10 recorded (state/ledger/refused.jsonl)
+## Refused signals: 11 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
 - XPL: signal carry tier C REFUSED: universe filters (spot 24h volume 0.1M below 0.5M)
 - evaluated 6 names · 0 triggers · 1 refused · 0 proposed · 0 entered · 3 open
