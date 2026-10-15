@@ -1,13 +1,13 @@
 # Ledger
 
-_Rendered 2026-10-15T04:07:45.977969Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-15T05:07:08.522057Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| carry | PUMP | carry | None | 0.00502698 | — | 0.0% | —x | 2026-09-27T02:14 |
-| carry | ZEC | carry | None | 1389.16 | — | 0.0% | —x | 2026-09-27T02:14 |
+| carry | PUMP | carry | None | 0.00499922 | — | 0.0% | —x | 2026-09-27T02:14 |
+| carry | ZEC | carry | None | 1377.88 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | HYPE | carry | None | 87.2512 | — | 0.0% | —x | 2026-10-01T21:06 |
 | carry | BTC | carry | None | 81673.2 | — | 0.0% | —x | 2026-10-15T00:08 |
 
@@ -24,10 +24,10 @@ _Rendered 2026-10-15T04:07:45.977969Z in paper mode from state/positions_paper.j
 | 2026-10-11T08:07 | carry | BTC | carry | C | 84628.3 | — | -0.01 | n/a | funding below exit | 324 |
 | 2026-10-01T20:07 | carry | HYPE | carry | C | 91.015 | — | -0.04 | n/a | funding below exit | 104 |
 
-## Refused signals: 18 recorded (state/ledger/refused.jsonl)
+## Refused signals: 19 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 8 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 7 min after the bar close
 - XPL: signal carry tier C REFUSED: universe filters (spot 24h volume 0.1M below 0.5M)
 - evaluated 6 names · 0 triggers · 1 refused · 0 proposed · 0 entered · 4 open
