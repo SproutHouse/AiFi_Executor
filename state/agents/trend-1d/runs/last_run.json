@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-14T02:06:40Z",
+  "t": "2026-10-15T00:08:00Z",
   "agent": "trend-1d",
   "tf": "1d",
   "mode": "paper",
-  "hours": "auto",
+  "hours": "approval",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -15,7 +15,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 4.503382403442486,
+    "drawdown_pct": 5.155796099192538,
     "halt": false,
     "peak": 1012.864731247214
   },
@@ -29,8 +29,8 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 127 min after the bar close",
-    "BTC: target 38% of pot, holding 36% → hold",
+    "BTC weekly Bullish · daily Bullish · data 8 min after the bar close",
+    "BTC: target 38% of pot, holding 35% → hold",
     "ETH: target 0% of pot, holding 0% → none",
     "evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open"
   ],
@@ -43,13 +43,13 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 83134.0,
+      "close": 81650.0,
       "trigger": null,
-      "why": "close 83134 above its 50-day average 81108; volatility 40% → weight 0.76",
+      "why": "close 81650 above its 50-day average 81171; volatility 40% → weight 0.76",
       "vol_m": null,
-      "funding_pct": 9.0174564,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 83351.0
+      "mark": 81752.0
     },
     {
       "coin": "ETH",
@@ -59,15 +59,15 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 2496.9,
+      "close": 2420.4,
       "trigger": null,
-      "why": "close 2496.9 at or below its 50-day average 2556.5",
+      "why": "close 2420.4 at or below its 50-day average 2556.1",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 5.343337200000001,
       "days": 1500,
-      "mark": 2507.8
+      "mark": 2424.1
     }
   ],
-  "equity": 967.2479964478231,
-  "hours_local": "22:06 EDT"
+  "equity": 960.5476582016655,
+  "hours_local": "20:08 EDT"
 }
