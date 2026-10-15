@@ -1,5 +1,96 @@
 {
-  "updated": "2026-10-15T16:06:39.987657Z",
+  "updated": "2026-10-15T20:06:41.376576Z",
   "mode": "paper",
-  "positions": {}
+  "positions": {
+    "CRV": {
+      "coin": "CRV",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 0.361330575,
+      "stop": 0.3187479312824014,
+      "initial_stop": 0.3187479312824014,
+      "notional": 78.89197203686331,
+      "sz": 218.3373827051954,
+      "risk_amt": 9.470849052392273,
+      "leverage": 3,
+      "notional_pct_equity": 8.32997882243047,
+      "entry_fee": 0.03550138741658849,
+      "funding_paid": 0.0,
+      "opened": "2026-10-15T20:06:03Z",
+      "opened_ts": 1792094763,
+      "last_bar_t": 1792080000,
+      "last_funding_ts": 1792094763,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:wide-4h",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:eth-defi"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "eth-defi",
+      "benchmark": "ETH",
+      "bench_entry": 2453.6,
+      "mark": 0.36115,
+      "upnl_pct": -0.04997501249374148
+    },
+    "NEAR": {
+      "coin": "NEAR",
+      "side": "long",
+      "kind": "flip",
+      "tier": "A",
+      "mode": "paper",
+      "entry": 5.3880927,
+      "stop": 4.437447579844843,
+      "initial_stop": 4.437447579844843,
+      "notional": 53.06178406534809,
+      "sz": 9.847971632958004,
+      "risk_amt": 9.470849052392273,
+      "leverage": 2,
+      "notional_pct_equity": 5.602642780157608,
+      "entry_fee": 0.02387780282940664,
+      "funding_paid": 0.0,
+      "opened": "2026-10-15T20:06:03Z",
+      "opened_ts": 1792094763,
+      "last_bar_t": 1792080000,
+      "last_funding_ts": 1792094763,
+      "context": {
+        "btc_weekly": "Bullish",
+        "pair_weekly": "Bullish",
+        "pair_daily": "Bullish",
+        "h4_range": "Overextended",
+        "funding_annual_pct": 10.950000000000001,
+        "hours_mode": "approval"
+      },
+      "rules": [
+        "LOGIC v1.3",
+        "agent:wide-4h",
+        "trigger:flip",
+        "tier:A",
+        "stop:4h-line",
+        "long-only",
+        "book:l1s"
+      ],
+      "stop_cloid": null,
+      "entry_cloid": null,
+      "book": "l1s",
+      "benchmark": "BTC",
+      "bench_entry": 82343.0,
+      "mark": 5.3854,
+      "upnl_pct": -0.04997501249375258
+    }
+  }
 }
