@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-16T00:06:38.512548Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-16T04:06:38.234721Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -33,6 +33,4 @@ _Rendered 2026-10-16T00:06:38.512548Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- NEAR: stop trailed to 4.5291
-- ARB: signal flip tier A REFUSED: book open-risk cap (book eth-defi: 2.00% after entry, cap 2.0%)
-- evaluated 29 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 2 open
+- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
