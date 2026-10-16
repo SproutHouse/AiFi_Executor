@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-16T04:06:38.234721Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-16T08:06:39.682533Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -8,6 +8,7 @@ _Rendered 2026-10-16T04:06:38.234721Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|
 | eth-defi | CRV | flip | A | 0.361331 | 0.318748 | 8.3% | 3x | 2026-10-15T20:06 |
 | l1s | NEAR | flip | A | 5.38809 | 4.52914 | 5.6% | 2x | 2026-10-15T20:06 |
+| ai | TAO | flip | A | 288.494 | 262.624 | 10.9% | 3x | 2026-10-16T08:06 |
 
 ## Closed trades, summary
 
@@ -28,9 +29,11 @@ _Rendered 2026-10-16T04:06:38.234721Z in paper mode from state/positions_paper.j
 | 2026-10-07T00:00 | bitcoin | BTC | flip | A | 85544.8 | 84447.9 | -0.46 | +0.03 | stop | 116 |
 | 2026-10-02T16:00 | eth-defi | ETH | flip | A | 2741.87 | 2650.75 | -0.82 | -0.20 | stop | 8 |
 
-## Refused signals: 112 recorded (state/ledger/refused.jsonl)
+## Refused signals: 113 recorded (state/ledger/refused.jsonl)
 
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 29 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 2 open
+- ZRO: signal flip tier A REFUSED: book open-risk cap (book eth-defi: 2.00% after entry, cap 2.0%)
+- TAO: ENTERED TAO long [ai] · flip tier A · stop 262.62 (9.2% away) · size 10.9% of pot at 3x · risk 1.00% of pot
+- evaluated 29 names · 2 triggers · 1 refused · 0 proposed · 1 entered · 3 open
