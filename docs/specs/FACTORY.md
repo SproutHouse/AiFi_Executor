@@ -50,33 +50,50 @@ The Phase 0 gate now fails if the largest gap exceeds 1% of equity or the return
   - its return falls below the backtest's 5th percentile for the same length of time.
 
   A retired agent's state and ledger stay in the repo.
-- **Limits:** at most 10 arena agents at a time.
+- **Limits:** at most 25 arena agents at a time (gates v2; 10 before). An arena bot is enrolled only after the
+  auditor's explicit review (no timer since 2026-10-16).
 
 ## Shortlist and going live (Phase 5)
 
 The dashboard's **Agents** view has a **Shortlist** sheet. It shows every arena bot's evidence packet: backtest,
 the locked unseen year, returns by market regime, and paper results against the backtest. It also gives a
-**Ready** verdict with the reasons a bot is not ready yet. Ready means all of these:
-- at least the minimum time in the arena;
-- behaving as tested;
-- engine weights matching the backtest on at least 80% of checks;
-- paper drawdown within the backtest's worst.
+**Ready** verdict with the reasons a bot is not ready yet. Since 2026-10-16 (gates v4) Ready means both halves:
+
+1. **Execution verified** (can be judged in weeks): the harness replayed from the bot's first paper day holds the same
+   coins and targets; paper and replay returns differ by at most 1 point, with daily tracking well inside the bot's
+   own daily moves; at least 95% of due days have a fresh, non-failed run; at least 10 orders and 15 invested days;
+   at least the minimum time in the arena (42 days; 21 for carry); paper drawdown within the backtest's worst.
+2. **Edge evidence** (takes months): on the record the search never optimised (the locked year plus paper), the bot's
+   Newey-West alpha t-stat against both its own coins held equally and Bitcoin held must reach 2.0 ("strong";
+   1.0-2.0 is "moderate", below 1.0 "weak"). The sheet says how many more months that should take at the current
+   pace.
+
+Every bot is also shown against the market: the bot, Bitcoin bought and held, and Bitcoin at the bot's own risk
+(Bitcoin scaled to the bot's volatility, the rest in cash at 4%/yr), over the development period, the locked year
+and paper. The deflated-Sharpe "real, not luck" figure is recomputed every night with the family's current trial
+count (it was frozen at trial time before 2026-10-16: arena-01 read 99.7% while today's count gives 50%).
 
 Ready is evidence. The only switch is the **go-live** workflow, run by the owner. It:
+- refuses a bot the lab has not marked Ready, unless the owner types the explicit override phrase;
 - asks for the agent, the pot, and the typed confirmation `LIVE <agent>`;
 - refuses GitHub's US-hosted runners unless the owner explicitly allows them;
 - refuses carry and builder-market bots until their live order paths are validated;
 - flips that one agent to live and starts a **paper twin** beside it (`<agent>-twin`, same rules and pot). The gap between the two is the real cost of execution.
 
-`BACK <agent>` returns the agent to paper. Before going live, the owner:
+`BACK <agent>` returns the agent to paper; it refuses while the bot holds live positions (flatten it first with the
+control workflow). Before going live, the owner:
 1. creates the agent's own Hyperliquid wallet and funds it;
 2. approves an API wallet on it (which can trade but never withdraw);
-3. adds the secrets `HL_AGENT_KEY_<ID>` and `HL_ACCOUNT_ADDRESS_<ID>`. The workflows already carry slots for `arena-01` to `arena-10`.
+3. puts the keys `HL_AGENT_KEY_<ID>` and `HL_ACCOUNT_ADDRESS_<ID>` where the cycles run: today the alwaysdata server's
+   `~/.aifi-host/env` (then re-run `install.sh` for the exchange SDK); GitHub secret slots (`arena-01` to `arena-10`)
+   only matter when `config/host.json` says `github`.
 
 If a secret is missing, the engine keeps running paper and says so.
 
 A live bot that stops matching its backtest is **halted** by the lab: no new entries, exits still run. It is
-never switched off; the owner decides what happens next.
+never switched off; the owner decides what happens next. A live bot is judged only on its live record since it went
+live (its paper history and pot size are kept apart); its drawdown and return against the backtest's bands are
+reported, not used to halt it.
 
 ## The fleet (Phase 6)
 

@@ -1,14 +1,17 @@
 """carry.py — delta-neutral funding carry (docs/specs/CARRY.md): short the perp and hold the same size in spot,
 collect the hourly funding. Pure functions; cycle.py does the I/O.
 
-A carry position is two legs kept equal in size:
-  pos = {coin, kind:"carry", state:"entering"|"open"|"exiting", target_n (notional per leg, in pot currency),
-         legs:{spot:{pair, sz, entry}, perp:{sz, entry}}        sz >= 0; the perp leg is SHORT
+A carry position is two legs kept equal in COINS (a coin-equal short perp and long spot is delta-neutral; equal dollars
+is not, and re-trading a constant dollar amount on every price move was most of the paper bot's early losses):
+  pos = {coin, kind:"carry", state:"entering"|"open"|"exiting", target_n (notional per leg at entry, in pot currency),
+         capital (pot capital the pair uses: target_n × (1 + 1/perp_leverage)), target_sz (coins per leg),
+         legs:{spot:{pair, szd, sz, entry, mark}, perp:{sz, entry}}  sz >= 0; the perp leg is SHORT
          orders:{spot:{side, px, sz, t}, perp:{side, px, sz, t}}   resting maker orders (paper) or their cloids (live)
-         funding_income, theo_funding, fees, spot_pnl, perp_pnl, opened_ts, last_funding_ts, stuck_since}
-Maker (post-only) orders only. The one exception is the SAFETY OVERRIDE: when the legs have been out of balance by
-more than the band for longer than `max_unhedged_hours`, the lagging leg is completed with a taker order. An unhedged
-leg is directional risk, and the spec's promise is delta-neutral; paying a taker fee is the smaller cost.
+         funding_income, theo_funding, fees, spot_pnl, perp_pnl, opened_ts, last_funding_ts, stuck_since, resized}
+Execution (cycle.carry_trade): maker (post-only) orders by default; when one leg has filled and the other has not for
+`max_unhedged_hours`, the lagging leg completes with a taker order (the SAFETY OVERRIDE): an unhedged leg is directional
+risk, and the spec's promise is delta-neutral. execution "taker" trades both legs together at once instead. The pair is
+re-sized (both legs) only when its notional drifts more than `resize_band` from target_n.
 """
 
 H = 24 * 365
@@ -30,13 +33,18 @@ def decide(apr, holding, cfg):
     return "exit" if apr < cfg["exit_apr"] else "hold"
 
 
-def target_notional(equity, n_active, cfg):
+def target_notional(equity, n_active, cfg, free=None, cost=0.0):
     """Notional per leg for one asset: capital per asset = min(per-asset cap, 100% / n_active) of the pot; capital per
-    unit of notional = 1 (spot) + 1/perp_leverage (perp margin)."""
+    unit of notional = 1 (spot) + 1/perp_leverage (perp margin). With `free` (equity minus what the open pairs already
+    use) the pair also fits in the free capital together with its own entry cost (`cost` per unit of notional: fees and
+    slippage on both legs): sizing every pair from the whole pot once let the book commit 1.37× the pot."""
     if equity <= 0 or n_active <= 0:
         return 0.0
-    cap_frac = min(cfg["per_asset_cap"], 1.0 / n_active)
-    return equity * cap_frac / (1 + 1 / cfg["perp_leverage"])
+    k = 1 + 1 / cfg["perp_leverage"]
+    n = equity * min(cfg["per_asset_cap"], 1.0 / n_active) / k
+    if free is not None:
+        n = min(n, max(0.0, free) / (k + cost))
+    return n
 
 
 def maker_prices(spot_mid, perp_mid, cfg, side_spot, side_perp):
@@ -79,11 +87,11 @@ def apply_fill(pos, leg, side, px, sz, fee_pct):
 
 
 def imbalance(pos, spot_px, perp_px):
-    """Relative gap between the two legs' notionals, as a fraction of the target notional."""
-    s = pos["legs"]["spot"]["sz"] * spot_px
-    p = pos["legs"]["perp"]["sz"] * perp_px
-    t = pos.get("target_n") or max(s, p) or 1.0
-    return abs(s - p) / t
+    """Gap between the two legs in COINS (the hedge that matters; the spot-perp basis is not an imbalance), valued at
+    the perp price, as a fraction of the target notional."""
+    gap = abs(pos["legs"]["spot"]["sz"] - pos["legs"]["perp"]["sz"]) * perp_px
+    t = pos.get("target_n") or max(pos["legs"]["spot"]["sz"] * spot_px, pos["legs"]["perp"]["sz"] * perp_px) or 1.0
+    return gap / t
 
 
 def accrue(pos, rows, perp_px, rule_in):

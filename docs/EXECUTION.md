@@ -2,21 +2,25 @@
 
 ## Schedule
 
-GitHub Actions cron `5 0,4,8,12,16,20 * * *` (UTC): five minutes after each 4-hour close.
+Since 2026-09-30 the cycles run on the alwaysdata server in Paris (`config/host.json` = `alwaysdata`): `tick.sh cycle`
+at :05 every hour runs `scripts/run_agents.py`, which runs each agent whose trigger bar just closed: 1-hour agents
+every hour, 4-hour agents after the 00/04/08/12/16/20 UTC closes, daily agents in the runs after 00:00 UTC that fall
+inside their late-run window. GitHub's `cycle` workflow stands by (`host.json` = `github` makes it the runner again;
+its scheduler has been dropping many runs, so it is a weak failover).
 
-| UTC close | Toronto, summer (EDT) | Toronto, winter (EST) | Mode |
-|---|---|---|---|
-| 00:00 | 20:00 | 19:00 | approval |
-| 04:00 | 00:00 | 23:00 | auto (tier A) |
-| 08:00 | 04:00 | 03:00 | auto (tier A) |
-| 12:00 | 08:00 | 07:00 | auto (tier A) |
-| 16:00 | 12:00 | 11:00 | approval |
-| 20:00 | 16:00 | 15:00 | approval |
+| UTC 4-hour close | Toronto, summer (EDT) | Toronto, winter (EST) |
+|---|---|---|
+| 00:00 | 20:00 | 19:00 |
+| 04:00 | 00:00 | 23:00 |
+| 08:00 | 04:00 | 03:00 |
+| 12:00 | 08:00 | 07:00 |
+| 16:00 | 12:00 | 11:00 |
+| 20:00 | 16:00 | 15:00 |
 
-Where the jobs run is chosen by the repository variable `RUNNER_LABEL`: unset, GitHub's own US runners;
-`self-hosted`, your own server in Europe (see OPERATIONS.md). GitHub's cron can start late. If a run begins more than 45 minutes after the bar close, entries for that bar
-are skipped and recorded; exits and trailing still run. Stops are unaffected because they sit on the
-exchange.
+Tier A executes at every hour (no human approval since 2026-09-24); tier B is recorded, not traded. If a run begins
+later than the agent's late-run window (`data.late_run_minutes`: 35 for the 1-hour agent, 45 for 4-hour agents, 50
+for carry, 180 for daily agents), entries for that bar are skipped and recorded; exits and trailing still run. Live
+stops are unaffected because they sit on the exchange.
 
 ## Order of work in a cycle, `src/executor/cycle.py`
 
@@ -52,9 +56,13 @@ the same position twice.
 | Entry exception | followed by a read of the account: a long that exists is recorded and protected | a timeout is not assumed to mean "no fill" |
 | Rounding | size to `szDecimals`; price to 5 significant figures and at most 6 − szDecimals decimals | Hyperliquid's rules |
 
-Every order carries a client order id (a random 128-bit hex), so a retried request cannot place a
-duplicate. Nothing here has been run against a funded account yet; stage one of going live proves it
-with a minimum-size order (see OPERATIONS.md).
+Every order carries a client order id (a random 128-bit hex). A retry gets a fresh id, so the id alone does not
+prevent a duplicate; instead, after a request that raised, `protect()` looks the stop up by its client id and adopts
+it if it rests, and entries re-read the account. A close whose fill is smaller than the position keeps the remainder
+open with a stop sized to it (placed before the old stop is cancelled) and pages; a target resize that times out
+re-reads the account and re-places the stop at the true size. Sizes round down to the exchange step exactly (no
+float error). Nothing here has been run against a funded account yet; stage one of going live proves it with a
+minimum-size order (see OPERATIONS.md).
 
 ## Reconciliation, live only
 
@@ -68,16 +76,18 @@ The exchange is the truth; the ledger is derived. Each cycle:
 
 ## Data checks before any entry
 
-- Freshness: the last completed 4-hour bar closed within the last 45 minutes.
+- Freshness: the agent's last completed trigger bar closed within its late-run window (`data.late_run_minutes`).
 - Sanity band: Hyperliquid mark within 2% of Binance's last price when a Binance pair exists.
 - Universe filters on live volume, open interest, funding and max leverage.
 
 ## Paper engine, `src/executor/paper.py`
 
-Same position records as live. Entry at mark × 1.0005 with a 0.045% fee. Funding accrued from the coin's
-actual hourly rate at each cycle. Stop checked on every completed 4-hour bar since the last check: the first
-bar whose low touches the stop fills at min(open, stop) × 0.9995, so a gap through the stop is charged in
-full. Regime exits fill at mark × 0.9995. The pot starts at `pot_usd_paper` and lives in `state/paper.json`.
+Same position records as live. Entry at mark × 1.0005 with a 0.045% fee. Funding: the coin's current hourly rate at
+each cycle times the hours since the last cycle (an approximation; the actual hourly rates can differ, by −27% on one
+trend-1d position). Stop checked on every completed bar of the agent's trigger timeframe since the last check (daily
+agents: daily bars): the first bar whose low touches the stop fills at min(open, stop) × 0.9995, so a gap through the
+stop is charged in full. On wide-range days a live stop (triggered on the mark price, worst price 0.97 × stop) may
+fill partly or not at all; paper books the full fill. Regime exits fill at mark × 0.9995. The pot starts at `pot_usd_paper` and lives in `state/paper.json`.
 
 ## Target-weight mode (`"strategy": "target"`, the Trend agent)
 
@@ -101,9 +111,13 @@ as before (`tests/test_families.py` proves the two agree to 9 decimals on every 
 
 ## Carry mode (`"strategy": "carry"`, the Carry agent)
 
-Short perp plus long spot of the same size, collecting hourly funding (docs/specs/CARRY.md). Each hourly cycle: read the
-last 24 hours of funding per coin; enter at ≥ 10%/yr, exit below 0%; resolve resting maker orders against the bars that
-opened since they were placed; accrue funding on the short leg; keep one maker order per leg toward the goal (target size,
-or zero while exiting); complete a lagging leg with a taker order only after 3 hours out of balance (alerted). Entries pass
-halt, throttle, reconciliation, equity, spot-liquidity and spot-perp basis checks. The dashboard's position cards skip
+Short perp plus long spot of the same number of coins, collecting hourly funding (docs/specs/CARRY.md). Each hourly cycle:
+read the last 24 hours of funding per coin; enter at ≥ 10%/yr, exit below 0%; accrue funding on the short leg. Since
+2026-10-16 carry-1h trades both legs together with taker orders in the same cycle (`execution: "taker"`), so the legs
+never sit apart; the older maker mode (one resting order per leg, a lagging leg completed after `max_unhedged_hours`)
+remains available. A pair is re-sized, both legs together, only when its notional drifts more than 25% from target
+(`resize_band`). New pairs are sized from free capital: total committed capital (1.5 × notional) never exceeds equity;
+a coin that qualifies when the pot is full is refused as "gross exposure cap". Entries pass halt, throttle,
+reconciliation, equity, spot-liquidity and spot-perp basis checks. `control → flatten` writes HALT first, then closes
+both legs of every pair. The dashboard's position cards skip
 carry positions until the Phase 6 carry view; their value is in the pot figure and their closes are in the ledger.

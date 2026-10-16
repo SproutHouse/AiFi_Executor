@@ -85,7 +85,8 @@ class Guard(unittest.TestCase):
 class GoLive(unittest.TestCase):
     def test_flips_one_agent_and_adds_a_twin(self):
         home = sandbox()
-        r = run(home, "scripts/go_live.py", "trend-1d", "--pot", "250")
+        # trend-1d is a legacy agent the lab never marks Ready: only the owner's explicit override takes it live
+        r = run(home, "scripts/go_live.py", "trend-1d", "--pot", "250", "--override", "LIVE WITHOUT READY trend-1d")
         self.assertEqual(r.returncode, 0, r.stderr + r.stdout)
         s = json.loads((home / "agents" / "trend-1d" / "settings.json").read_text())
         t = json.loads((home / "agents" / "trend-1d-twin" / "settings.json").read_text())
@@ -107,7 +108,7 @@ class GoLive(unittest.TestCase):
         r = run(home, "scripts/go_live.py", "carry-1h", "--pot", "250")
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("testnet", r.stderr + r.stdout)
-        run(home, "scripts/go_live.py", "trend-1d", "--pot", "100")
+        run(home, "scripts/go_live.py", "trend-1d", "--pot", "100", "--override", "LIVE WITHOUT READY trend-1d")
         r = run(home, "scripts/go_live.py", "trend-1d-twin", "--pot", "100")
         self.assertNotEqual(r.returncode, 0)
 

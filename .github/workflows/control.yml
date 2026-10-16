@@ -20,8 +20,10 @@ on:
         default: "manual"
 permissions:
   contents: write
+# Its own group, one per agent: in the shared "executor" group a newer cycle run could cancel a control run that was
+# waiting (GitHub keeps one pending run per group), and a flatten or halt must never be dropped that way.
 concurrency:
-  group: executor
+  group: executor-control-${{ inputs.agent }}
   cancel-in-progress: false
 jobs:
   control:

@@ -123,6 +123,23 @@ class Cycle:
         self.summary.append(line)
         C.log("  " + line)
 
+    def trade_alert(self, title, text):
+        """A trade done as planned is nothing to act on (the owner's rule: the phone sounds only when there is something
+        to do). Paper trades are logged, never pushed; live ones arrive silently (low priority) so real money is visible."""
+        if self.mode == "live":
+            C.notify(title, text, "low")
+        else:
+            C.log(f"  (paper, not pushed) {title}: {text}")
+
+    def step_alert(self, title, coin, e):
+        """One coin's step failed. Live: high, every time (real money; its resident stop still holds). Paper: a bug to fix
+        but nothing at risk, so silent and once a day per coin and kind of fault, not every cycle."""
+        text = f"{coin}: {type(e).__name__}: {str(e)[:200]}"
+        if self.mode == "live":
+            C.notify(title, text, "high")
+        else:
+            C.alert_once(f"step:{title}:{coin}:{type(e).__name__}", text, "low", title, every_hours=24)
+
     def persist(self):
         """Write-through: the positions file and the paper pot after every change."""
         if self.dry:
@@ -148,6 +165,13 @@ class Cycle:
             self.pot = PA.pot(self.s) if not self.dry else (C.load_json(PA.POT) or {"cash": float(self.s["pot_usd_paper"]), "start": float(self.s["pot_usd_paper"])})
             self.equity, self.unreal = PA.equity(self.pot, self.positions, self.marks)
             self.cash = self.pot["cash"]
+            left = L.positions("live")
+            if left:
+                # a live book this paper cycle never manages: set back to paper without a flatten, or live requested but a
+                # key is missing. Its positions sit on the exchange with nothing but their resident stops.
+                C.alert_once("live-left:" + ",".join(sorted(left)), f"{', '.join(sorted(left))} still open in the LIVE ledger while this agent "
+                             "runs paper: only their resident stops protect them. Restore live mode (or its keys) and flatten, or close them "
+                             "on the exchange.", "urgent", "Executor: live positions unmanaged", every_hours=4)
         else:
             self.ex, self.info, self.addr = LV.clients()
             self.equity, self.exch_pos, _ = LV.account(self.addr)
@@ -169,11 +193,13 @@ class Cycle:
             L.append_trade(rec)
         rel = f" · {rec['rel_R']:+.2f} R vs {pos.get('benchmark')}" if rec.get("rel_R") is not None else ""
         self.say(f"{coin} [{pos.get('book')}]: closed on {reason} at {px:.5g} → {rec['R']:+.2f} R{rel}")
-        C.notify("Executor: closed", f"{coin} ({pos.get('book')}) on {reason}: {rec['R']:+.2f} R{rel} after {rec['hours']:.0f}h")
+        self.trade_alert("Executor: closed", f"{coin} ({pos.get('book')}) on {reason}: {rec['R']:+.2f} R{rel} after {rec['hours']:.0f}h")
         self.maybe_sweep(pos, rec, ts)
         return rec
 
     def close_position(self, coin, pos, px, reason, ts):
+        if pos.get("kind") == "carry":                 # two legs, no single size: its own path (flatten reaches here)
+            return self.close_carry(coin, pos, reason)
         if self.mode == "live":
             # close FIRST; the resident stop stays on the exchange until the close is confirmed
             try:
@@ -181,9 +207,13 @@ class Cycle:
                 avg, second = LV.fill_from_response(resp)
             except Exception as e:  # noqa: BLE001
                 avg, second = None, str(e)[:160]
+            if avg is not None:
+                rest = self.left_after_close(coin, pos, float(second))
+                if rest > 0:                           # a reduce-only IOC can fill only part: never record that as a full close
+                    second, avg = self.keep_remainder(coin, pos, avg, float(second), rest), None
             if avg is None:
                 self.say(f"{coin}: close NOT filled ({second}); position and its resident stop kept, retry next cycle")
-                C.notify("Executor: close failed", f"{coin} {reason}: {second}")
+                C.notify("Executor: close failed", f"{coin} {reason}: {second}", "urgent")
                 return None
             px = avg
             fee = pos["sz"] * px * self.s["fee_taker_pct"] / 100
@@ -195,6 +225,41 @@ class Cycle:
         else:
             fee = PA.exit_fee(pos, px, self.s)
         return self._record_close(coin, pos, px, reason, ts, fee)
+
+    def exchange_long(self, coin):
+        """What the exchange holds in this coin: ("long", entryPx, size) | ("flat", None, 0.0) | ("unknown", None, why)."""
+        try:
+            _value, exch, _ = LV.account(self.addr)
+        except Exception as e:  # noqa: BLE001
+            return "unknown", None, f"recovery read failed ({str(e)[:80]})"
+        e = exch.get(coin)
+        if e and e.get("szi", 0) > 0:
+            return "long", e["entryPx"], abs(e["szi"])
+        return "flat", None, 0.0
+
+    def left_after_close(self, coin, pos, filled):
+        """Size still open after a close that filled `filled`. The ledger says size − filled; when the account can be read,
+        the smaller of that and what the exchange holds (it may have closed part already). Under one size step is none."""
+        szd = int((self.ctxs.get(coin) or {}).get("szDecimals", 3))
+        rest = max(0.0, pos["sz"] - filled)
+        state, _px, held = self.exchange_long(coin)
+        if state != "unknown":
+            rest = min(rest, held)
+        return rest if H.round_sz(rest, szd) > 0 else 0.0
+
+    def keep_remainder(self, coin, pos, avg, filled, rest):
+        """A close that filled only part (market_close is a reduce-only IOC at mid ∓ 5%): the filled part is realised into the
+        position (counted when it finally closes, like a target trim), the rest stays open with a resident stop sized to
+        it, and the close is retried next cycle. Returns the detail for the summary and the urgent alert."""
+        pos["realized"] = pos.get("realized", 0.0) + (avg - pos["entry"]) * filled - avg * filled * self.s["fee_taker_pct"] / 100
+        pos["sz"], pos["notional"] = rest, rest * pos["entry"]
+        self.persist()                                    # the smaller size exists on the exchange: record it first
+        try:
+            self.replace_stop(coin, pos, pos["stop"])     # the new stop first, the old one cancelled only once it rests
+            kept = "a resident stop re-sized to it"
+        except Exception as e:  # noqa: BLE001
+            kept = f"its old resident stop (re-sizing failed: {type(e).__name__}; reduce-only, so it still covers it)"
+        return f"only {filled:.6g} of {filled + rest:.6g} filled; the remaining {rest:.6g} stays open with {kept}"
 
     def maybe_sweep(self, pos, rec, ts):
         """Book policy: a realised gain is earmarked for the book's benchmark while that benchmark's weekly is bullish."""
@@ -232,7 +297,7 @@ class Cycle:
             except Exception as e:  # noqa: BLE001 — one position's failure must not stop the others
                 self.say(f"{coin}: exit management failed ({type(e).__name__}: {str(e)[:100]}); position kept"
                          + (", resident stop still on the exchange" if self.mode == "live" else ""))
-                C.notify("Executor: exit check failed", f"{coin}: {type(e).__name__}: {str(e)[:200]}")
+                self.step_alert("Executor: exit check failed", coin, e)
         self.persist()   # funding accrual and paper stop-check cursors
 
     def manage_exit(self, coin, pos):
@@ -272,25 +337,40 @@ class Cycle:
                 self.persist()
             self.say(f"{coin}: stop trailed to {new_stop:.5g}")
 
-    def replace_stop(self, coin, pos, new_stop):
-        """Place the new resident stop, confirm the exchange accepted it, persist, then cancel the old one."""
+    def replace_stop(self, coin, pos, new_stop, sz=None, cloid=None):
+        """Place the new resident stop, confirm the exchange accepted it, persist, then cancel the old one.
+        sz: the size the stop covers (default the position's); cloid: the client id to use (default a new one)."""
         row = self.ctxs.get(coin, {})
         szd = int(row.get("szDecimals", 3))
-        cl = LV.new_cloid()
+        cl = cloid or LV.new_cloid()
         stop_px = H.round_px(new_stop, szd)
         worst = H.round_px(new_stop * 0.97, szd)
-        resp = LV.place_stop(self.ex, coin, H.round_sz(pos["sz"], szd), stop_px, worst, cl)
+        resp = LV.place_stop(self.ex, coin, H.round_sz(pos["sz"] if sz is None else sz, szd), stop_px, worst, cl)
         ok, detail = LV.order_ok(resp)
         if not ok:
             raise RuntimeError(f"stop order rejected: {detail}")
+        self._adopt_stop(coin, pos, stop_px, cl)
+
+    def _adopt_stop(self, coin, pos, stop_px, cl):
         old = pos.get("stop_cloid")
         pos["stop"], pos["stop_cloid"] = stop_px, LV.raw(cl)
         self.persist()
-        if old:
+        if old and old != LV.raw(cl):
             try:
                 LV.cancel(self.ex, coin, LV.cloid_from(old))
             except Exception as e:  # noqa: BLE001
                 self.say(f"{coin}: old stop cancel failed ({str(e)[:80]}); two stops rest, the second is rejected as reduce-only when it triggers")
+
+    def stop_landed(self, coin, pos, stop, cl):
+        """After a stop request that raised (a timeout, a dropped connection): the order may rest on the exchange although
+        its answer was lost. Look it up by its client id; if it rests, adopt it instead of placing a second one."""
+        if self.info is None:                       # no live client (paper, tests): there is no book to look in
+            return False
+        held = LV.resting_cloids(self.addr)
+        if not held or LV.raw(cl).lower() not in held:
+            return False
+        self._adopt_stop(coin, pos, H.round_px(stop, int((self.ctxs.get(coin) or {}).get("szDecimals", 3))), cl)
+        return True
 
     # ----------------------------------------------------- reconciliation --
     def reconcile(self):
@@ -301,7 +381,7 @@ class Cycle:
         if not r["ok"]:
             self.rec_flags = {"reconcile_mismatch": True, "reconcile_detail": "; ".join(r["problems"])}
             self.say("RECONCILIATION MISMATCH: " + "; ".join(r["problems"]))
-            C.notify("Executor: reconciliation mismatch, entries halted", "; ".join(r["problems"])[:900])
+            C.notify("Executor: reconciliation mismatch, entries halted", "; ".join(r["problems"])[:900], "urgent")
 
     def exit_price_from_fills(self, coin, pos):
         try:
@@ -318,32 +398,63 @@ class Cycle:
     def recover_entry(self, coin, err):
         """After an exception during an entry: the request may have reached the exchange. Look before
         assuming nothing happened. Returns (avg_px, size) when a long exists, else (None, detail)."""
-        try:
-            _value, exch, _ = LV.account(self.addr)
-        except Exception as e:  # noqa: BLE001
-            return None, f"{err}; recovery read failed ({str(e)[:80]})"
-        e = exch.get(coin)
-        if e and e.get("szi", 0) > 0:
-            return e["entryPx"], abs(e["szi"])
-        return None, err
+        state, px, sz = self.exchange_long(coin)
+        if state == "long":
+            return px, sz
+        return None, err if state == "flat" else f"{err}; {sz}"
+
+    def resize_recover(self, coin, pos, err, mark, adding, cover):
+        """After an exception during a live resize the order may have reached the exchange. Read the account, as the
+        entry path does: when the size moved the way the order meant, return (price, size moved) so the caller records
+        it and re-places the stop at the TRUE size (price estimated at the mark; the exchange's fills hold the exact
+        one). (None, detail) otherwise. Unreadable account: the stop is re-placed to cover `cover`, the largest size the
+        order could have produced (reduce-only, so a stop larger than the position never opens anything), the ledger is
+        left as it is, and reconcile checks the size next cycle."""
+        szd = int((self.ctxs.get(coin) or {}).get("szDecimals", 3))
+        step = 10 ** -szd
+        state, _px, held = self.exchange_long(coin)
+        if state == "unknown":
+            note = "account unreadable; ledger unchanged, reconcile checks the size next cycle"
+            if adding and cover > pos["sz"] + step / 2:
+                try:
+                    self.replace_stop(coin, pos, pos["stop"], sz=cover)
+                    note += f"; the stop now covers {cover:.6g}"
+                except Exception as e:  # noqa: BLE001
+                    note += f"; the stop could not be re-sized ({type(e).__name__})"
+            C.notify("Executor: resize outcome unknown", f"{coin}: {err}; {note}", "urgent")
+            return None, f"{err}; {note}"
+        moved = held - pos["sz"]
+        if abs(moved) < step / 2:
+            return None, f"{err}; the exchange shows no change"
+        if state == "flat" or (moved > 0) != adding:
+            C.notify("Executor: resize outcome unclear", f"{coin}: {err}; the exchange holds {held:.6g}, the ledger {pos['sz']:.6g}; left for reconcile", "urgent")
+            return None, f"{err}; the exchange holds {held:.6g}, left for reconcile"
+        C.notify("Executor: resize recovered", f"{coin}: {err}; the exchange shows {abs(moved):.6g} {'added' if adding else 'cut'}; recorded, stop re-placed at the true size", "urgent")
+        return mark, abs(moved)
 
     def protect(self, coin, pos, stop):
-        """Place the resident stop for a fresh fill; one retry, then close rather than hold unprotected."""
+        """Place the resident stop for a fresh fill; one retry, then close rather than hold unprotected. A request that
+        raised may still have reached the exchange: before retrying, look the first stop up by its client id and adopt it,
+        so a retry never leaves two stops (each attempt has its own id; reusing one would make the exchange reject the
+        retry of a stop that did land, and the position would then be closed for nothing)."""
         last = ""
         for _attempt in range(2):
+            cl = LV.new_cloid()
             try:
-                self.replace_stop(coin, pos, stop)
+                self.replace_stop(coin, pos, stop, cloid=cl)
                 return True
             except Exception as e:  # noqa: BLE001
                 last = f"{type(e).__name__}: {str(e)[:100]}"
+                if not str(e).startswith("stop order rejected") and self.stop_landed(coin, pos, stop, cl):
+                    return True
                 time.sleep(2)
         self.say(f"{coin}: could not place the resident stop ({last}); closing the position rather than holding it unprotected")
-        C.notify("Executor: stop placement failed, closing", f"{coin}: {last}")
+        C.notify("Executor: stop placement failed, closing", f"{coin}: {last}", "urgent")
         rec = self.close_position(coin, pos, self.marks.get(coin) or pos["entry"], "no stop possible", self.now)
         if rec is None and not self.dry:
             HALT.write_text(f"{coin} open without a resident stop and the close failed {C.iso()}")
             self.halt, self.halt_reason = True, "unprotected position"
-            C.notify("Executor: HALT", f"{coin} is open without a stop and could not be closed; intervene now")
+            C.notify("Executor: HALT", f"{coin} is open without a stop and could not be closed; intervene now", "urgent")
         return False
 
     def execute_entry(self, cand, sizing, mark, ctx):
@@ -383,7 +494,7 @@ class Cycle:
             if not self.protect(coin, pos, cand["stop"]):
                 return None
         self.say(f"{coin}: ENTERED {describe(cand, sizing)}")
-        C.notify("Executor: entered", describe(cand, sizing))
+        self.trade_alert("Executor: entered", describe(cand, sizing))
         return pos
 
     def find_entries(self):
@@ -478,14 +589,15 @@ class Cycle:
             doc = P.create(cand, sizing, checks, exp, why_wait, mark, self.mode)
             self.counts["proposed"] += 1
             self.say(f"{coin}: PROPOSED {doc['id']} ({why_wait}), expires {doc['expires']}")
-            C.notify("Executor: approval needed", f"{describe(cand, sizing)} · id {doc['id']} · expires {doc['expires'][11:16]} UTC")
+            C.notify("Executor: approval needed", f"{describe(cand, sizing)} · id {doc['id']} · expires {doc['expires'][11:16]} UTC", "high")
 
     # -------------------------------------------------------------- run ---
     def run(self):
         C.log(f"cycle {C.iso(self.now)} · mode {self.mode} · hours {self.hours_mode} ({self.local.strftime('%H:%M %Z')}) · dry {self.dry}")
         if self.mode_note:
             self.say(self.mode_note)
-            C.notify("Executor: running paper instead of live", self.mode_note)
+            # actionable (a key or the SDK is missing) but standing: once a day, not every cycle
+            C.alert_once("fallback:" + self.mode_note, self.mode_note, "high", "Executor: running paper instead of live", every_hours=24)
         if self.halt:
             self.say(f"HALT set: {self.halt_reason} (exits still managed, no entries)")
         try:
@@ -515,7 +627,10 @@ class Cycle:
         except Exception as e:  # noqa: BLE001
             self.failed = True
             self.say(f"CYCLE ABORTED: {type(e).__name__}: {str(e)[:160]}")
-            C.notify("Executor: cycle aborted", f"{type(e).__name__}: {str(e)[:200]}")
+            # live: exits were not managed this cycle (resident stops still hold), urgent but not every hour for the same
+            # fault; paper: a bug to fix, high, once a day per kind of fault
+            C.alert_once(f"aborted:{self.mode}:{type(e).__name__}", f"{type(e).__name__}: {str(e)[:200]}",
+                         "urgent" if self.mode == "live" else "high", "Executor: cycle aborted", every_hours=4 if self.mode == "live" else 24)
         finally:
             if not getattr(self, "_finished", False):
                 self.finish()
@@ -546,7 +661,8 @@ class Cycle:
         if self.btc and self.s.get("carry", {}).get("crisis_unwind") and self.regime_crisis():
             dec = {c: (("exit" if c in self.positions else "none"), a) for c, (d, a) in dec.items()}
         n_active = sum(1 for c, (d, a) in dec.items() if d in ("enter", "hold")) or 1
-        for coin in cfg["basket"]:
+        # pairs already held first (an exit frees its capital before a new pair is sized), then new entries
+        for coin in sorted(cfg["basket"], key=lambda c: dec[c][0] == "enter"):
             try:
                 self.carry_step(coin, dec[coin][0], dec[coin][1], pairs.get(coin), mids, fund.get(coin) or [], n_active, cfg)
             except Exception as e:  # noqa: BLE001
@@ -561,6 +677,20 @@ class Cycle:
             return MR.now(d) == "crisis"
         except Exception:  # noqa: BLE001 — no reading is not a crisis
             return False
+
+    def carry_committed(self, cfg):
+        """Pot capital the open carry pairs use: per pair, its notional per leg × (1 spot + 1/leverage perp margin)."""
+        lev = cfg["perp_leverage"]
+        return sum(p.get("capital") or p.get("target_n", 0.0) * (1 + 1 / lev) for p in self.positions.values() if p.get("kind") == "carry")
+
+    def carry_capital(self, n, committed, cfg, step_n=0.0):
+        """The pot can commit each dollar once: a new pair takes only FREE capital (equity minus what the open pairs use),
+        and never a pair below the exchange minimum or below one size step of both legs (step_n, in pot currency: such a
+        pair would round to zero coins and sit 'entering' forever, holding its capital). Kept out of carry_checks, whose
+        list the dashboard mirrors."""
+        eq, lo = self.equity or 0.0, max(float(self.s.get("min_notional_usd", 10)), step_n)
+        after = (committed + max(n, lo) * (1 + 1 / cfg["perp_leverage"])) / eq if eq > 0 else 99.0
+        return {"check": "gross exposure cap", "ok": n >= lo and after <= 1 + 1e-9, "detail": f"{after:.2f}x after entry, cap 1.00x"}
 
     def carry_checks(self, coin, pair, spot_mid, perp_mid, cfg):
         checks = []
@@ -577,9 +707,12 @@ class Cycle:
 
     def carry_step(self, coin, decision, apr, pair, mids, fund_rows, n_active, cfg):
         perp_mid = self.marks.get(coin)
-        spot_mid = mids.get(pair["pair"]) if pair else None
         pos = self.positions.get(coin)
-        fees = cfg["fees"]
+        held = (pos or {}).get("legs", {}).get("spot", {}).get("pair")
+        if pos and pair and held and held != pair["pair"]:
+            # the most liquid spot pair changed since entry: keep pricing and trading the pair this position holds
+            pair = dict(pair, pair=held, szd=pos["legs"]["spot"].get("szd", pair["szd"]))
+        spot_mid = mids.get(pair["pair"]) if pair else None
         self.counts["evaluated"] += 1
         self.readings.append({"coin": coin, "book": "carry", "weekly": None, "daily": None, "h4": None, "range": None, "line": None,
                               "close": None, "trigger": None, "why": f"funding {apr * 100:.1f}%/yr (24h mean)" if apr is not None else "no funding reading",
@@ -592,17 +725,18 @@ class Cycle:
             raise RuntimeError("live carry is not enabled")
         if pos:
             pos["legs"]["spot"]["mark"] = spot_mid
-            bars = {"spot": H.candles(pair["pair"], "1h", 3), "perp": H.candles(coin, "1h", 3)}
-            for leg in ("spot", "perp"):
-                o = (pos.get("orders") or {}).get(leg)
-                if o:
-                    px = CA.paper_fill(o, bars[leg])
-                    if px is not None:
-                        CA.apply_fill(pos, leg, o["side"], px, o["sz"], fees[leg + "_maker"])
-                        pos["orders"].pop(leg)
+            self.carry_resolve(coin, pos, pair, cfg)
             CA.accrue(pos, fund_rows, perp_mid, rule_in=pos["state"] != "exiting")
         if decision == "enter" and not pos:
+            committed = self.carry_committed(cfg)
+            fees = cfg["fees"]
+            cost = (fees["spot_taker"] + fees["perp_taker"] + 2 * self.s["paper_slippage_pct"] / 100 if cfg.get("execution") == "taker"
+                    else fees["spot_maker"] + fees["perp_maker"])          # what entering both legs costs, per unit of notional
+            n = CA.target_notional(self.equity or 0.0, n_active, cfg, (self.equity or 0.0) - committed, cost) * self.fleet_mult
             ok, checks = self.carry_checks(coin, pair, spot_mid, perp_mid, cfg)
+            step_n = 10 ** -min(int(pair["szd"]), int((self.ctxs.get(coin) or {}).get("szDecimals", 3))) * perp_mid if pair else 0.0
+            checks.append(self.carry_capital(n, committed, cfg, step_n))
+            ok = ok and checks[-1]["ok"]
             cand = {"kind": "carry", "tier": "C"}
             if not ok:
                 failed = [c for c in checks if not c["ok"]]
@@ -611,92 +745,220 @@ class Cycle:
                     L.record_refusal({"coin": coin, "kind": "carry", "tier": "C"}, failed, self.now, "pre-trade")
                 self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} REFUSED: " + "; ".join(f"{c['check']} ({c['detail']})" for c in failed))
                 return
-            n = CA.target_notional(self.equity or 0.0, n_active, cfg) * self.fleet_mult
             pos = {"coin": coin, "kind": "carry", "side": "carry", "mode": self.mode, "state": "entering", "target_n": n,
                    "capital": n * (1 + 1 / cfg["perp_leverage"]), "book": "carry", "opened": C.iso(self.now), "opened_ts": self.now,
-                   "last_funding_ts": int(self.now * 1000), "legs": {"spot": {"pair": pair["pair"], "sz": 0.0, "entry": 0.0, "mark": spot_mid},
-                   "perp": {"sz": 0.0, "entry": 0.0}}, "orders": {}, "rules": [f"LOGIC v{self.s.get('version', '?')}", f"agent:{C.AGENT}", "carry"]}
+                   "last_funding_ts": int(self.now * 1000), "legs": {"spot": {"pair": pair["pair"], "szd": pair["szd"], "sz": 0.0, "entry": 0.0,
+                   "mark": spot_mid}, "perp": {"sz": 0.0, "entry": 0.0}}, "orders": {},
+                   "rules": [f"LOGIC v{self.s.get('version', '?')}", f"agent:{C.AGENT}", "carry"]}
             self.positions[coin] = pos
             self.counts["entered"] += 1
-            self.say(f"{coin}: carry ENTERING · funding {apr * 100:.1f}%/yr · {n / (self.equity or 1) * 100:.0f}% of pot per leg, maker orders resting")
+            self.say(f"{coin}: carry ENTERING · funding {apr * 100:.1f}%/yr · {n / (self.equity or 1) * 100:.0f}% of pot per leg, "
+                     f"{'both legs at market' if (self.s.get('carry') or {}).get('execution') == 'taker' else 'maker orders resting'}")
         if not pos:
             return
         if decision == "exit" and pos["state"] != "exiting":
             pos["state"], pos["orders"], pos["exit_reason"], pos["exit_ts"] = "exiting", {}, "funding below exit", self.now
             self.say(f"{coin}: carry EXITING · funding {apr * 100 if apr is not None else 0:.1f}%/yr below exit")
-        self.carry_orders(coin, pos, spot_mid, perp_mid, pair, cfg)
+        self.carry_trade(coin, pos, spot_mid, perp_mid, pair, cfg)
         if pos["state"] == "exiting" and pos["legs"]["spot"]["sz"] <= 1e-12 and pos["legs"]["perp"]["sz"] <= 1e-12:
-            pos["closed_ts"] = self.now
-            rec = CA.closed_record(pos, C.iso(self.now))
-            self.positions.pop(coin, None)
-            if self.mode == "paper" and self.pot is not None:
-                self.pot["cash"] += rec["pnl"]
-            self.persist()
-            if not self.dry:
-                L.append_trade(rec)
-            cap = f"{rec['capture'] * 100:.0f}%" if rec["capture"] is not None else "n/a"
-            self.say(f"{coin}: carry CLOSED · {rec['pnl'] / (self.equity or 1) * 100:+.2f}% of pot · capture {cap}")
+            self.carry_close_out(coin, pos)
 
-    def carry_orders(self, coin, pos, spot_mid, perp_mid, pair, cfg):
-        """Keep one resting maker order per leg toward its goal: the target size while entering or open, zero while exiting.
-        Re-quote only when an order is older than requote_hours. Safety override after max_unhedged_hours out of balance."""
-        szd_perp = int((self.ctxs.get(coin) or {}).get("szDecimals", 3))
-        goal_spot = 0.0 if pos["state"] == "exiting" else pos["target_n"] / spot_mid
-        goal_perp = 0.0 if pos["state"] == "exiting" else pos["target_n"] / perp_mid
-        band = cfg["delta_band"]
-        szds = {"spot": pair["szd"], "perp": szd_perp}
-        for leg, goal, mid, szd in (("spot", goal_spot, spot_mid, pair["szd"]), ("perp", goal_perp, perp_mid, szd_perp)):
-            have = pos["legs"][leg]["sz"]
-            if pos["state"] == "exiting" and have > 0 and H.round_sz(have, szd) <= 0:
-                # dust no order can sell (below the size precision): written off at the mark so the close can finish
-                CA.apply_fill(pos, leg, "sell" if leg == "spot" else "buy", mid, have, 0.0)
-                pos["orders"].pop(leg, None)
-                self.say(f"{coin}: carry dust · {leg} remainder below the exchange's size step, written off at the mark")
-                continue
-            gap = goal - have
-            if abs(gap) * mid <= band * max(pos["target_n"], 1e-9) and not (pos["state"] == "exiting" and have > 0):
-                pos["orders"].pop(leg, None)
-                continue
-            if leg == "spot":
-                side = "buy" if gap > 0 else "sell"
-            else:
-                side = "sell" if gap > 0 else "buy"          # the perp leg is short: adding = sell
-            o = pos["orders"].get(leg)
-            if o and o["side"] == side and (self.now - o["t"]) < cfg["requote_hours"] * 3600:
-                continue
-            off = cfg["maker_offset_bps"] / 10000
-            px = mid * (1 - off) if side == "buy" else mid * (1 + off)
-            sz = H.round_sz(abs(gap), szd)
-            if sz <= 0:
-                continue
-            pos["orders"][leg] = {"side": side, "px": px, "sz": sz, "t": self.now}
-        imb = CA.imbalance(pos, spot_mid, perp_mid)
-        if pos["state"] == "entering" and imb <= band and pos["legs"]["spot"]["sz"] > 0:
-            pos["state"] = "open"
-        if imb > band and (pos["legs"]["spot"]["sz"] > 0 or pos["legs"]["perp"]["sz"] > 0):
-            pos.setdefault("stuck_since", self.now)
-            if self.now - pos["stuck_since"] >= cfg["max_unhedged_hours"] * 3600:
-                s_n, p_n = pos["legs"]["spot"]["sz"] * spot_mid, pos["legs"]["perp"]["sz"] * perp_mid
-                slip = self.s["paper_slippage_pct"] / 100
-                if pos["state"] == "exiting":     # closing: trim the LEADING leg toward 0, never re-buy the one already closed
-                    if s_n > p_n:
-                        leg, side, px, sz = "spot", "sell", spot_mid * (1 - slip), H.round_sz((s_n - p_n) / spot_mid, szds["spot"])
-                    else:
-                        leg, side, px, sz = "perp", "buy", perp_mid * (1 + slip), H.round_sz((p_n - s_n) / perp_mid, szds["perp"])
-                    what = "leading leg trimmed"
-                elif s_n > p_n:   # perp short lags: sell perp now
-                    leg, side, px, sz = "perp", "sell", perp_mid * (1 - slip), H.round_sz((s_n - p_n) / perp_mid, szds["perp"])
-                    what = "lagging leg completed"
-                else:             # spot lags: buy spot now
-                    leg, side, px, sz = "spot", "buy", spot_mid * (1 + slip), H.round_sz((p_n - s_n) / spot_mid, szds["spot"])
-                    what = "lagging leg completed"
-                if sz > 0:        # sized on the exchange's step, like the maker path, so the override leaves no dust
-                    CA.apply_fill(pos, leg, side, px, sz, cfg["fees"][leg + "_taker"])
-                pos.pop("stuck_since", None)
-                self.say(f"{coin}: carry safety override · legs out of balance for {cfg['max_unhedged_hours']}h, {what} at market")
-                C.notify("Executor: carry safety override", f"{coin}: legs were out of balance for {cfg['max_unhedged_hours']}h; {what} with a taker order")
-        else:
+    def carry_close_out(self, coin, pos):
+        """Both legs flat: the pair's trade line, its result into the paper pot, the summary line. Returns the record."""
+        pos["closed_ts"] = self.now
+        rec = CA.closed_record(pos, C.iso(self.now))
+        self.positions.pop(coin, None)
+        if self.mode == "paper" and self.pot is not None:
+            self.pot["cash"] += rec["pnl"]
+        self.persist()
+        if not self.dry:
+            L.append_trade(rec)
+        cap = f"{rec['capture'] * 100:.0f}%" if rec["capture"] is not None else "n/a"
+        self.say(f"{coin}: carry CLOSED · {rec['pnl'] / (self.equity or 1) * 100:+.2f}% of pot · capture {cap}")
+        return rec
+
+    def carry_resolve(self, coin, pos, pair, cfg):
+        """Paper: each resting maker order against the hourly bars that opened after it was placed; it fills only if price
+        traded through it. Bars are read only for legs that have an order."""
+        orders = pos.get("orders") or {}
+        for leg in [x for x in ("spot", "perp") if x in orders]:
+            o = orders[leg]
+            px = CA.paper_fill(o, H.candles(pair["pair"] if leg == "spot" else coin, "1h", 3))
+            if px is not None:
+                CA.apply_fill(pos, leg, o["side"], px, o["sz"], cfg["fees"][leg + "_maker"])
+                orders.pop(leg)
+
+    def carry_goal(self, coin, pos, perp_mid, szd, cfg):
+        """The pair's size in COINS, the same for both legs: a coin-equal short perp and long spot is delta-neutral (the
+        perp tracks the spot), equal dollars is not. Fixed at entry, so a price move no longer re-trades both legs (the
+        old constant-dollar goal did on every 2% move, and that churn was most of the paper losses). Re-set only when the
+        pair's notional has drifted more than resize_band from its target, both legs together."""
+        legs = pos["legs"]
+        fresh = H.round_sz(pos["target_n"] / perp_mid, szd) if perp_mid > 0 else 0.0
+        if pos.get("target_sz") is None:
+            # a pair opened before coin-equal legs: an open one keeps its perp leg (the hedge) as its size, so nothing trades
+            pos["target_sz"] = legs["perp"]["sz"] if (pos["state"] == "open" and legs["perp"]["sz"] > 0) else fresh
+        goal = pos["target_sz"]
+        if pos["state"] == "open" and goal > 0 and pos.get("target_n"):
+            drift = goal * perp_mid / pos["target_n"] - 1
+            if abs(drift) > cfg.get("resize_band", 0.25) and fresh > 0 and abs(fresh - goal) >= 10 ** -szd:
+                C.log(f"  {coin}: carry pair re-sized {goal:.6g} → {fresh:.6g} coins per leg (notional {drift * 100:+.0f}% from target)")
+                pos["resized"] = {"t": C.iso(self.now), "from": goal, "to": fresh}
+                pos["target_sz"] = goal = fresh
+        return goal
+
+    def carry_trade(self, coin, pos, spot_mid, perp_mid, pair, cfg, at_market=False):
+        """Move both legs toward the pair's goal (carry_goal; zero while exiting), keeping them equal in coins.
+
+        execution "maker" (the spec's default): one resting post-only order per leg, both placed and re-quoted together;
+        every cycle each order is re-sized to what is still needed, or cancelled when nothing is (a stale order once bought
+        back 4,932 PUMP perp after the hedge was already done). When one leg has filled and the other not, the lagging
+        leg keeps its order for max_unhedged_hours, then completes at market (the safety override; taker fee).
+        execution "taker", or at_market (a flatten): both legs trade now with immediate-or-cancel orders, so the pair is
+        never one-legged. Both legs sit on the coarser of the two size steps, and the out-of-balance band is at least one
+        such step: a gap no order can close never triggers anything."""
+        legs, orders = pos["legs"], pos.setdefault("orders", {})
+        szds = {"spot": int(pair["szd"]), "perp": int((self.ctxs.get(coin) or {}).get("szDecimals", 3))}
+        szd = min(szds.values())
+        mids = {"spot": spot_mid, "perp": perp_mid}
+        exiting = pos["state"] == "exiting"
+        goal = 0.0 if exiting else self.carry_goal(coin, pos, perp_mid, szd, cfg)
+        # out of balance: legs apart by more than the band, never less than one coarse step (a gap no order can close)
+        band = max(cfg["delta_band"] * (max(legs["spot"]["sz"], legs["perp"]["sz"]) if exiting else goal), 10 ** -szd)
+        # a leg trades when it is off the goal by more than the band, or than its own step (the finer leg can close a
+        # gap the coarser one cannot)
+        todo = {leg: goal - legs[leg]["sz"] for leg in ("spot", "perp")
+                if (legs[leg]["sz"] > 0 if exiting else abs(goal - legs[leg]["sz"]) > max(cfg["delta_band"] * goal, 10 ** -szds[leg]))}
+        if at_market or cfg.get("execution") == "taker":
+            orders.clear()                                   # live carry would cancel them on the exchange here (Phase 4)
+            for leg, n in todo.items():
+                self.carry_fill(coin, pos, leg, n, mids[leg], szds[leg], cfg)
             pos.pop("stuck_since", None)
+        else:
+            self.carry_maker(coin, pos, todo, goal, band, mids, szds, cfg)
+        for leg in ("spot", "perp"):
+            have = legs[leg]["sz"]
+            if exiting and have > 0 and H.round_sz(have, szds[leg]) <= 0:
+                # dust no order can sell (below the size precision): written off at the mark so the close can finish
+                CA.apply_fill(pos, leg, "sell" if leg == "spot" else "buy", mids[leg], have, 0.0)
+                orders.pop(leg, None)
+                self.say(f"{coin}: carry dust · {leg} remainder below the exchange's size step, written off at the mark")
+        if pos["state"] == "entering" and goal > 0 and legs["spot"]["sz"] > 0 and all(abs(goal - legs[x]["sz"]) <= band for x in legs):
+            pos["state"] = "open"
+
+    carry_orders = carry_trade          # the name this step had before coin-equal legs (review scripts call it)
+
+    def carry_maker(self, coin, pos, todo, goal, band, mids, szds, cfg):
+        legs, orders = pos["legs"], pos["orders"]
+        diff = legs["spot"]["sz"] - legs["perp"]["sz"]             # coins the spot leg holds beyond the perp short
+        slack = 600                                                 # cycles start a few seconds early or late
+        if abs(diff) > band:
+            # one leg filled and the other not: the lagging leg is the one farther from the goal; the leading leg waits
+            lag = "perp" if abs(goal - legs["perp"]["sz"]) > abs(goal - legs["spot"]["sz"]) else "spot"
+            lead = "spot" if lag == "perp" else "perp"
+            move = legs[lead]["sz"] - legs[lag]["sz"]               # coins the lagging leg must move to match
+            orders.pop(lead, None)
+            pos.setdefault("stuck_since", self.now)
+            if self.now - pos["stuck_since"] < cfg["max_unhedged_hours"] * 3600 - slack:
+                self.carry_quote(pos, lag, move, mids[lag], szds[lag], cfg)    # its own order keeps its last chance
+                return
+            if H.round_sz(abs(move), szds[lag]) <= 0:
+                return                                              # nothing an order can do: no trade, no alert, timer kept
+            orders.pop(lag, None)
+            self.carry_fill(coin, pos, lag, move, mids[lag], szds[lag], cfg)
+            pos.pop("stuck_since", None)
+            what = "leading leg trimmed" if pos["state"] == "exiting" else "lagging leg completed"
+            self.say(f"{coin}: carry safety override · legs out of balance for {cfg['max_unhedged_hours']}h, {what} at market")
+            if self.mode == "live":
+                C.notify("Executor: carry safety override", f"{coin}: legs were out of balance for {cfg['max_unhedged_hours']}h; {what} with a taker order", "high")
+            return
+        pos.pop("stuck_since", None)
+        if not todo:
+            orders.clear()
+            return
+        ts = [o["t"] for o in orders.values()]
+        requote = bool(ts) and self.now - min(ts) >= cfg["requote_hours"] * 3600 - slack     # both legs together
+        for leg in ("spot", "perp"):
+            if leg in todo:
+                self.carry_quote(pos, leg, todo[leg], mids[leg], szds[leg], cfg, requote)
+            else:
+                orders.pop(leg, None)
+
+    def carry_quote(self, pos, leg, n, mid, szd, cfg, requote=False):
+        """One resting maker order on `leg` for `n` coins (signed: + adds to the leg; the perp leg is short, so adding
+        sells). An order already on the right side keeps its price and time, re-sized in place when the size changed by
+        a step, so its paper fill stays honest; it is re-quoted at the mid only when `requote`. Nothing to do cancels."""
+        orders = pos["orders"]
+        side = ("buy" if n > 0 else "sell") if leg == "spot" else ("sell" if n > 0 else "buy")
+        sz = H.round_sz(abs(n), szd)
+        o = orders.get(leg)
+        if sz <= 0:
+            orders.pop(leg, None)
+        elif o and o["side"] == side and not requote:
+            if abs(o["sz"] - sz) >= 10 ** -szd / 2:
+                o["sz"] = sz
+        else:
+            off = cfg["maker_offset_bps"] / 10000
+            orders[leg] = {"side": side, "px": mid * (1 - off) if side == "buy" else mid * (1 + off), "sz": sz, "t": self.now}
+
+    def carry_fill(self, coin, pos, leg, n, mid, szd, cfg):
+        """Trade `n` coins on one leg NOW as a taker (signed: + adds to the leg). Paper: at the mid with the paper slippage
+        and the taker fee. Live (only a flatten can reach it while live carry is refused): an immediate-or-cancel order
+        capped at the entry slippage limit, or 5% when closing; what fills is recorded, the rest waits for the next
+        cycle. Returns the size filled."""
+        sz = H.round_sz(abs(n), szd)
+        if sz <= 0:
+            return 0.0
+        side = ("buy" if n > 0 else "sell") if leg == "spot" else ("sell" if n > 0 else "buy")
+        fee = cfg["fees"][leg + "_taker"]
+        if self.mode != "live":
+            slip = self.s["paper_slippage_pct"] / 100
+            CA.apply_fill(pos, leg, side, mid * (1 + slip) if side == "buy" else mid * (1 - slip), sz, fee)
+            return sz
+        closing = (leg == "spot") == (side == "sell")
+        cap = (5.0 if closing else self.s["entry_slippage_cap_pct"]) / 100
+        px = mid * (1 + cap) if side == "buy" else mid * (1 - cap)
+        px = H.round_px(px, szd) if leg == "perp" else H.round_spot_px(px, szd)
+        name = coin if leg == "perp" else pos["legs"]["spot"]["pair"]
+        try:
+            avg, got = LV.fill_from_response(LV.taker(self.ex, name, side == "buy", sz, px, LV.new_cloid(), reduce_only=(leg == "perp" and closing)))
+        except Exception as e:  # noqa: BLE001
+            avg, got = None, f"{type(e).__name__}: {str(e)[:100]}"
+        if avg is None:
+            C.notify("Executor: carry order not filled", f"{coin} {leg} {side}: {got}", "urgent")
+            return 0.0
+        CA.apply_fill(pos, leg, side, avg, float(got), fee)
+        return float(got)
+
+    def close_carry(self, coin, pos, reason):
+        """Close a carry pair NOW, both legs at market (the flatten path; close_position sends carry here). Funding is
+        accrued up to now first. Returns the trade record once both legs are flat, else None: what did not fill stays,
+        the pair is left exiting, and the next cycle carries on closing it."""
+        cfg, legs = self.s.get("carry") or {}, pos["legs"]
+        try:
+            mids, best = H.all_mids(), H.spot_pairs().get(coin) or {}
+        except Exception as e:  # noqa: BLE001
+            C.log(f"  {coin}: carry close needs the spot price ({str(e)[:80]}); left for the next cycle")
+            return None
+        name = legs["spot"].get("pair")
+        pair = {"pair": name, "szd": legs["spot"].get("szd", best.get("szd", 8) if best.get("pair") == name else 8)}
+        spot_mid, perp_mid = mids.get(name), self.marks.get(coin)
+        if not (spot_mid and perp_mid):
+            C.log(f"  {coin}: carry close has no spot or perp price; left for the next cycle")
+            return None
+        legs["spot"]["mark"] = spot_mid
+        try:
+            CA.accrue(pos, H.funding_history(coin, int(pos.get("last_funding_ts") or self.now * 1000)), perp_mid, rule_in=pos["state"] != "exiting")
+        except Exception:  # noqa: BLE001 — at most the last hour's funding is missing from the record
+            pass
+        if pos["state"] != "exiting":
+            pos["state"], pos["exit_ts"] = "exiting", self.now
+        pos["exit_reason"], pos["orders"] = reason, {}
+        self.carry_trade(coin, pos, spot_mid, perp_mid, pair, cfg, at_market=True)
+        if legs["spot"]["sz"] <= 1e-12 and legs["perp"]["sz"] <= 1e-12:
+            return self.carry_close_out(coin, pos)
+        self.persist()
+        return None
 
     # ------------------------------------------------------ target mode --
     def manage_target_stops(self):
@@ -750,7 +1012,7 @@ class Cycle:
                 self.manage_target(coin, frac, why, d, eq, band, stop_pct, cfg)
             except Exception as e:  # noqa: BLE001
                 self.say(f"{coin}: entry check failed ({type(e).__name__}: {str(e)[:100]}); skipped this cycle")
-                C.notify("Executor: target step failed", f"{coin}: {type(e).__name__}: {str(e)[:200]}")
+                self.step_alert("Executor: target step failed", coin, e)
 
     def target_plan(self, cfg):
         """{coin: (fraction of equity to hold or None, why, daily bars)}. The original Trend block (no "family") keeps
@@ -768,11 +1030,18 @@ class Cycle:
                     out[coin] = (None, f"candles unavailable ({str(e)[:60]})", [])
             return out
         fam, params, alloc, coins = F.from_target_cfg(cfg)
+        failed = {}
         for coin in coins:
             try:
                 panel[coin] = self.bars.get(coin)[0]
             except Exception as e:  # noqa: BLE001 — one coin's outage is a data gap for that coin only
-                out[coin] = (None, f"candles unavailable ({str(e)[:60]})", [])
+                failed[coin] = f"candles unavailable ({str(e)[:60]})"
+                out[coin] = (None, failed[coin], [])
+        if failed and fam in F.ROTATIONS:
+            # a rotation ranks the coins against each other: without one coin's bars the ranking of all the others would
+            # change and the engine would trade picks the recipe never made. Hold every weight this cycle instead.
+            why = f"picks held this cycle: {', '.join(sorted(failed))} has no candles, and ranking without it would change the picks"
+            return {c: (None, failed.get(c) or why, panel.get(c, [])) for c in coins}
         regime = None
         if F.needs_regime(params):
             try:
@@ -849,8 +1118,11 @@ class Cycle:
             szd = int(row.get("szDecimals", 3))
             if tgt > cur:
                 add_sz = H.round_sz((tgt - cur) / mark, szd)
-                resp = LV.entry_ioc(self.ex, coin, add_sz, H.round_px(mark * (1 + self.s["entry_slippage_cap_pct"] / 100), szd), LV.new_cloid())
-                avg, second = LV.fill_from_response(resp)
+                try:
+                    resp = LV.entry_ioc(self.ex, coin, add_sz, H.round_px(mark * (1 + self.s["entry_slippage_cap_pct"] / 100), szd), LV.new_cloid())
+                    avg, second = LV.fill_from_response(resp)
+                except Exception as e:  # noqa: BLE001 — a timeout is not "no fill": look at the exchange
+                    avg, second = self.resize_recover(coin, pos, f"{type(e).__name__}: {str(e)[:100]}", mark, True, pos["sz"] + add_sz)
                 if avg is None:
                     self.say(f"{coin}: entry not filled ({second})")
                     return
@@ -860,8 +1132,11 @@ class Cycle:
                 pos["entry_fee"] = pos.get("entry_fee", 0.0) + avg * filled * self.s["fee_taker_pct"] / 100
             else:
                 cut_sz = H.round_sz(min(pos["sz"], (cur - tgt) / mark), szd)
-                resp = LV.reduce_ioc(self.ex, coin, cut_sz, H.round_px(mark * (1 - self.s["entry_slippage_cap_pct"] / 100), szd), LV.new_cloid())
-                avg, second = LV.fill_from_response(resp)
+                try:
+                    resp = LV.reduce_ioc(self.ex, coin, cut_sz, H.round_px(mark * (1 - self.s["entry_slippage_cap_pct"] / 100), szd), LV.new_cloid())
+                    avg, second = LV.fill_from_response(resp)
+                except Exception as e:  # noqa: BLE001
+                    avg, second = self.resize_recover(coin, pos, f"{type(e).__name__}: {str(e)[:100]}", mark, False, pos["sz"])
                 if avg is None:
                     self.say(f"{coin}: close NOT filled ({second}); position and its resident stop kept, retry next cycle")
                     return
@@ -908,4 +1183,4 @@ class Cycle:
                 day_ago = [p for p in pts if p["ts"] <= self.now - 86400]
                 chg = f"{(self.equity / day_ago[-1]['equity'] - 1) * 100:+.2f}% on the day" if self.equity and day_ago and day_ago[-1]["equity"] else "no prior day"
                 C.notify("Executor: daily", f"{self.mode} · BTC weekly {R.label(self.btc.get('weekly_dir'))} · {len(self.positions)} open · "
-                                            f"{len(P.open_proposals())} awaiting approval · pot {chg} · drawdown {self.thr['drawdown_pct']:.1f}%")
+                                            f"{len(P.open_proposals())} awaiting approval · pot {chg} · drawdown {self.thr['drawdown_pct']:.1f}%", "low")

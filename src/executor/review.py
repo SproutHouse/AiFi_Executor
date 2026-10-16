@@ -60,5 +60,5 @@ def render(mode):
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(lines) + "\n")
     head = lines[2] if st["n"] else "No closed trades yet."
-    C.notify("Executor: weekly review", head[:900])
+    C.notify("Executor: weekly review", head[:900], "low")     # a report to read, not something to act on now
     return out

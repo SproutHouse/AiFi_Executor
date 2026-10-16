@@ -20,7 +20,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: executor
+  group: executor-approve      # its own queue: in the shared "executor" group a newer cycle run could cancel a pending approval
   cancel-in-progress: false
 jobs:
   approve:

@@ -104,8 +104,15 @@ def notional_oi_usd(ctx):
 
 
 def round_sz(sz, sz_decimals):
+    """Floor a size to the exchange's step (toward zero: never more than asked). In floating point 0.29 × 100 is
+    28.999999999999996, so a bare floor turned an exact 0.29 into 0.28 (about 3% of exact sizes lost a step). A
+    tolerance of a billionth of a step (plus 1e-12 relative, for big sizes) absorbs that error; it can never round a
+    real shortfall up, since nothing tradable is that close below a step."""
+    import math
     q = 10 ** int(sz_decimals)
-    return int(sz * q) / q
+    n = abs(sz) * q
+    k = math.floor(n + 1e-9 + n * 1e-12)
+    return math.copysign(k / q, sz) if k else 0.0
 
 
 def round_px(px, sz_decimals, max_decimals=6):

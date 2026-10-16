@@ -16,3 +16,4 @@ _Edited by the owner. The executor does not read this file; people do, before ch
 | Paper shakedown | several days of paper cycles before wallet work, even though the long paper period is skipped | 2026-09-23 |
 | GitHub | repository SproutHouse/AiFi_Executor created; push needs a token with the workflow scope | 2026-09-23 |
 | Hyperliquid Terms clause 1.5 | to be read and confirmed by the owner before going live | pending |
+| Where it runs (update, by Claude from the 2026-10-16 review) | cycles and orders on the alwaysdata server in Paris since 2026-09-30 (`config/host.json`); GitHub stands by. The repository is **public**, not private as the "Where it runs" row above says | 2026-10-16 |

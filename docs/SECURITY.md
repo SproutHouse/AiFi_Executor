@@ -26,9 +26,19 @@ carry percentages of the pot, never dollar amounts, because the ntfy topic is on
 
 ## Repository
 
-- Private, under the same account as AiFi but a separate repository: secrets are repository-scoped, so the
-  agent key never sits beside the desk's tokens or its auto-commit tooling.
-- Branch protection on `main`; only the owner pushes; the runner commits `state/` with its own identity.
+- **Public** (SproutHouse/AiFi_Executor), a separate repository from the desk: secrets are repository-scoped, so the
+  agent key never sits beside the desk's tokens. Being public means every bot's exact rules (`agents/*/settings.json`),
+  the lab's shortlist (`factory/factory.json`) and the docs are readable by anyone; once a bot is live its ledger would
+  be too. Making the repository private is planned before the first live bot (it needs the dashboard push moved off
+  GitHub's minutes first).
+- `main` is **not** protected today (no branch protection, no ruleset). Four identities push to it: the server
+  (`aifi-host`, `state/` only, hourly), the lab (`aifi-lab`: arena enrolments and `factory/`), the owner (`aifi`) and
+  GitHub's runner (`aifi-runner`). Whatever lands on `main` runs on the trading server within the hour (the server
+  pulls every 5 minutes), so a token that can push here can run code there. Before the first live bot: a ruleset
+  blocking force-push and deletion on `main`; a server-side allow-list of the agents that may trade live, with hard
+  size caps, read by `cycle.resolve_mode` from `~/.aifi-host/env` (a push cannot change it); separate Cloudflare tokens
+  (KV-only for the hourly jobs, Worker-edit only for deploys, behind an approval); the lab routine pushing only
+  `queue/`.
 - The one GitHub action used, `actions/checkout`, is pinned to a commit hash (v7.0.1). No third-party
   actions; Python is the runner's system interpreter. The dashboard deploy runs `wrangler` through npx by
   major version; pin it to an exact version before relying on it routinely.
@@ -37,7 +47,16 @@ carry percentages of the pot, never dollar amounts, because the ntfy topic is on
   `workflow` scope is required to push workflow files at all. Never store a token in this repository.
 - No auto-commit or sync tooling of any kind in this checkout.
 
-## The self-hosted runner
+## The trading server (alwaysdata, Paris)
+
+Since 2026-09-30 cycles and orders run on an alwaysdata server (`config/host.json` = `alwaysdata`,
+`ops/alwaysdata/tick.sh`, scheduled tasks at :05 hourly and every 5 minutes). Its secrets live in `~/.aifi-host/env`
+(chmod 600): the GitHub token `aifi-server` (Contents read/write on this repository only) and, per live agent, its
+own agent key. The Cloudflare token is not on the server. Fine-grained GitHub tokens expire (30 days by default):
+note the expiry of `aifi-server` and of the lab's `EXECUTOR_TOKEN` and renew them before they lapse; the server
+alerts once if it cannot pull or push for an hour.
+
+## The self-hosted runner (older option)
 
 When `RUNNER_LABEL` points at your own server, that server sees the secrets during a job. Keep it dedicated
 to this one purpose, inbound firewall closed except SSH with keys, unattended security updates on, the

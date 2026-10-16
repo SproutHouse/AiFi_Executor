@@ -90,6 +90,18 @@ def close_market(ex, coin, sz=None, cloid=None):
     return ex.market_close(coin, sz=sz, cloid=cloid)
 
 
+def resting_cloids(addr):
+    """Lower-case client ids of the account's open orders (trigger stops included), read from the same public info
+    endpoint reconcile uses; None when they cannot be read. Used to find out whether a request whose answer was lost
+    reached the book."""
+    if not addr:
+        return None
+    try:
+        return {str(o["cloid"]).lower() for o in H.frontend_open_orders(addr) if o.get("cloid")}
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def order_ok(resp):
     """True when the exchange accepted the order (resting or filled); (False, detail) on an error status."""
     try:

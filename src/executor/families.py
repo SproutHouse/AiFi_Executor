@@ -88,6 +88,8 @@ def realised_vol(closes, vd):
     None until there are enough bars for target.weight's own history check."""
     out = [None] * len(closes)
     for i in range(vd, len(closes)):
+        if min(closes[i - vd:i + 1]) <= 0:          # a bad (zero or negative) print: no reading, never a crash
+            continue
         rets = [closes[j] / closes[j - 1] - 1 for j in range(i - vd + 1, i + 1)]
         out[i] = math.sqrt(sum(x * x for x in rets) / len(rets) * 365)
     return out
@@ -106,7 +108,7 @@ def dir_sma_trend(bars, p):
 
 def dir_tsmom(bars, p):
     c, n = _closes(bars), p["n"]
-    return [None if i < n else _sign(c[i] / c[i - n] - 1, p.get("short")) for i in range(len(c))]
+    return [None if (i < n or c[i - n] <= 0) else _sign(c[i] / c[i - n] - 1, p.get("short")) for i in range(len(c))]
 
 
 def dir_dual_ma(bars, p):
@@ -260,7 +262,7 @@ def _rotation(panel, p, days, pos_of, raw):
         mom, up = [None] * len(days), [None] * len(days)
         for j, b in enumerate(bars):
             i = pos_of[b["t"] // DAY * DAY]
-            if j >= n and f[j] is not None:
+            if j >= n and f[j] is not None and c[j - n] > 0:          # a bad (zero) print: no reading that day
                 mom[i] = c[j] / c[j - n] - 1
                 up[i] = (c[j] > f[j]) if fn else True
         series[coin] = (mom, up)

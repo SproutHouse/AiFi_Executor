@@ -77,10 +77,20 @@ def _sd(v):
     return math.sqrt(sum((x - m) ** 2 for x in v) / (len(v) - 1))
 
 
+def _positive(c, a, b):
+    """True when every close in c[a..b] is a positive number. A zero or negative print (one bad bar) would make a ratio
+    divide by zero or a log raise; a score whose window holds one is undefined (None), and the coin simply sits out."""
+    w = c[max(0, a):b + 1]
+    return bool(w) and min(w) > 0
+
+
 def score(name, c, j, n, btc=None, t=None):
     """Score of bar j for closes c (completed daily bars, ascending). btc: {day_ts: BTC close} for "resid"; t: the
-    bars' day stamps (needed with btc). None when the window is not full or the measure is undefined."""
+    bars' day stamps (needed with btc). None when the window is not full or the measure is undefined (including a
+    window that holds a non-positive close)."""
     if j < n or j >= len(c) or n < 2:
+        return None
+    if not _positive(c, j - (2 * n if name == "multi" else n), j):
         return None
     if name == "ret":
         return c[j] / c[j - n] - 1
@@ -127,7 +137,7 @@ def score(name, c, j, n, btc=None, t=None):
         r, rb = [], []
         for m in range(j - n + 1, j + 1):
             b1, b0 = btc.get(t[m]), btc.get(t[m - 1])
-            if b1 is None or b0 is None:
+            if b1 is None or b0 is None or b1 <= 0 or b0 <= 0:
                 continue
             r.append(math.log(c[m] / c[m - 1]))
             rb.append(math.log(b1 / b0))
@@ -236,8 +246,8 @@ def _index_above(panel, days, pos_of, n):
     for bars in panel.values():
         for j in range(1, len(bars)):
             i = pos_of[bars[j]["t"] // DAY * DAY]
-            if (bars[j]["t"] - bars[j - 1]["t"]) // DAY <= 4:          # weekday markets skip weekends
-                by_day[i].append(bars[j]["c"] / bars[j - 1]["c"] - 1)
+            if (bars[j]["t"] - bars[j - 1]["t"]) // DAY <= 4 and bars[j]["c"] > 0 and bars[j - 1]["c"] > 0:
+                by_day[i].append(bars[j]["c"] / bars[j - 1]["c"] - 1)   # weekday markets skip weekends; a bad print sits out
     r = [sum(v) / len(v) if len(v) >= 3 else None for v in by_day]
     out = [None] * len(days)
     for i in range(len(days)):

@@ -8,6 +8,11 @@ Run only through the go-live workflow (workflow_dispatch), which asks the owner 
 GitHub's US-hosted runners unless the owner explicitly allows them. The twin runs the same recipe in paper with the
 same pot, so the difference between the two is the cost of real execution (fills, slippage, funding timing).
 
+Going live needs the AiFi Lab's verdict: the agent's shortlist entry in factory/factory.json must say "ready": true.
+Only an explicit owner override, --override "LIVE WITHOUT READY <agent>", skips that (legacy agents are never on the
+shortlist). Going back refuses while the agent still holds live positions: the paper engine never sees them, so they
+would stay on the exchange with nothing but their resident stops. Flatten first, then go back.
+
 What it never does: create keys, move money, or change another agent. Before this, the owner must have made the
 agent's own Hyperliquid wallet, funded it with the pot, created an API (agent) wallet on it, and added the two
 secrets HL_AGENT_KEY_<ID> and HL_ACCOUNT_ADDRESS_<ID> (docs/OPERATIONS.md). Without them the engine keeps running
@@ -24,11 +29,38 @@ def cfg_dir(aid):
     return C.ROOT / "config" if aid == "core" else C.ROOT / "agents" / aid
 
 
+def state_dir(aid):
+    return C.ROOT / "state" if aid == "core" else C.ROOT / "state" / "agents" / aid
+
+
+def live_positions(aid):
+    """The agent's open live positions as its ledger knows them ({} when none); None when the file cannot be read."""
+    p = state_dir(aid) / "positions_live.json"
+    if not p.exists():
+        return {}
+    doc = C.load_json(p)
+    return (doc.get("positions") or {}) if isinstance(doc, dict) else None
+
+
+def ready(aid):
+    """(True, "") when the lab's shortlist (factory/factory.json) marks the agent ready, else (False, why)."""
+    f = C.load_json(C.ROOT / "factory" / "factory.json")
+    if not isinstance(f, dict):
+        return False, "factory/factory.json is missing or unreadable"
+    row = next((r for r in f.get("shortlist") or [] if isinstance(r, dict) and r.get("agent") == aid), None)
+    if row is None:
+        return False, f"{aid} is not on the lab's shortlist"
+    if row.get("ready") is not True:
+        return False, f"{aid} is not Ready ({'; '.join(map(str, row.get('not_ready') or [])) or 'the lab has not marked it ready'})"
+    return True, ""
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("agent")
     ap.add_argument("--pot", type=float, help="the live wallet's starting balance in USD (the twin gets the same paper pot)")
     ap.add_argument("--back", action="store_true")
+    ap.add_argument("--override", default="", help='"LIVE WITHOUT READY <agent>" to go live although the lab has not marked it Ready')
     a = ap.parse_args(argv)
     idx = json.loads(INDEX.read_text())
     rows = {r["id"]: r for r in idx["agents"]}
@@ -41,6 +73,11 @@ def main(argv=None):
     s = json.loads(sp.read_text())
     twin = f"{a.agent}-twin"
     if a.back:
+        held = live_positions(a.agent)
+        if held is None or held:
+            what = "its live positions file cannot be read" if held is None else f"it still holds live positions ({', '.join(sorted(held))})"
+            sys.exit(f"{a.agent}: {what}. Back to paper would leave them on the exchange with only their stops: "
+                     f"flatten first (control workflow: flatten {a.agent}), then BACK")
         s["mode"] = "paper"
         sp.write_text(json.dumps(s, indent=2, ensure_ascii=False) + "\n")
         for r in idx["agents"]:
@@ -62,6 +99,14 @@ def main(argv=None):
     coins = (s.get("target") or {}).get("coins") or (s.get("carry") or {}).get("basket") or []
     if any(":" in c for c in coins):
         sys.exit("builder-market (HIP-3) coins are paper-only until their live order path is validated (docs/specs/MARKETS.md)")
+    ok, why = ready(a.agent)
+    overridden = False
+    if not ok:
+        if a.override.strip() != f"LIVE WITHOUT READY {a.agent}":
+            sys.exit(f"{why}. Live needs the lab's Ready (dashboard Shortlist). To go live anyway, set the override to exactly: "
+                     f"LIVE WITHOUT READY {a.agent}" + (f" (you typed {a.override.strip()!r})" if a.override.strip() else ""))
+        overridden = True
+        print(f"OVERRIDE: {why}; going live on the owner's explicit instruction")
     if not re.fullmatch(r"[a-z][a-z0-9-]{1,23}", twin):
         sys.exit(f"twin id {twin!r} would be too long")
     tdir = C.ROOT / "agents" / twin
@@ -78,6 +123,8 @@ def main(argv=None):
             continue
         if r["id"] == a.agent:
             r["live"] = {"since": C.iso()[:10], "pot_usd": a.pot}
+            if overridden:
+                r["live"]["without_ready"] = True       # the record keeps that the lab had not marked it Ready
         out.append(r)
         if r["id"] == a.agent:
             out.append({"id": twin, "name": (r.get("name") or a.agent) + " twin", "enabled": True, "twin_of": a.agent,

@@ -20,10 +20,17 @@ on:
         required: false
         type: boolean
         default: false
+      override:
+        description: "Leave empty. Only to go live with an agent the lab has NOT marked Ready, type exactly: LIVE WITHOUT READY <agent id>"
+        required: false
+        type: string
+        default: ""
 permissions:
   contents: write
+# Its own group: in the shared "executor" group a newer cycle run could cancel this one while it waited (GitHub keeps
+# one pending run per group). Go-live runs still queue behind each other, since they all edit agents/index.json.
 concurrency:
-  group: executor
+  group: executor-go-live
   cancel-in-progress: false
 jobs:
   switch:
@@ -50,8 +57,9 @@ jobs:
           AGENT: ${{ inputs.agent }}
           POT: ${{ inputs.pot_usd }}
           CONFIRM: ${{ inputs.confirm }}
+          OVERRIDE: ${{ inputs.override }}
         run: |
-          if [ "$CONFIRM" = "BACK $AGENT" ]; then python3 scripts/go_live.py "$AGENT" --back; else python3 scripts/go_live.py "$AGENT" --pot "$POT"; fi
+          if [ "$CONFIRM" = "BACK $AGENT" ]; then python3 scripts/go_live.py "$AGENT" --back; else python3 scripts/go_live.py "$AGENT" --pot "$POT" --override "$OVERRIDE"; fi
       - name: Commit
         env:
           AGENT: ${{ inputs.agent }}

@@ -35,3 +35,12 @@ risk_amt, gross, fees, funding, pnl, R, bench_ret, rel_R, reason, hours, rules, 
 Judge the system on R, not on the pot's currency value, and never on fewer than 30 closed trades. The
 Sunday review prints the sample size before any rate. A ledger with many refusals is a healthy ledger: the
 refusal file is what lets a later review measure whether a filter earns its keep.
+
+## Fields added 2026-10-16
+
+- Target positions: `target_sz` and `resized` (the last re-size), and live `realized` on a partial close (the remainder
+  stays open with its own stop).
+- Carry legs: `legs.spot.szd` (the spot step used; both legs sit on the coarser of the two size steps).
+- `state/**/alerts_sent.json`: which standing problems have already alerted (so a problem pages once, not hourly).
+- Damaged lines: a `.jsonl` line that cannot be decoded (a torn write) is skipped and counted, with one alert; the next
+  append starts on a fresh line, so a torn tail never swallows the following record.

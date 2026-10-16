@@ -15,6 +15,8 @@ def weight(daily, cfg):
     if len(closes) < max(n, vd + 1) + 1:
         return None, f"only {len(closes)} daily bars; need {max(n, vd + 1) + 1}"
     sma = sum(closes[-n:]) / n
+    if min(closes[-(vd + 1):]) <= 0:               # same rule as families.realised_vol: a bad print is no reading
+        return None, "a zero or negative close in the volatility window (bad print)"
     rets = [closes[i] / closes[i - 1] - 1 for i in range(len(closes) - vd, len(closes))]
     vol = math.sqrt(sum(x * x for x in rets) / len(rets) * 365)
     if closes[-1] <= sma:

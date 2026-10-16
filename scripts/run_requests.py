@@ -50,7 +50,9 @@ def main():
         doc.update({"done_at": C.iso(), "exit": code, "output": out, "secs": round(time.time() - t0, 1), "host": C.host()})
         C.write_json(DONE / f.name, doc)
         f.unlink()
-        C.notify("Executor: request " + ("done" if code == 0 else "FAILED"), f"{doc.get('action')} {doc.get('agent')} (exit {code})")
+        # the owner filed it and waits for it: done is a plain notice; a failed flatten or approval needs acting on now
+        C.notify("Executor: request " + ("done" if code == 0 else "FAILED"), f"{doc.get('action')} {doc.get('agent')} (exit {code})",
+                 "default" if code == 0 else "urgent")
         print(f"{f.name}: exit {code}")
 
 

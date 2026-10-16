@@ -36,9 +36,26 @@ Actions → **control** → Run workflow:
 |---|---|
 | `halt` | no new entries until `resume`; exits and trailing continue |
 | `resume` | clears the halt |
-| `flatten` | closes every position at market, reduce-only, and halts |
+| `flatten` | writes HALT first, then closes every position at market, reduce-only (both legs of a carry pair); exits non-zero if anything stays open |
 
-The throttle halts on its own at a 20% drawdown; `resume` clears that too, so look at the review first.
+The agent id must be one listed in `agents/index.json` (or `core`); a mistyped id is refused and nothing is written
+(before 2026-10-16 "arena-1" wrote a halt file nobody read while arena-01 kept trading).
+
+### Phone alerts
+
+One ntfy topic, four priorities (2026-10-16):
+- **Urgent (5), act now, only when money is at risk on a live bot:** a position without a stop, a close that failed or
+  filled only partly, a reconciliation mismatch, a failed flatten/approve request, a live ledger left behind on a
+  paper bot.
+- **High (4), act today:** the server could not pull or push for an hour, a bot's cycle failed two hours in a row, the
+  lab's nightly run failed, a dashboard update kept failing, a damaged state file.
+- **Low (2), silent:** recoveries, live entries and closes, daily summaries, the weekly review.
+- **Paper trades never reach the phone** (they are in the ledger and on the dashboard).
+A standing problem alerts once and once more when it clears, not every hour.
+
+The throttle halts new entries on its own while the drawdown from the peak is at or beyond its halt level (20% for
+the original bots; arena bots get a level from their backtest). `resume` does **not** clear it: it lifts by itself
+once equity recovers above the level. `resume` only clears a manual or flatten HALT.
 
 ## Going live, in order
 
@@ -52,20 +69,25 @@ The throttle halts on its own at a 20% drawdown; `resume` clears that too, so lo
    `pip install -r requirements-live.txt && python3 scripts/verify_keys.py --probe-order`. It must print the
    agent address, confirm it differs from the master, read the account, place a post-only order 30% below
    the market and cancel it.
-6. Add `HL_AGENT_KEY` and `HL_ACCOUNT_ADDRESS` as repository secrets.
+6. Put the keys where the cycles run. Today that is the alwaysdata server (`config/host.json` = `alwaysdata`): add
+   `HL_AGENT_KEY_<ID>` / `HL_ACCOUNT_ADDRESS_<ID>` to `~/.aifi-host/env`, then re-run `install.sh` so it installs the
+   exchange SDK. Only when `host.json` says `github` do they go in as repository secrets. Without keys and the SDK on
+   the host the bot keeps trading paper (and alerts), whatever `settings.json` says.
 7. `control → flatten` in paper mode so no paper positions linger, then set `"mode": "live"` in
    `config/settings.json`, commit, push.
 8. Watch the first live cycle's log: reconciliation must read `ok`. The first entries will be at the sizes
    the pot dictates; keep the pot small until 30 live trades have matched the rules.
 9. After 30 live trades with positive expectancy, consider raising the pot. Never raise the caps.
 
-### Going live with a factory bot (arena agents, Trend, Core, Wide)
+### Going live with a factory bot
 
-Use the **go-live** workflow instead of editing settings by hand (docs/specs/FACTORY.md → Shortlist and going
-live). Steps 1–5 above still apply to that agent's own wallet. Add its two secrets, `HL_AGENT_KEY_<ID>` and
-`HL_ACCOUNT_ADDRESS_<ID>`, then run go-live with the confirmation `LIVE <agent>`. A paper twin starts beside it.
-`BACK <agent>` returns it to paper. The fleet kill switch (`control → fleet-halt` / `fleet-resume`) stops new
-entries on every agent at once.
+Only arena bots the lab marks **Ready** qualify: execution verified on paper AND strong evidence of an edge over the
+market on data the search never saw (docs/specs/FACTORY.md). The **go-live** workflow refuses any other bot (the
+legacy Core, Wide and Fast have no lab evidence) unless you type the explicit override phrase it asks for. Steps 1–5
+above still apply to that agent's own wallet; put its keys where the cycles run (step 6), then run go-live with the
+confirmation `LIVE <agent>`. A paper twin starts beside it. To return a live bot to paper, **flatten it first**
+(`control → flatten <agent>`), then run `BACK <agent>`; BACK refuses while the bot still holds live positions. The fleet
+kill switch (`control → fleet-halt` / `fleet-resume`) stops new entries on every agent at once.
 
 ## Books
 
@@ -103,8 +125,10 @@ everything that places no order. Everything lives in `ops/alwaysdata/`.
 | Lab, research, runner-watch | GitHub, unchanged |
 
 **One switch, `config/host.json`.** GitHub's cycle workflow and the server both read it, so exactly one of them
-runs cycles. Set `"host": "alwaysdata"` only after the server passes its install checks; set it back to `"github"`
-to fail over.
+runs cycles. Set `"host": "alwaysdata"` only after the server passes its install checks. To fail over: first disable
+the two scheduled tasks in the alwaysdata admin panel (a server that cannot pull never sees `host.json` change and
+would keep cycling on its last copy), then set `host.json` back to `"github"`. GitHub's scheduler has been dropping
+many runs since 2026-10-12, so it is a weak standby.
 
 **Setup, once:**
 1. Create a free alwaysdata account.
