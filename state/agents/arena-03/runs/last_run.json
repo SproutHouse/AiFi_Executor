@@ -1,5 +1,5 @@
 {
-  "t": "2026-10-16T00:08:41Z",
+  "t": "2026-10-16T01:07:46Z",
   "agent": "arena-03",
   "tf": "1d",
   "mode": "paper",
@@ -17,7 +17,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 2.1347736418823877,
+    "drawdown_pct": 1.5944727918919421,
     "halt": false,
     "peak": 1007.213242164989
   },
@@ -28,12 +28,11 @@
     "triggers": 0,
     "refused": 0,
     "proposed": 0,
-    "entered": 1
+    "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 9 min after the bar close",
-    "AAVE: target 0% of pot, holding 11% → close",
-    "AAVE [arena]: closed on target weight zero at 157.28 → -0.29 R · -0.02 R vs AAVE",
+    "BTC weekly Bullish · daily Bullish · data 68 min after the bar close",
+    "AAVE: target 0% of pot, holding 0% → none",
     "ADA: target 0% of pot, holding 0% → none",
     "APT: target 0% of pot, holding 0% → none",
     "ARB: target 0% of pot, holding 0% → none",
@@ -49,8 +48,7 @@
     "HBAR: target 0% of pot, holding 0% → none",
     "HYPE: target 0% of pot, holding 0% → none",
     "ICP: target 0% of pot, holding 0% → none",
-    "INJ: target 8% of pot, holding 0% → open",
-    "INJ: ENTERED INJ long [arena] · target tier T · stop 6.8669 (20.0% away) · size 7.7% of pot at 3x · risk 1.55% of pot",
+    "INJ: target 8% of pot, holding 8% → hold",
     "JUP: target 0% of pot, holding 0% → none",
     "LDO: target 0% of pot, holding 0% → none",
     "LINK: target 0% of pot, holding 0% → none",
@@ -68,8 +66,8 @@
     "XPL: target 0% of pot, holding 0% → none",
     "XRP: target 0% of pot, holding 0% → none",
     "ZEC: target 0% of pot, holding 0% → none",
-    "ZRO: target 8% of pot, holding 8% → hold",
-    "evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 1 entered · 3 open"
+    "ZRO: target 8% of pot, holding 9% → hold",
+    "evaluated 35 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open"
   ],
   "readings": [
     {
@@ -86,7 +84,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 157.36
+      "mark": 158.15
     },
     {
       "coin": "ADA",
@@ -100,9 +98,9 @@
       "trigger": null,
       "why": "bull_momentum: weight 0.00 of equity",
       "vol_m": null,
-      "funding_pct": 4.9733148,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.22952
+      "mark": 0.23058
     },
     {
       "coin": "APT",
@@ -118,7 +116,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1458,
-      "mark": 0.8319
+      "mark": 0.8434
     },
     {
       "coin": "ARB",
@@ -134,7 +132,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1303,
-      "mark": 0.19504
+      "mark": 0.19553
     },
     {
       "coin": "AVAX",
@@ -150,7 +148,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 10.022
+      "mark": 10.0459
     },
     {
       "coin": "BNB",
@@ -164,9 +162,9 @@
       "trigger": null,
       "why": "bull_momentum: weight 0.00 of equity",
       "vol_m": null,
-      "funding_pct": 4.886328,
+      "funding_pct": 6.805030800000001,
       "days": 1500,
-      "mark": 729.37
+      "mark": 729.15
     },
     {
       "coin": "BTC",
@@ -182,7 +180,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 82292.0
+      "mark": 82281.0
     },
     {
       "coin": "CRV",
@@ -198,7 +196,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.35264
+      "mark": 0.35355
     },
     {
       "coin": "DOGE",
@@ -214,7 +212,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.081057
+      "mark": 0.081375
     },
     {
       "coin": "ENA",
@@ -230,7 +228,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 927,
-      "mark": 0.20609
+      "mark": 0.20663
     },
     {
       "coin": "ETH",
@@ -246,7 +244,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 2444.8
+      "mark": 2440.7
     },
     {
       "coin": "ETHFI",
@@ -262,7 +260,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 942,
-      "mark": 0.6755
+      "mark": 0.67352
     },
     {
       "coin": "FET",
@@ -278,7 +276,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1368,
-      "mark": 0.20669
+      "mark": 0.206824
     },
     {
       "coin": "HBAR",
@@ -294,7 +292,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 0.085358
+      "mark": 0.08566
     },
     {
       "coin": "HYPE",
@@ -308,9 +306,9 @@
       "trigger": null,
       "why": "bull_momentum: weight 0.00 of equity",
       "vol_m": null,
-      "funding_pct": 0.893958,
+      "funding_pct": 8.993541599999999,
       "days": 680,
-      "mark": 81.9
+      "mark": 82.165
     },
     {
       "coin": "ICP",
@@ -326,7 +324,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1341,
-      "mark": 3.045
+      "mark": 3.0535
     },
     {
       "coin": "INJ",
@@ -342,7 +340,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 8.5836
+      "mark": 8.624
     },
     {
       "coin": "JUP",
@@ -356,9 +354,9 @@
       "trigger": null,
       "why": "bull_momentum: weight 0.00 of equity",
       "vol_m": null,
-      "funding_pct": -17.1606648,
+      "funding_pct": -18.2455908,
       "days": 1048,
-      "mark": 0.31022
+      "mark": 0.31121
     },
     {
       "coin": "LDO",
@@ -374,7 +372,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1485,
-      "mark": 0.40195
+      "mark": 0.40313
     },
     {
       "coin": "LINK",
@@ -388,9 +386,9 @@
       "trigger": null,
       "why": "bull_momentum: weight 0.00 of equity",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 8.9110224,
       "days": 1500,
-      "mark": 12.461
+      "mark": 12.49
     },
     {
       "coin": "LTC",
@@ -406,7 +404,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 60.992
+      "mark": 61.247
     },
     {
       "coin": "NEAR",
@@ -422,7 +420,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 5.24169
+      "mark": 5.3609
     },
     {
       "coin": "ONDO",
@@ -438,7 +436,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1000,
-      "mark": 0.46967
+      "mark": 0.47113
     },
     {
       "coin": "PENDLE",
@@ -454,7 +452,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1176,
-      "mark": 2.0568
+      "mark": 2.0703
     },
     {
       "coin": "PUMP",
@@ -470,7 +468,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 463,
-      "mark": 0.004525
+      "mark": 0.004549
     },
     {
       "coin": "SOL",
@@ -484,9 +482,9 @@
       "trigger": null,
       "why": "bull_momentum: weight 0.00 of equity",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 3.7261536000000004,
       "days": 1500,
-      "mark": 105.43
+      "mark": 105.505
     },
     {
       "coin": "SUI",
@@ -502,7 +500,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1262,
-      "mark": 1.0349
+      "mark": 1.0465
     },
     {
       "coin": "TAO",
@@ -518,7 +516,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 970,
-      "mark": 278.99
+      "mark": 283.96
     },
     {
       "coin": "UNI",
@@ -534,7 +532,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 7.4352
+      "mark": 7.46933
     },
     {
       "coin": "WLD",
@@ -550,7 +548,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1180,
-      "mark": 0.50476
+      "mark": 0.50792
     },
     {
       "coin": "XLM",
@@ -564,9 +562,9 @@
       "trigger": null,
       "why": "bull_momentum: weight 0.00 of equity",
       "vol_m": null,
-      "funding_pct": -3.2643264,
+      "funding_pct": 8.890699199999998,
       "days": 1500,
-      "mark": 0.182718
+      "mark": 0.18324
     },
     {
       "coin": "XPL",
@@ -582,7 +580,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 420,
-      "mark": 0.085488
+      "mark": 0.085628
     },
     {
       "coin": "XRP",
@@ -598,7 +596,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 1.3354
+      "mark": 1.3359
     },
     {
       "coin": "ZEC",
@@ -614,7 +612,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1378,
-      "mark": 1222.8
+      "mark": 1237.0
     },
     {
       "coin": "ZRO",
@@ -630,9 +628,9 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1135,
-      "mark": 2.1012
+      "mark": 2.2057
     }
   ],
-  "equity": 985.4699267595179,
-  "hours_local": "20:08 EDT"
+  "equity": 991.1509428428183,
+  "hours_local": "21:07 EDT"
 }

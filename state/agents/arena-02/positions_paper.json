@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-16T00:08:41.066673Z",
+  "updated": "2026-10-16T01:07:46.013169Z",
   "mode": "paper",
   "positions": {
     "NEAR": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 6.191567205696403,
       "entry_fee": 0.02786205242563381,
-      "funding_paid": 0.34237966845768464,
+      "funding_paid": 0.342964404820191,
       "opened": "2026-10-04T00:08:17Z",
       "opened_ts": 1791072497,
       "last_bar_t": 1792022400,
-      "last_funding_ts": 1792109298,
+      "last_funding_ts": 1792112839,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,8 +45,8 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 4.8218,
-      "mark": 5.2441,
-      "upnl_pct": 8.703788219540742,
+      "mark": 5.35782,
+      "upnl_pct": 11.061064929810605,
       "realized": 3.2765558284421004
     },
     "ZRO": {
@@ -58,17 +58,17 @@
       "entry": 1.9719855,
       "stop": 1.5775884,
       "initial_stop": 1.5775884,
-      "notional": 85.39677457826494,
-      "sz": 43.30497084195849,
+      "notional": 67.7499068650448,
+      "sz": 34.356189163178335,
       "risk_amt": 17.07935491565299,
       "leverage": 3,
       "notional_pct_equity": 8.517209694993893,
       "entry_fee": 0.038428548560219225,
-      "funding_paid": 0.2765685096131658,
+      "funding_paid": 0.2776184748172687,
       "opened": "2026-10-05T00:08:18Z",
       "opened_ts": 1791158898,
       "last_bar_t": 1792022400,
-      "last_funding_ts": 1792109298,
+      "last_funding_ts": 1792112839,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -92,8 +92,9 @@
       "book": "arena",
       "benchmark": "ZRO",
       "bench_entry": 1.971,
-      "mark": 2.1018,
-      "upnl_pct": 6.582933799462509
+      "mark": 2.1988,
+      "upnl_pct": 11.501834065209904,
+      "realized": 2.0110251172149063
     },
     "INJ": {
       "coin": "INJ",
@@ -110,11 +111,11 @@
       "leverage": 3,
       "notional_pct_equity": 7.746167314198321,
       "entry_fee": 0.034699963566321906,
-      "funding_paid": 0.0,
+      "funding_paid": 0.0009480908255273601,
       "opened": "2026-10-16T00:08:18Z",
       "opened_ts": 1792109298,
       "last_bar_t": 1792022400,
-      "last_funding_ts": 1792109298,
+      "last_funding_ts": 1792112839,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -138,8 +139,8 @@
       "book": "arena",
       "benchmark": "INJ",
       "bench_entry": 8.5794,
-      "mark": 8.5794,
-      "upnl_pct": -0.04997501249374148
+      "mark": 8.6198,
+      "upnl_pct": 0.42068505808172674
     }
   }
 }
