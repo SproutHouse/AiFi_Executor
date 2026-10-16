@@ -40,8 +40,9 @@
     const b = rowBundle(A);
     if (b) { const st = status(b, now); st.b = b; return st; }
     // A v1 row (no sb): its own booleans, a fleet halt, or the muted "Checked …" line. Never "On schedule" (§3.9).
-    const fh = E().fleet && E().fleet.halt, t = num(A.last_t);
+    const fh = E().fleet && E().fleet.halt, t = num(A.last_t), pf = isObj(A.push_fail) ? A.push_fail : null;
     const mk = (lvl, k, w, sentence, wide) => ({ lvl, k, word: w, dot: DOTC[lvl], age: '', wide, sentence, items: [{ lvl, k, word: w, sentence, head: true }], K: { phase: 'none' }, v1: true });
+    if (pf) return mk('bad', 'behind', 'Page behind', '<b>Page behind</b> · its dashboard update is failing' + (num(pf.since) != null ? ' since ' + esc(fmt.when(pf.since)) : '') + '. The bot itself is running.', '· dashboard update failing');
     if (A.failed === true) return mk('bad', 'failed', 'Failed', '<b>Failed</b> · its last check stopped early.', '· its last check stopped early');
     if (A.halt === true || fh) return mk('bad', 'halt', 'Halted', '<b>Halted</b>' + (fh ? ' · fleet halt' : '') + '. No new buys; exits still run.', '· no new buys');
     const st = mk('mute', 'v1', t != null ? 'Checked ' + fmt.ago(t) : 'Waiting for its first check', '', '· schedule after its next check');
@@ -49,11 +50,10 @@
   }
   function statuses(now) { const m = {}; for (const A of rows()) m[A.id] = safe(() => rowStatus(A, now), 'Status ' + A.id) || { lvl: 'mute', word: '—', items: [], K: {} }; return m; }
   function fxNow() { return F.fx; }
-  function arenaOf(A) {
+  function arenaOf(A) {                                             // the day counts live (core arenaDays), not from the lab's snapshot
     const X = fxNow(); if (!A.arena) return null;
-    const s = X && arr(X.shortlist).find(x => x && x.agent === A.id);
-    const m = s && /(\d+)\s+of\s+(\d+)\s+days/.exec(arr(s.not_ready).join(' ')), days = s && num(s.days);
-    return { s, day: days != null ? Math.max(0, Math.floor(days)) : null, of: m ? Number(m[2]) : null };
+    const s = X && arr(X.shortlist).find(x => x && x.agent === A.id), m = s && /(\d+)\s+of\s+(\d+)\s+days/.exec(arr(s.not_ready).join(' '));
+    return { s, day: arenaDays(A.id).day, of: m ? Number(m[2]) : null };
   }
 
   // ============================================================================ fleet summary ==
@@ -182,8 +182,8 @@
     // Bots: the not-OK rows split so the parts add up to (total − OK) (§3 b).
     const okN = on.filter(A => /^(ok|info)$/.test(sts[A.id].lvl)).length, bad = on.filter(A => !/^(ok|info)$/.test(sts[A.id].lvl));
     const ks = l => bad.filter(A => l.indexOf(sts[A.id].k) >= 0).length, lateN = ks(['late_now', 'stale', 'exits']), failN = ks(['failed']), haltN = ks(['halt', 'thr_halt']);
-    const waitN = ks(['v1']), otherN = bad.length - lateN - failN - haltN - waitN;
-    const c1 = kpi('Bots', esc(okN + ' of ' + on.length + ' OK'), esc(lateN + ' late · ' + failN + ' failed · ' + haltN + ' halted' + (waitN ? ' · ' + waitN + ' waiting' : '') + (otherN ? ' · ' + otherN + ' other' : '')));
+    const waitN = ks(['v1']), behN = ks(['behind']), otherN = bad.length - lateN - failN - haltN - waitN - behN;
+    const c1 = kpi('Bots', esc(okN + ' of ' + on.length + ' OK'), esc(lateN + ' late · ' + failN + ' failed · ' + haltN + ' halted' + (behN ? ' · ' + behN + ' page behind' : '') + (waitN ? ' · ' + waitN + ' waiting' : '') + (otherN ? ' · ' + otherN + ' other' : '')));
     // Last 24 h: checks counted on the same extended beat the strips draw, so a missed close counts as soon as it is late.
     let ot = 0, sl = 0, rn = 0;
     for (const A of on) {
@@ -203,9 +203,12 @@
     const inN = kd.filter(A => (num(A.n_open) || 0) > 0).length;
     const c3 = kpi('Open', esc(fmt.int(posN) + (pairs.length ? ' · ' + fmt.int(pairN) : '')),
       esc((posN === 1 ? 'position' : 'positions') + (pairs.length ? ' · ' + (pairN === 1 ? 'carry pair' : 'carry pairs') : '') + ' · in ' + word.plural(inN, 'bot') + (kd.length < on.length ? ' · ' + kd.length + ' of ' + on.length + ' bots reporting' : '')));
-    const T = X && X.fleet && X.fleet.totals, pp = T && T.paper, lv = T && T.live;
-    const c4 = pp ? kpi('Fleet (paper)', esc(fmt.pct(pp.ret_pct)), esc('drawdown ' + fmt.pctu(pp.dd_pct, 2) + ' · lab, as of ' + fmt.when(isoS(X.gen))) + (lv ? '<span class="fl-kl">' + esc('live ' + fmt.pct(lv.ret_pct) + ' · drawdown ' + fmt.pctu(lv.dd_pct, 2)) + '</span>' : ''), fmt.cls(pp.ret_pct))
-      : kpi('Fleet (paper)', '—', 'the lab hasn’t published');
+    // Fleet (paper): every paper bot's own pot summed by the push at each check (E.paper), never the lab's day-old figure;
+    // a live total still comes from the lab, dated
+    const fp = isObj(E().paper) ? E().paper : null, T = X && X.fleet && X.fleet.totals, lv = T && T.live;
+    const c4 = fp && num(fp.ret_pct) != null ? kpi('Fleet (paper)', esc(fmt.pct(fp.ret_pct)), esc('drawdown ' + fmt.pctu(fp.dd_pct, 2) + (num(fp.dd_max_pct) != null ? ' · worst ' + fmt.pctu(fp.dd_max_pct, 2) : '') + ' · ' + word.plural(fp.n, 'bot'))
+        + (lv ? '<span class="fl-kl">' + esc('live ' + fmt.pct(lv.ret_pct) + ' · drawdown ' + fmt.pctu(lv.dd_pct, 2) + ' · lab, as of ' + fmt.when(isoS(X.gen))) + '</span>' : ''), fmt.cls(fp.ret_pct))
+      : kpi('Fleet (paper)', '—', 'after the next check');
     return '<div class="fl-kpis">' + c1 + c2 + c3 + c4 + '</div>';
   }
   function ymdS(s) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || '')); return m ? Math.floor(new Date(+m[1], +m[2] - 1, +m[3], 12).getTime() / 1000) : null; }
@@ -217,7 +220,7 @@
   }
   function tickText(nx) {
     if (!nx) return 'Next check —';
-    const K = clock(rowBundle(nx.A)), now = nowS();
+    const K = nx.K, now = nowS();                                       // the status's own clock (a page behind runs from its newest check)
     return 'Next check: ' + nm(nx.A) + (K.next > now ? ' ≈ ' + fmt.time(K.next) + ' · in ' + fmt.cd(K.next - now) : ' due now');
   }
   function pillsHtml(sm) {
@@ -243,24 +246,28 @@
   }
   function needsHtml(sm) {
     const X = fxNow(), items = sm.items.map(x => ({ lvl: x.lvl, h: '<a class="fl-ny" href="' + esc(href(x.A, 'overview')) + '"><i class="dot ' + DOTC[x.lvl] + '"></i><span class="fl-nyt"><b>' + esc(nm(x.A)) + '</b> · ' + flat(x.it.sentence) + '</span><span class="fl-go">Open ›</span></a>' }));
-    for (const s of arr(X && X.shortlist)) if (s && s.ready) items.push({ lvl: 'info', h: '<button type="button" class="fl-ny" data-sheet="shortlist"><i class="dot due"></i><span class="fl-nyt">Decision for you: <b>' + esc(s.name || s.agent) + '</b> is ready to go live</span><span class="fl-go">›</span></button>' });
+    for (const s of arr(X && X.shortlist)) if (s && s.ready === true) items.push({ lvl: 'info', h: '<button type="button" class="fl-ny" data-sheet="shortlist"><i class="dot due"></i><span class="fl-nyt">Decision for you: <b>' + esc(s.name || s.agent) + '</b> is ready to go live</span><span class="fl-go">›</span></button>' });
     if (!items.length) return '';
     return '<section class="fl-needs" aria-label="Needs you">' + items.slice(0, 4).map(i => i.h).join('')
       + (items.length > 4 ? '<button type="button" class="fl-more" data-sheet="fleethealth">and ' + (items.length - 4) + ' more ›</button>' : '') + '</section>';
   }
 
   // ================================================================================== the tiles ==
+  const ACTW = { bought: 'bought', sold: 'sold', resized: 'resized', carry_in: 'started collecting on', carry_out: 'started closing', carry_closed: 'closed carry on' };
   function actWords(a) {
     if (!isObj(a)) return null;
-    const cs = arr(a.cs).filter(Boolean), more = (num(a.n) || cs.length) - cs.length, list = cs.join(', ') + (more > 0 ? ' +' + more : '');
+    const ls = (cs, n) => { cs = arr(cs).filter(Boolean); const more = (num(n) || cs.length) - cs.length; return cs.join(', ') + (more > 0 ? ' +' + more : ''); };
+    const list = ls(a.cs, a.n), P = num(a.pot_pct), R = num(a.R);
+    // a sale: % of pot first (1 R is a different share of pot per bot), R in brackets; the check's other actions follow
+    const also = arr(a.also).filter(x => Array.isArray(x) && ACTW[x[0]]).map(x => ' · ' + ACTW[x[0]] + ' ' + ls(x[1], x[2])).join('');
     switch (a.ty) {
-      case 'bought': return 'Bought ' + list;
-      case 'sold': return 'Sold ' + list + (num(a.R) != null ? ' ' + fmt.R(a.R) : '');
-      case 'resized': return 'Resized ' + list + (num(a.cap_pct) != null ? ' to ' + fmt.num(a.cap_pct, 0) + '% of pot' : '');
-      case 'carry_in': return 'Started collecting on ' + list;
-      case 'carry_out': return 'Started closing ' + list;
-      case 'carry_closed': return 'Closed ' + list + ' carry' + (num(a.cap_pct) != null ? ' · ' + fmt.pct(a.cap_pct) + ' of capital' : '');
-      default: return a.ty ? cap1(String(a.ty)) + ' ' + list : list;
+      case 'bought': return 'Bought ' + list + also;
+      case 'sold': return 'Sold ' + list + (P != null ? ' ' + fmt.pct(P) + ' of pot' + (R != null ? ' (' + fmt.R(R) + ')' : '') : R != null ? ' ' + fmt.R(R) : '') + also;
+      case 'resized': return 'Resized ' + list + (num(a.pct) != null ? ' to ' + fmt.num(a.pct, 0) + '% of pot' : '') + also;
+      case 'carry_in': return 'Started collecting on ' + list + also;
+      case 'carry_out': return 'Started closing ' + list + also;
+      case 'carry_closed': return 'Closed ' + list + ' carry' + (num(a.cap_pct) != null ? ' · ' + fmt.pct(a.cap_pct) + ' of capital' : '') + also;
+      default: return (a.ty ? cap1(String(a.ty)) + ' ' + list : list) + also;
     }
   }
   function lastTrade(A, now) {
@@ -270,7 +277,7 @@
     const w = actWords(A.act), t = num(A.act.t), hot = t != null && now - t < D;
     return { h: lt + '<i class="fl-ad' + (hot ? ' on' : '') + '"></i>' + esc(w) + (t != null ? ' · ' + esc(fmt.when(t)) : '') + '</span>', a: 'last: ' + w };
   }
-  const CELL = { Trades: 'trades', Won: 'won', Holding: 'holding', Invested: 'invested', 'Closed trades': 'closed', Pairs: 'pairs', 'Funding kept': 'kept', 'Capital in use': 'capuse' };
+  const CELL = { Trades: 'trades', Won: 'won', Holding: 'holding', Invested: 'invested', 'Closed trades': 'closed', Pairs: 'pairs', 'Funding kept': 'kept', 'Capital in use': 'capuse', 'Hedge result': 'legs' };
   function cell(k, v, sub, cls) { return '<span class="fl-st' + (CELL[k] ? ' tc"' + hint(CELL[k]) : '"') + '><span class="fl-sk tl">' + esc(k) + '</span><b class="fl-sv' + (cls ? ' ' + cls : '') + '">' + v + '</b>' + (sub ? '<span class="fl-ss">' + sub + '</span>' : '') + '</span>'; }
   function stats(A, now) {
     const rec = isObj(A.rec) ? A.rec : {}, kind = A.kind;
@@ -279,11 +286,16 @@
     if (kind === 'carry') {
       const c = isObj(A.carry) ? A.carry : null;
       if (!c) return { h: cell('Pairs', na(true)) + cell('Funding kept', na(true)) + cell('Capital in use', na(true)), a: 'carry details after the next check' };
-      const young = num(A.since) == null || now - A.since < 14 * D, cp = num(c.capture_pct), gate = num(c.gate_pct) ?? 80;
-      const sub1 = [num(c.exiting) ? c.exiting + ' closing' : '', num(c.stuck) ? c.stuck + ' evening legs' : ''].filter(Boolean).join(' · ');
-      const sub2 = young ? 'too early' : cp != null && cp < gate ? '<span class="fl-amb">below ' + esc(gate) + '% gate</span>' : 'of what it could earn';
-      return { h: cell('Pairs', esc(fmt.int(c.pairs)), esc(sub1)) + cell('Funding kept', cp == null ? na(true) : esc(fmt.int(cp) + '%'), sub2) + cell('Capital in use', num(c.cap_pct) == null ? na(true) : esc(fmt.int(c.cap_pct) + '%'), 'of pot'),
-               a: fmt.int(c.pairs) + ' pairs, funding kept ' + (cp == null ? 'unknown' : cp + '% of what it could earn') + (young ? ' (too early to judge)' : '') + ', capital in use ' + fmt.int(c.cap_pct) + '% of pot' };
+      // Funding kept is lifetime (open and closed pairs); the hedge result (what the coin and its short did not cancel)
+      // gets its own cell, so a pot that loses while funding comes in shows where it went (D5)
+      const young = num(A.since) == null || now - A.since < 14 * D, cp = num(c.capture_pct), gate = num(c.gate_pct) ?? 80, lg = num(c.leg_pct), op = c.capture_scope === 'open';
+      const sub1 = [num(c.exiting) ? c.exiting + ' closing' : '', num(c.stuck) ? c.stuck + ' evening legs' : ''].filter(Boolean).join(' · ') || (num(c.cap_pct) != null ? 'use ' + fmt.int(c.cap_pct) + '% of pot' : '');
+      const sub2 = (young ? 'too early' : cp != null && cp < gate ? '<span class="fl-amb">below ' + esc(gate) + '% gate</span>' : 'of what it could earn') + (op ? ' · open pairs' : '');
+      const legs = lg == null && !('leg_pct' in c);                 // an older row: the cell it had before
+      return { h: cell('Pairs', esc(fmt.int(c.pairs)), esc(sub1)) + cell('Funding kept', cp == null ? na(true) : esc(fmt.int(cp) + '%'), sub2)
+                 + (legs ? cell('Capital in use', num(c.cap_pct) == null ? na(true) : esc(fmt.int(c.cap_pct) + '%'), 'of pot') : cell('Hedge result', lg == null ? na(true) : '<span class="' + fmt.cls(lg) + '">' + esc(fmt.pct(lg)) + '</span>', 'of pot')),
+               a: fmt.int(c.pairs) + ' pairs, funding kept ' + (cp == null ? 'unknown' : cp + '% of what it could earn' + (op ? ' on the open pairs' : '')) + (young ? ' (too early to judge)' : '')
+                 + (lg != null ? ', hedge result ' + fmt.pct(lg) + ' of pot' : ', capital in use ' + fmt.int(c.cap_pct) + '% of pot') };
     }
     if (kind === 'target') {
       const held = arr(A.held), ar = arenaOf(A), n = num(rec.n);
@@ -293,10 +305,13 @@
       return { h: cell('Holding', hv, held.length > 2 ? tks : '') + cell('Invested', num(A.deployed_pct) == null ? na(true) : esc(fmt.int(A.deployed_pct) + '%'), num(A.deployed_pct) == null ? '' : 'of pot') + cell('Closed trades', n == null ? na(true) : esc(fmt.int(n)), esc(sub)),
                a: 'holding ' + (held.length ? held.join(', ') : 'nothing') + ', ' + (num(A.deployed_pct) == null ? '' : fmt.int(A.deployed_pct) + '% of pot invested') };
     }
-    const n = num(rec.n), w = num(rec.w), l = num(rec.l), open = num(A.n_open) || 0;
+    const n = num(rec.n), w = num(rec.w), l = num(rec.l), open = num(A.n_open) || 0, op = num(A.open_pct), oR = num(rec.open_R);
     const won = !n || w == null ? na(true) : esc(fmt.int(w) + ' of ' + fmt.int(n));
+    // open result: % of pot first, R in brackets (1 R is a different share of pot per bot)
+    const oh = op != null ? '<span class="' + fmt.cls(op) + '">' + esc(fmt.pct(op)) + '</span> open' + (oR != null ? ' (' + esc(fmt.R(oR)) + ')' : '')
+      : oR != null ? '<span class="' + fmt.cls(oR) + '">' + esc(fmt.R(oR)) + '</span> open' : '';
     return { h: cell('Trades', n == null ? na(true) : esc(fmt.int(n)), 'closed') + cell('Won', won, n && l != null ? esc(fmt.int(l) + ' lost') : '')
-               + cell('Holding', open ? esc(word.plural(open, 'coin')) : 'Nothing', open && num(rec.open_R) != null ? '<span' + hint('ropen') + '><span class="' + fmt.cls(rec.open_R) + '">' + esc(fmt.R(rec.open_R)) + '</span> open</span>' : ''),
+               + cell('Holding', open ? esc(word.plural(open, 'coin')) : 'Nothing', open && oh ? '<span' + hint('ropen') + '>' + oh + '</span>' : ''),
              a: (n == null ? '' : word.plural(n, 'trade') + (n && w != null ? ', ' + w + ' won, ' + l + ' lost' : '')) };
   }
   function modePill(A) {
@@ -323,11 +338,11 @@
     const v = '<span class="fl-bigl"' + hint('ret') + '>' + (p == null ? na(true) : '<b class="fl-big ' + fmt.cls(p) + '" data-fl-big="' + p + '">' + esc(fmt.pct(p)) + '</b>' + (fmt.cls(p) ? '' : '<span class="fl-flat">flat</span>')) + '</span>';
     let cap = 'since ' + (since != null ? esc(fmt.md(since)) : '—');
     if (since != null && now - since >= 7 * D && num(A.wk_pct) != null) cap += ' · this week ' + esc(fmt.pct(A.wk_pct));
-    if (st.k === 'stale' && lastT(A) != null) cap += ' · as of ' + esc(fmt.when(lastT(A)));
+    if ((st.k === 'stale' || st.k === 'behind') && lastT(A) != null) cap += ' · as of ' + esc(fmt.when(lastT(A)));
     const sp = A.spark === undefined ? '' : COMP.sparkSvg(A.spark, { w: 140, h: 40 });
     return '<span class="fl-num"><span class="fl-bigw">' + v + '<span class="fl-cap"' + hint('since') + '>' + cap + '</span></span><span class="fl-spw">' + sp + '</span></span>';
   }
-  function tileCls(st) { return 'fl-tile fl-' + (st.lvl || 'mute') + (st.k === 'stale' ? ' fl-stale' : ''); }
+  function tileCls(st) { return 'fl-tile fl-' + (st.lvl || 'mute') + (st.k === 'stale' || st.k === 'behind' ? ' fl-stale' : ''); }
   function ariaOf(A, st, now, s, lt) {
     const p = num(A.pot_chg_pct), K = st.K || {};
     const parts = [nm(A) + ', ' + plain(word.kindName(A.kind, barS(A))).replace(' · ', ', ').toLowerCase() + ', ' + ((A.mode === 'live') ? 'live' : 'paper') + '.'];
@@ -413,11 +428,17 @@
   // ============================================================================== the fleet log ==
   function logRows() {
     const out = [];
-    for (const A of rows()) for (const e of arr(A.recent)) if (Array.isArray(e) && num(e[0]) != null) out.push({ A, e });
+    for (const A of rows()) {
+      const r = arr(A.recent).filter(e => Array.isArray(e) && num(e[0]) != null);
+      for (const e of r) out.push({ A, e });
+      // the events of this bot's week that did not fit its row: one muted line right after its oldest kept event
+      if (r.length && num(A.recent_more) > 0) out.push({ A, e: [Math.min(...r.map(e => e[0])) - 1, 'more'], more: num(A.recent_more) });
+    }
     out.sort((x, y) => y.e[0] - x.e[0]);
     const merged = [];
     for (const x of out) {                                            // consecutive trail rows, same bot and coin: one row
       const p = merged[merged.length - 1];
+      if (x.more) { merged.push({ A: x.A, e: x.e, more: x.more, n: 1, cs: [] }); continue; }
       if (p && x.e[1] === 'trail' && p.e[1] === 'trail' && p.A.id === x.A.id && p.e[2] === x.e[2]) { p.n++; p.t0 = x.e[0]; continue; }
       // one bot's entries of one kind within a minute are one row: "Bought LTC, NEAR, UNI"
       if (p && /^(bought|carry_in|carry_out)$/.test(x.e[1]) && p.e[1] === x.e[1] && p.A.id === x.A.id && Math.abs(p.e[0] - x.e[0]) <= 60) { p.cs.push(x.e[2]); continue; }
@@ -426,13 +447,14 @@
     return merged;
   }
   function logText(x) {
+    if (x.more) return '<span class="fl-lm">' + esc(word.plural(x.more, 'older event')) + ' this week on its page ›</span>';
     if (x.n > 1) return '<span class="tk">' + esc(x.e[2]) + '</span> stop raised ' + x.n + '× since ' + esc(fmt.when(x.t0)) + (num(x.e[7]) != null ? ', ' + (rz(x.e[7], 2) < 0 ? 'still risks ' : 'locks ') + '<span class="' + fmt.cls(x.e[7]) + '">' + esc(fmt.R(x.e[7])) + '</span>' : '');
     if (x.cs.length > 1) { const cs = x.cs.filter(Boolean).sort().map(c => '<span class="tk">' + esc(c) + '</span>').join(', ');
       return ({ bought: 'Bought ', carry_in: 'Started collecting on ', carry_out: 'Started closing ' })[x.e[1]] + cs; }
     return flat(word.event(x.e).html);
   }
   function digest(list, seen) {
-    const nw = list.filter(x => x.e[0] > seen); if (!nw.length) return '';
+    const nw = list.filter(x => x.e[0] > seen && !x.more); if (!nw.length) return '';
     const cut = rows().some(A => { const r = arr(A.recent); return r.length && Math.min(...r.map(e => num(e[0]) || Infinity)) > seen; });
     const plus = cut ? '+' : '', coins = l => [...new Set(l.map(x => x.e[2]).filter(Boolean))].slice(0, 3).join(', ');
     const tr = nw.filter(x => x.e[1] === 'trail'), bo = nw.filter(x => x.e[1] === 'bought'), so = nw.filter(x => x.e[1] === 'sold');
@@ -453,9 +475,9 @@
     let div = seen > 0 && list[0].e[0] > seen;
     for (const x of list) {
       if (div && x.e[0] <= seen) { h += '<li class="fl-new" role="separator" aria-label="New since you last looked above"><span>new</span></li>'; div = false; }
-      const acted = ACTED.has(x.e[1]), enter = prevTop != null && x.e[0] > prevTop ? ' rise' : '';
+      const acted = ACTED.has(x.e[1]), enter = prevTop != null && x.e[0] > prevTop && !x.more ? ' rise' : '';
       h += '<li class="fl-lr' + enter + '"><a href="' + esc(href(x.A, 'activity/timeline')) + '"><i class="fl-ld' + (acted ? ' on' : '') + '"></i><span class="fl-lb">' + esc(nm(x.A)) + '</span>'
-        + '<span class="fl-lw">' + esc(fmt.when(x.e[0])) + '</span><span class="fl-lx">' + logText(x) + '</span></a></li>';
+        + '<span class="fl-lw">' + (x.more ? '' : esc(fmt.when(x.e[0]))) + '</span><span class="fl-lx">' + logText(x) + '</span></a></li>';
     }
     return h + '</ol></section>';
   }
@@ -481,7 +503,7 @@
     if (!isObj(X)) return h + '<p class="note">' + (done ? 'The lab hasn’t published its record yet.' : 'Loading the lab’s record…') + '</p></section>';
     const L = isObj(X.lab) ? X.lab : {}, fn = isObj(L.funnel) ? L.funnel : {}, sl = Array.isArray(X.shortlist) ? X.shortlist.filter(isObj) : null;
     const v = { tested: num(fn.tested) ?? num(L.tried), cheap: num(fn.passed_cheap), audit: num(fn.passed_audit), holdout: num(fn.passed_holdout) ?? num(L.survivors),
-      arena: sl && sl.filter(s => s.enabled !== false && !s.live).length, ready: sl && sl.filter(s => s.ready && !s.live).length };
+      arena: sl && sl.filter(s => s.enabled !== false && !s.live).length, ready: sl && sl.filter(s => s.ready === true && !s.live).length };
     const wait = num(fn.waiting_holdout), veto = num(fn.vetoed) ?? num(L.vetoed), ret = num(L.retired), live = sl ? sl.filter(s => s.live).length : 0;
     const note = { audit: wait ? wait + ' waiting for the final-year test' : '', holdout: veto ? veto + ' turned down at the lab’s final review' : '',
       arena: ret ? word.plural(ret, 'bot') + ' retired' : '', ready: live ? live + ' already live' : '' };

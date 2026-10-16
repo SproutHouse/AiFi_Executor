@@ -158,6 +158,27 @@ for (const gone of ["/api/dates", "/api/day"]) if ((await get(gone)).status !== 
   if ((await get("/api/lab/day?d=2026-01-01")).status !== 404) bad("/api/lab/day for a day without a record is not 404");
   if ((await get("/api/lab", false)).status !== 401) bad("/api/lab without a cookie is not 401");
 }
+// 2026-10-16: the login compares in constant time and pauses after a wrong password; a forged cookie is refused; the
+// lab's payloads (exec:factory, exec:lab, exec:lab:day) lose any money key and currency text on the way out
+{
+  const post = (pw) => W.fetch(new Request("http://localhost/login", { method: "POST", body: new URLSearchParams({ password: pw }) }), env);
+  const t0 = Date.now(), wrong = await post("nope"), dt = Date.now() - t0;
+  if (wrong.status !== 401) bad(`a wrong password returned ${wrong.status}, not 401`);
+  if (dt < 900) bad(`a wrong password was answered after ${dt} ms, not after the fixed pause`);
+  const right = await post(PW);
+  if (right.status !== 302 || !/^ex=\d+\.[0-9a-f]{64};/.test(right.headers.get("set-cookie") || "")) bad("the right password did not sign in");
+  const forged = await W.fetch(new Request("http://localhost/api/agents", { headers: { cookie: "ex=" + exp + "." + "0".repeat(64) } }), env);
+  if (forged.status !== 401) bad(`a forged cookie returned ${forged.status}, not 401`);
+  const LK = { "exec:factory": JSON.stringify({ v: 1, shortlist: [{ agent: "a", paper: { ret_pct: 1, equity: 1043.2 }, hypothesis: "turns $1,000 into more" }] }),
+    "exec:lab": JSON.stringify({ v: 1, rules: "v2", runs: [{ start: "2026-10-16T00:00:00Z", pnl: 3 }] }), "exec:lab:day:2026-10-02": '{"v":1,"date":"2026-10-02","trials":[]}' };
+  const env2 = { DASHBOARD_PASSWORD: PW, EXEC: { get: async (k) => (k in LK ? LK[k] : null), put: async () => {} } };
+  const g2 = async (p) => (await W.fetch(new Request("http://localhost" + p, { headers: { cookie } }), env2)).text();
+  const fx = JSON.parse(await g2("/api/factory")), lab = JSON.parse(await g2("/api/lab")), day = await g2("/api/lab/day?d=2026-10-02");
+  if (JSON.stringify(fx.shortlist[0]) !== JSON.stringify({ agent: "a", paper: { ret_pct: 1 }, hypothesis: "—" })) bad("/api/factory kept money: " + JSON.stringify(fx));
+  if (JSON.stringify(lab) !== JSON.stringify({ v: 1, rules: "v2", runs: [{ start: "2026-10-16T00:00:00Z" }] })) bad("/api/lab kept money or lost the lab's own names: " + JSON.stringify(lab));
+  if (day !== LK["exec:lab:day:2026-10-02"]) bad("a clean lab day did not pass through untouched");
+  facts.worker = { wrong_ms: dt, factory: fx, lab };
+}
 fs.rmSync(out, { recursive: true, force: true });
 
 // ------------------------------------------------------------------ the clock harness (core.js in a vm) --
@@ -193,7 +214,10 @@ try {
   expect("Fast at 06:42Z", at(fast, "2026-10-01T06:42:54Z").word, "On schedule");
   expect("Fast at 07:20Z", at(fast, "2026-10-01T07:20:00Z").word, "Due now");
   expect("Fast at 07:40Z", at(fast, "2026-10-01T07:40:00Z").word, "Late");
-  expect("Fast at 08:00Z", at(fast, "2026-10-01T08:00:00Z").word, "Stale");
+  // one missed hourly check is Late, not Stale (2026-10-16): an hourly bot is stale after two missed checks
+  expect("Fast at 08:00Z", at(fast, "2026-10-01T08:00:00Z").word, "Late");
+  expect("Fast at 08:59Z", at(fast, "2026-10-01T08:59:00Z").word, "Late");
+  expect("Fast at 09:00Z", at(fast, "2026-10-01T09:00:00Z").word, "Stale");
   // §10.1 Trend: bar 1 d, last slot 10-01 00:00Z, lag 75, limit 180, 2 open
   const trend = bundle({ clock: { last_t: T("2026-10-01T02:06:41Z"), last_slot: T("2026-10-01T00:00:00Z"), late_min: 127, lag_med_min: 75, lag_rng: [8, 135], lag_n: 15, limit_min: 180, sched_min: 5, bar_s: 86400 }, lim: 180, n_open: 2 });
   expect("Trend at 07:30Z", at(trend, "2026-10-01T07:30:00Z").word, "On schedule");
@@ -238,8 +262,11 @@ try {
   // §10.5: no "4-hour" in the words a 1 h bot's page is built from (glossary, gate labels, kinds, exits)
   C.__b = fast;
   run("S.b = __b; BAR = barOf(__b); barWords()");
-  const words = run("JSON.stringify([Object.keys(GLOSS).map(k => { const g = gloss(k); return g.t + ' ' + g.d; }), STAGE.n.w, GATES.map(g => g.label), KIND.flip, EXIT.h4, word.bar(), word.every(), word.kindName('flip', 3600)])");
+  const words = run("JSON.stringify([Object.keys(GLOSS).map(k => { const g = gloss(k); return g.t + ' ' + g.d; }), STAGE.n.w, GATES.map(g => g.label), KIND.flip, EXIT.h1, word.bar(), word.every(), word.kindName('flip', 3600)])");
   if (/4-hour|4 hours/.test(words)) bad("clock: a 1 h bot's vocabulary still says 4-hour: " + (words.match(/[^"]{0,40}4.hour[^"]{0,40}/) || [""])[0]);
+  // exit codes name their own timeframe: on an hourly bot "4h flip" (h4) is its 4-hour gate turning, "1h flip" (h1) its own bar
+  expect("EXIT.h1", run("EXIT.h1"), "hourly turn");
+  expect("EXIT.h4 on a 1 h bot", run("EXIT.h4"), "4-hour turn");
   expect("word.bar(1 h)", run("word.bar()"), "hourly");
   expect("word.every(1 d)", run("word.every({ clock: { bar_s: 86400 } })"), "every day");
   expect("word.kindName", run("word.kindName('carry', 3600)"), "Funding collector · hourly");
@@ -283,12 +310,12 @@ try {
   if (empty.length) bad("tips without words: " + empty.join(", "));
   if (dirty.length) bad("tips with broken words: " + dirty.join(" | "));
   // every status word status() and the master can show: a sentence of its own, never the generic fallback
-  const STK = ["ok", "due", "late_now", "stale", "exits", "failed", "halt", "thr_halt", "thr_half", "late", "fallback", "unhedged", "exit_slow", "none", "v1"];
+  const STK = ["ok", "due", "late_now", "stale", "exits", "failed", "halt", "thr_halt", "thr_half", "late", "fallback", "unhedged", "exit_slow", "none", "v1", "behind"];
   C.__K = { phase: "late", C: T("2026-10-02T12:00:00Z"), next: T("2026-10-02T16:15:00Z"), lateAt: T("2026-10-02T12:45:00Z"), lastT: clk.last_t, age: 9 * 3600, lim: 45, rng: [6, 24] };
   const generic = run("stTip({ k: 'zzz', word: 'Check', lvl: 'warn', K: __K }, null, AGENTS[0])[1]");
   const words = {};
   for (const k of STK) {
-    C.__st = { k, word: k, lvl: "warn", K: C.__K };
+    C.__st = { k, word: k, lvl: "warn", K: C.__K, pb: { ran: C.__K.lastT + 7200, pf: { why: "data check" } }, shown: C.__K.lastT };
     const t = run("stTip(__st, null, AGENTS[0])[1]");
     words[k] = t;
     if (!t || t === generic || /undefined|NaN|null/.test(t)) bad("status word " + k + " has no tip of its own: " + t);
@@ -351,5 +378,106 @@ try {
   facts.lab.tips = specs.length;
 } catch (e) {
   bad("the lab harness threw: " + (e && e.stack || e));
+}
+
+// ------------------------------------------------------------------ the 2026-10-16 review (core + factory + fleet [+ bot] in a vm) --
+// A page behind its bot says so ("Page behind") and never blames the runner while the server's heartbeat is fresh; the
+// master's Fleet (paper) KPI is the executor's own paper pot (E.paper); a sale reads % of pot first, R in brackets; a
+// rotation shows both of its actions; the log says how many of a bot's week's events did not fit its row; carry shows
+// lifetime capture and the hedge result; the lab's evidence (cloud/dev/fx_factory_v3.json, invented) renders on the
+// Shortlist and an arena bot's page, and "Ready for you" appears only for ready === true. Texts go to facts.review.
+const RV = (search) => {
+  const C = coreContext(search);
+  C.__FX = JSON.parse(fs.readFileSync(path.join(cloud, "dev", "fx_factory_v3.json"), "utf8"))["exec:factory"];
+  C.__LG = { v: 2, gen: "x", trades: { total: 0, cols: ["id", "c", "kind", "t_out", "R", "cap_ret_pct", "t_rec"], rows: [] }, stats: { all: { n: 0 } }, eq: { pct: [], dd: [] },
+    signals: { total: 0, rows: [], daily: { keys: [], rows: [] } }, verdict: { gates: [], books: [] } };
+  vm.runInContext("getJSON = async (u) => { u = String(u); if (u.indexOf('/api/factory') === 0) return __FX; if (u.indexOf('/api/ledger') === 0) return __LG; throw { kind: 'missing' }; }", C);
+  return C;
+};
+const tick = () => new Promise((r) => setTimeout(r, 5));
+const load = (C, mods) => { for (const n of mods) vm.runInContext(fs.readFileSync(path.join(cloud, "ui", n + ".js"), "utf8"), C, { filename: "ui/" + n + ".js" }); };
+try {
+  const text = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+  const T = (iso) => Date.parse(iso) / 1000;
+  const NOW = Date.parse("2026-10-16T09:10:00Z");
+  const clk = { last_t: T("2026-10-16T06:05:45Z"), last_slot: T("2026-10-16T06:00:00Z"), late_min: 6, lag_med_min: 6, lag_rng: [6, 7], lag_n: 42, limit_min: 35, sched_min: 5, bar_s: 3600 };
+  const sbOf = (c) => ({ clock: c, state: { halt: { set: false }, thr: { state: "normal", dd_pct: 1 }, last: { t: c.last_t, fresh: true, failed: false } }, cfg: { late_min: c.limit_min, thr: [10, 20] },
+    mode: { eff: "paper", req: "paper" }, alerts: [], risk: { n_open: 0 } });
+  const host = { name: "alwaysdata", t: T("2026-10-16T09:07:00Z"), fails: 0, ok: true }, old = Object.assign({}, host, { t: T("2026-10-16T05:07:00Z") });
+  const fast = { id: "fast-1h", name: "Fast", kind: "flip", bar_s: 3600, mode: "paper", gen: "2026-10-16T06:07:00Z", since: T("2026-09-26T03:13:10Z"), sb: sbOf(clk) };
+  const fastBehind = Object.assign({}, fast, { ran_t: T("2026-10-16T09:05:40Z"), push_fail: { since: T("2026-10-16T07:06:00Z"), why: "data check: forbidden key 'gross' at exec:latest.funnel.week.by_check" } });
+  // 1. the status words (core alone): behind and failing, behind and pending, and stale with the server up, down or unknown
+  const C = RV("");
+  C.__exNow = NOW;
+  const st = (row, E) => { C.__r = row; C.__E2 = E; return JSON.parse(vm.runInContext("JSON.stringify((function(){ const s = status(rowBundle(__r, __E2)); return { word: s.word, lvl: s.lvl, k: s.k, sentence: s.sentence, items: s.items.map(i => i.k), next: s.K.next, age: s.age }; })())", C)); };
+  const failing = st(fastBehind, { host, gen: "2026-10-16T09:07:30Z" }), pending = st(Object.assign({}, fast, { ran_t: T("2026-10-16T09:05:40Z") }), { host });
+  facts.review = { failing: { word: failing.word, lvl: failing.lvl, text: text(failing.sentence), items: failing.items, next: failing.next, age: failing.age }, pending: { word: pending.word, lvl: pending.lvl, text: text(pending.sentence) },
+    stale_up: text(st(fast, { host }).sentence), stale_down: text(st(fast, { host: old, gen: "2026-10-16T09:07:30Z" }).sentence), stale_none: text(st(fast, { host: old, gen: "2026-10-16T05:07:30Z" }).sentence),
+    sold: text(vm.runInContext("word.event([1792140000, 'sold', 'LINK', 'flip', 'A', 2, 'stop', -0.5, null, -0.52]).html", C)),
+    sold_old: text(vm.runInContext("word.event([1792140000, 'sold', 'LINK', 'flip', 'A', 2, 'stop', -0.5, null]).html", C)),
+    trail: text(vm.runInContext("word.event([1792140000, 'trail', 'LINK', 'flip', 'A', 2, null, 0.38, null, 0.41]).html", C)) };
+  for (const [k, v] of Object.entries(facts.review)) if (/runner may be down|undefined|NaN/.test(JSON.stringify(v))) bad("review (" + k + "): " + JSON.stringify(v).slice(0, 200));
+  // 2. the master: E.paper, a bare row whose push failed, % of pot first, a rotation, the log's "more", lifetime carry, the factory
+  const M = RV("");
+  load(M, ["factory", "fleet"]);
+  M.__exNow = NOW;
+  const d4 = { last_t: T("2026-10-16T08:05:46Z"), last_slot: T("2026-10-16T08:00:00Z"), late_min: 6, lag_med_min: 6, lag_rng: [6, 6], lag_n: 42, limit_min: 45, sched_min: 5, bar_s: 14400 };
+  const d1 = { last_t: T("2026-10-16T00:07:31Z"), last_slot: T("2026-10-16T00:00:00Z"), late_min: 7, lag_med_min: 8, lag_rng: [7, 9], lag_n: 12, limit_min: 180, sched_min: 5, bar_s: 86400 };
+  const h1 = Object.assign({}, clk, { last_t: T("2026-10-16T09:06:40Z"), last_slot: T("2026-10-16T09:00:00Z"), limit_min: 50 });
+  M.__E = { v: 2, gen: "2026-10-16T09:07:30Z", fleet: { halt: false }, host, order: ["core", "wide-4h", "fast-1h", "carry-1h", "arena-03"],
+    paper: { n: 8, ret_pct: -2.71, dd_pct: 2.9, dd_max_pct: 3.4, since: T("2026-09-23T22:49:16Z"), t: T("2026-10-16T09:06:40Z") },
+    agents: [
+      { id: "core", name: "Core", kind: "flip", bar_s: 14400, mode: "paper", gen: "2026-10-16T08:07:00Z", since: T("2026-09-23T22:49:16Z"), sb: sbOf(d4), ran_t: d4.last_t, n_open: 2,
+        rec: { n: 3, w: 0, l: 3, open_R: 0.4 }, open_pct: 0.31, act: { t: T("2026-10-16T08:05:46Z"), ty: "sold", cs: ["HYPE"], n: 1, R: -0.55, pot_pct: -0.61 },
+        recent: [[T("2026-10-16T08:05:46Z"), "sold", "HYPE", "flip", "A", 2, "stop", -0.55, null, -0.61]], recent_more: 0 },
+      { id: "wide-4h", name: "Wide", desc: "", enabled: true, push_fail: { since: T("2026-10-16T08:07:00Z"), why: "data check" } },
+      fastBehind,
+      { id: "carry-1h", name: "Carry", kind: "carry", bar_s: 3600, mode: "paper", gen: "2026-10-16T09:07:00Z", since: T("2026-09-27T02:14:13Z"), sb: sbOf(h1), ran_t: h1.last_t, n_open: 5, pot_chg_pct: -2.08,
+        carry: { pairs: 5, open: 5, entering: 0, exiting: 0, stuck: 0, cap_pct: 107.9, capture_pct: 61, capture_scope: "all", leg_pct: -2.38, gate_pct: 80 } },
+      { id: "arena-03", name: "A03 Bull", kind: "target", bar_s: 86400, mode: "paper", gen: "2026-10-16T02:09:00Z", since: T("2026-10-06T00:09:15Z"), sb: sbOf(d1), ran_t: d1.last_t, n_open: 3,
+        arena: { recipe: "fx-b0000003", family: "bull_momentum", tag: "invented", enrolled: "2026-10-05" }, held: ["INJ", "NEAR", "ZRO"], deployed_pct: 21,
+        act: { t: T("2026-10-16T00:07:31Z"), ty: "bought", cs: ["INJ"], n: 1, also: [["sold", ["AAVE"], 1]] },
+        recent: [[T("2026-10-16T00:07:31Z"), "bought", "INJ", "target", "T", 2, "stop 20", null, null], [T("2026-10-16T00:07:31Z"), "sold", "AAVE", "target", "T", 2, "other", -0.29, null, -0.31]], recent_more: 4 }] };
+  vm.runInContext("S.E = __E; AGENTS = __E.agents.filter(isObj)", M);
+  await vm.runInContext("loadFactory(true)", M);
+  await tick();
+  facts.review.master = text(vm.runInContext("VIEWS.fleet.render({}, 'route')", M));
+  facts.review.words = JSON.parse(vm.runInContext("JSON.stringify(Object.fromEntries(Object.entries(COMP.fleetSummary().sts).map(([k, s]) => [k, s.word])))", M));
+  facts.review.shortlist = text(vm.runInContext("(function(){ const o = SHEETS.shortlist(); return typeof o === 'string' ? o : o.html; })()", M));
+  facts.review.factory = text(vm.runInContext("COMP.fleetFactory(__FX, true)", M));
+  for (const k of ["master", "shortlist"]) if (/undefined|NaN|\bnull\b|\$\d/.test(facts.review[k])) bad("review " + k + " has broken words: " + facts.review[k].slice(0, 300));
+  // 3. an arena bot's Overview (bot.js): its own paper numbers, the lab's labelled, the evidence block
+  const B = RV("?a=arena-02");
+  load(B, ["factory", "fleet", "bot"]);
+  B.__exNow = NOW;
+  B.__E = { v: 2, gen: "2026-10-16T09:07:30Z", fleet: { halt: false }, host, order: ["arena-02"], agents: [{ id: "arena-02", name: "A02 Bull", kind: "target", bar_s: 86400, mode: "paper",
+    gen: "2026-10-16T02:09:00Z", sb: sbOf(d1), ran_t: d1.last_t, arena: { recipe: "fx-b0000002", family: "bull_momentum", tag: "invented", enrolled: "2026-10-03" }, desc: "An invented arena bot." }] };
+  B.__L = { v: 2, gen: "2026-10-16T02:09:00.000Z", mode: { eff: "paper", req: "paper", note: "" }, origin: { t: T("2026-10-04T00:08:17Z"), mode: "paper" },
+    cfg: { kind: "target", tf: "1d", thr: [25, 45], late_min: 180, gates: { n: 30 } }, order: ["INJ"], books: [], clock: d1,
+    state: { halt: { set: false }, thr: { state: "normal", dd_pct: 1.59 }, btc: {}, last: { t: d1.last_t, fresh: true, failed: false, late_min: 7 } }, alerts: [],
+    pot: { since: T("2026-10-04T00:08:17Z"), n_pts: 39, chg_pct: 0.09, wk_chg_pct: 1.24, net: true, spark: [[T("2026-10-15T00:07:00Z"), -0.5], [d1.last_t, 0.09]], dd_pct: 1.5, dd_max_pct: 3.72 },
+    rec: { n: 2, tot_R: -0.07, closed_R: -0.9, open_R: 0.83 }, risk: { n_open: 1, stops_hit_pct: -10.1, stops_drop_pct: -12.4 },
+    pos: [{ id: "INJ-1", c: "INJ", kind: "target", size_pct: 7.0, val_pct: 7.4, pnl_pct: 0.3, r_now: 0.4, t_in: T("2026-10-15T00:07:00Z") }],
+    names: [], runs: [], events: [], funnel: {}, pinned: [], last24: {}, proposals: [], diag: {}, beat: { s0: T("2026-10-03T00:00:00Z"), n: 14, k: "oooooooooooooo" }, act: null, tw: [] };
+  B.__root = { addEventListener() {}, removeEventListener() {}, querySelectorAll: () => [], querySelector: () => null };
+  vm.runInContext("S.E = __E; AGENTS = __E.agents; S.b = __L; BAR = barOf(__L); VIEWS.overview.render(__root, 'route'); VIEWS.overview.after(__root)", B);
+  await tick(); await tick();
+  facts.review.bot = text(vm.runInContext("VIEWS.overview.render(__root, 'redraw')", B));
+  // 4. a carry bot's Wins & losses with the lifetime view, and an older bundle without it
+  const K = RV("?a=carry-1h");
+  load(K, ["factory", "fleet", "bot"]);
+  K.__exNow = NOW;
+  K.__E = { v: 2, gen: "x", fleet: { halt: false }, host, order: ["carry-1h"], agents: [{ id: "carry-1h", name: "Carry", kind: "carry", bar_s: 3600, sb: sbOf(h1), ran_t: h1.last_t }] };
+  K.__L = Object.assign({}, B.__L, { cfg: { kind: "carry", tf: "1h", thr: [10, 20], late_min: 50 }, clock: h1, origin: { t: T("2026-09-27T02:14:13Z"), mode: "paper" }, pos: [], carry: [],
+    carry_sum: { pairs: 5, open: 5, entering: 0, exiting: 0, stuck: 0, stuck_t: null, fix_h: 3, gate_pct: 80, cap_pct: 107.9, apr: 10.6, fund_pct: 0.29, cost_pct: 0.085, net_pct: -2.33,
+      capture_pct: 61, capture_scope: "all", leg_pct: -2.38, leg_open_pct: 1.84, capture_open_pct: 70, fund_all_pct: 0.47, cost_all_pct: 0.18, closed_n: 4, closed_ret_pct: -1.89, open_pct: 1.88, closed_pct: -1.67 },
+    pot: Object.assign({}, B.__L.pot, { since: T("2026-09-27T02:14:13Z"), chg_pct: -2.08 }) });
+  vm.runInContext("S.E = __E; AGENTS = __E.agents; S.b = __L; BAR = barOf(__L)", K);
+  facts.review.carry = text(vm.runInContext("VIEWS.overview.render({}, 'route')", K));
+  K.__L.carry_sum = { pairs: 5, open: 5, gate_pct: 80, cap_pct: 107.9, fund_pct: 0.29, cost_pct: 0.085, net_pct: -2.33, capture_pct: 70 };   // an older bundle
+  facts.review.carry_old = text(vm.runInContext("VIEWS.overview.render({}, 'route')", K));
+  for (const k of ["bot", "carry", "carry_old"]) if (/undefined|NaN|\bnull\b|\$\d/.test(facts.review[k])) bad("review " + k + " has broken words: " + facts.review[k].slice(0, 300));
+} catch (e) {
+  bad("the review harness threw: " + (e && e.stack || e));
 }
 console.log(JSON.stringify({ ok: problems.length === 0, problems, facts }));

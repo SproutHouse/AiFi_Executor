@@ -2,8 +2,13 @@
 # Cloudflare token. This pushes the dashboard for exactly the agents whose state changed in that push (KV write
 # budget: 1000 writes a day on the free plan). With host = github the cycle workflow pushes the dashboard itself.
 # Each job writes the fleet index exec:agents exactly once (run_agents.py's fleet step, docs/COMMAND_CENTER_SPEC.md
-# §6.5). A commit that only sets or clears the fleet kill switch (state/FLEET_HALT, FLEET_HALT.since) refreshes that
-# index alone (--fleet-only), so a fleet halt reaches the Command Center within one sync job on either host.
+# §6.5); that step also rebuilds every bot whose page is behind its committed state (a failed, cancelled or dropped
+# job: GitHub keeps one pending job per concurrency group), with the one exec:agents read it already makes. A commit that
+# only sets or clears the fleet kill switch (state/FLEET_HALT, FLEET_HALT.since) refreshes that index alone
+# (--fleet-only), so a fleet halt reaches the Command Center within one sync job on either host.
+# A push that fails (a payload refused by the privacy check, Cloudflare down, a push over its time limit) makes the job
+# fail after the fleet step, marks that bot's row ("Page behind" on the page) and sends ONE alert per failure streak
+# through ALERT_WEBHOOK (the streak marker lives in the row: GitHub's runners keep nothing between jobs).
 name: dashboard-sync
 on:
   push:
@@ -17,7 +22,7 @@ concurrency:
 jobs:
   push:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45   # a push child stops at 5 min and the fleet step at 6 (run_agents.py); a normal job takes ~15 s
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
@@ -47,6 +52,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
           ONLY: ${{ steps.changed.outputs.only }}
           FLEET: ${{ steps.changed.outputs.fleet }}
         run: if [ -n "$ONLY" ]; then python3 scripts/run_agents.py --push-only --only "$ONLY"; elif [ "$FLEET" = "1" ]; then python3 scripts/run_agents.py --fleet-only; fi

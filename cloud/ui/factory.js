@@ -28,14 +28,50 @@
   function statusPill(s) {
     if (s.live) return '<span class="pill live">Live</span>';
     if (!s.enabled) return '<span class="pill bad">Retired</span>';
-    if (s.ready) return '<span class="pill good">Ready for you</span>';
+    if (s.ready === true) return '<span class="pill good">Ready for you</span>';
     return '<span class="pill pt">Paper · ' + esc(s.status || 'incubating') + '</span>';
   }
+  // ---- the lab's evidence for one shortlisted bot (lab contract 2026-10-16; every field optional, "—" when missing):
+  // how sure it is not luck NOW (deflated_now; the trial's figure only as "at its trial"), the bot against Bitcoin held and
+  // Bitcoin at the same risk over the backtest, the unseen year and paper, whether execution was verified, and how strong
+  // the evidence of an edge is. "Ready" now means execution verified AND strong evidence; only s.ready === true says so.
+  const pc = v => num(v) == null ? '—' : fmt.pct(v, 1);
+  const BENCH = [['dev', 'Backtest'], ['holdout', 'Unseen year'], ['paper', 'Paper']];
+  const EVL = { weak: 'weak', moderate: 'moderate', strong: 'strong' };
+  const OK = v => v === true ? '✓' : v === false ? '✗' : '—';
+  function evidence(s) {
+    const now = num(s.deflated_now), at = num(s.deflated_at_trial) ?? num((s.backtest || {}).deflated);
+    let h = '<p class="fx-ev"><b' + hint('fxe', 'luck') + '>Not luck, now:</b> ' + (now == null ? '—' : fmt.pctu(now * 100, 0) + ' sure')
+      + (at != null ? ' <span class="sub">(' + fmt.pctu(at * 100, 1) + ' at its trial' + (num(s.trials_now) ? '; ' + word.plural(s.trials_now, 'recipe') + ' tried by now' : '') + ')</span>' : '') + '</p>';
+    const B = isObj(s.bench) ? s.bench : {}, rows = BENCH.filter(p => isObj(B[p[0]])).map(([k, w]) => {
+      const b = B[k], d = num(b.days), x = num(b.excess_pct_yr);
+      return '<li><b>' + w + '</b>' + (d != null ? ' (' + word.plural(Math.round(d), 'day') + ')' : '') + ': bot ' + pc(b.bot_pct) + ' · Bitcoin ' + pc(b.btc_pct) + ' held, ' + pc(b.btc_same_risk_pct) + ' at the same risk'
+        + (x != null ? ' · <span class="' + fmt.cls(x) + '">' + (x < 0 ? 'trails' : 'beats') + ' it by ' + fmt.pctu(x, 1) + '/yr</span>' + (num(b.excess_t) != null ? ' (t ' + fmt.num(b.excess_t, 1) + ')' : '') : '') + '</li>';
+    });
+    h += '<div class="fx-ev"><b' + hint('fxe', 'btc') + '>vs Bitcoin</b>' + (rows.length ? '<ul class="fx-evl">' + rows.join('') + '</ul>' : ' —') + '</div>';
+    const x = isObj(s.execution) ? s.execution : null, ck = x && Array.isArray(x.checks) ? x.checks.filter(isObj) : [];
+    h += '<div class="fx-ev"><b' + hint('fxe', 'exec') + '>Execution verified ' + OK(x && x.ok) + '</b>' + (x ? ' <span class="sub">' + [num(x.orders) != null ? word.plural(x.orders, 'order') : '',
+      num(x.invested_days) != null ? fmt.int(x.invested_days) + ' days invested' : '', num(x.healthy_run_frac) != null ? fmt.pctu(x.healthy_run_frac * 100, 0) + ' of checks clean' : '',
+      num(x.return_gap_pct) != null ? 'paper vs backtest ' + fmt.pct(x.return_gap_pct) : ''].filter(Boolean).join(' · ') + '</span>' : '')
+      + (ck.length ? '<ul class="fx-evl">' + ck.map(c => '<li class="' + fmt.cls(c.ok === true ? 1 : c.ok === false ? -1 : 0) + '">' + OK(c.ok) + ' ' + esc(c.check || '') + (c.detail ? ' <span class="sub">' + esc(c.detail) + '</span>' : '') + '</li>').join('') + '</ul>' : '') + '</div>';
+    const e = isObj(s.evidence) ? s.evidence : null, ts = e ? [num(e.alpha_t_own), num(e.alpha_t_btc)].filter(v => v != null) : [];
+    const t = ts.length ? Math.min(...ts) : null, need = num(e && e.needed_t) ?? 2, mo = num(e && e.months_more), lv = e && EVL[e.level];
+    h += '<div class="fx-ev"><b' + hint('fxe', 'edge') + '>Edge evidence: ' + (lv || '—') + '</b>' + (e ? ' <span class="sub">(' + (t != null ? 't ' + fmt.num(t, 1) + ' of ' + fmt.num(need, 1) + ' needed' : 'no t yet')
+      + (mo != null && lv !== 'strong' ? ', about ' + word.plural(Math.ceil(mo), 'more month') : '') + ')</span>' : '')
+      + '<div class="meter fx-em" role="img" aria-label="' + esc('Edge evidence ' + (lv || 'not known') + (t != null ? ', t ' + fmt.num(t, 1) + ' of ' + fmt.num(need, 1) + ' needed' : '')) + '"><i style="width:' + (t != null ? Math.max(0, Math.min(100, t / need * 100)).toFixed(0) : 0) + '%"></i></div></div>';
+    return '<div class="fx-evs">' + h + '</div>';
+  }
+  COMP.labEvidence = s => isObj(s) ? evidence(s) : '';
+  TIP.fxe = a => ({
+    luck: ['Not luck', 'How sure the lab is that the backtest is not a lucky fluke, counting every recipe it has tried: the more it tries, the more one looks good by chance. “At its trial” is the figure when it was picked; “now” counts every try since.'],
+    btc: ['vs Bitcoin', 'The bot’s return next to simply holding Bitcoin, and next to Bitcoin scaled to the same ups and downs as the bot. “Beats it by” is the yearly gap to that same-risk Bitcoin; t says how sure the gap is (2 or more is convincing).'],
+    exec: ['Execution verified', 'Whether its paper trading did what its backtest says it would: the orders, the days invested, the checks that ran cleanly, and how close the paper return is to the backtest replayed over the same days.'],
+    edge: ['Edge evidence', 'How strong the proof is that it earns more than holding: weak, moderate or strong. A t of 2 is the bar; the months are the lab’s estimate of how long the evidence needs. Ready for you needs strong evidence and verified execution.'] })[a];
   function card(s) {
     const b = s.backtest || {}, p = s.paper || {}, rg = b.regimes || {};
     const regs = ['bull', 'bear', 'crisis'].filter(k => rg[k] != null).map(k => '<span class="fx-kv"><i>' + k + '</i><b>' + P(rg[k]) + '/yr</b></span>').join('');
     const nr = (s.not_ready || []).length ? '<ul class="fx-nr">' + s.not_ready.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul>' : '';
-    const go = s.ready ? '<details class="fx-go"><summary>How to switch it live</summary><ol>'
+    const go = s.ready === true ? '<details class="fx-go"><summary>How to switch it live</summary><ol>'
       + '<li>Make a new Hyperliquid wallet for this bot only and deposit its pot (start small).</li>'
       + '<li>On that wallet, create an API wallet (Hyperliquid: More → API). It can trade but can never withdraw.</li>'
       + '<li>In the Executor repo’s Actions secrets add <code>HL_AGENT_KEY_' + esc(s.agent.toUpperCase().replace(/-/g, '_')) + '</code> and <code>HL_ACCOUNT_ADDRESS_' + esc(s.agent.toUpperCase().replace(/-/g, '_')) + '</code>.</li>'
@@ -46,20 +82,21 @@
       + '<div class="fx-grid"><div><div class="fx-h3">Backtest</div>'
       + '<span class="fx-kv"><i>Sharpe</i><b>' + N(b.sharpe) + '</b></span><span class="fx-kv"><i>Return</i><b>' + P(b.cagr_pct) + '/yr</b></span>'
       + '<span class="fx-kv"><i>Worst drop</i><b>' + U(b.max_dd_pct) + '</b></span><span class="fx-kv"><i>Unseen year</i><b>Sharpe ' + N(b.holdout_sharpe) + '</b></span>'
-      + '<span class="fx-kv"><i>Real, not luck</i><b>' + (b.deflated != null ? (b.deflated * 100).toFixed(1) + '%' : '—') + '</b></span>' + (b.alpha_t != null ? '<span class="fx-kv"><i>Beats holding</i><b>t ' + N(b.alpha_t) + '</b></span>' : '') + '</div>'
+      + (b.alpha_t != null ? '<span class="fx-kv"><i>Beats holding</i><b>t ' + N(b.alpha_t) + '</b></span>' : '') + '</div>'
       + '<div><div class="fx-h3">By market</div>' + (regs || '<span class="sub">—</span>') + '</div>'
-      + '<div><div class="fx-h3">Paper so far</div><span class="fx-kv"><i>Days</i><b>' + N(s.days, 0) + '</b></span><span class="fx-kv"><i>Return</i><b>' + P(p.ret_pct, 2) + '</b></span>'
+      // the lab's own paper snapshot, dated: the bot's page has its live numbers
+      + '<div><div class="fx-h3">Paper so far · lab, ' + esc(FX && FX.gen ? fmt.when(isoS(FX.gen)) : '—') + '</div><span class="fx-kv"><i>Days</i><b>' + N(s.days, 0) + '</b></span><span class="fx-kv"><i>Return</i><b>' + P(p.ret_pct, 2) + '</b></span>'
       + '<span class="fx-kv"><i>Drawdown</i><b>' + U(p.dd_pct) + '</b></span><span class="fx-kv"><i>Matches backtest</i><b>' + (p.weight_match_pct != null ? p.weight_match_pct + '% of ' + p.weight_checks : '—') + '</b></span></div></div>'
-      + nr + go + '</div>';
+      + evidence(s) + nr + go + '</div>';
   }
   function afterCards(el) { $$('[data-fx-agent]', el).forEach(b => b.onclick = () => switchAgent(b.dataset.fxAgent)); }
   SHEETS.shortlist = function () {
     if (!FX) return waiting('Shortlist');
     const F = FX, L = F.lab || {}, list = F.shortlist || [];
-    const ready = list.filter(s => s.ready).length;
-    return { html: '<div class="doc"><h2>Shortlist</h2><p class="sub">Bots the AiFi Lab built and tested: each passed every backtest check and a locked final year it had never seen, and is now proving itself in paper. <b>Ready</b> is evidence, never an instruction; only your go-live workflow switches a bot to real money.</p>'
+    const ready = list.filter(s => s.ready === true).length;
+    return { html: '<div class="doc"><h2>Shortlist</h2><p class="sub">Bots the AiFi Lab built and tested: each passed every backtest check and a locked final year it had never seen, and is now proving itself in paper. <b>Ready</b> means its paper trading was verified against its backtest and the evidence of an edge is strong. It is never an instruction: only your go-live workflow switches a bot to real money.</p>'
       + '<p class="fx-line">' + regimeLine(F) + ' <span class="sub">· ' + (L.tried || 0) + ' recipes tried · ' + (L.survivors || 0) + ' survived · ' + (L.retired || 0) + ' retired · ' + (L.vetoed || 0) + ' vetoed · last batch ' + esc(L.last_batch || '—') + ' · rules v' + esc(L.gates_version || '—') + '</span></p>'
-      + '<p class="fx-line"><b>' + ready + '</b> ready for you · ' + list.filter(s => s.live).length + ' live · ' + list.filter(s => s.enabled && !s.live && !s.ready).length + ' still proving themselves</p></div>'
+      + '<p class="fx-line"><b>' + ready + '</b> ready for you · ' + list.filter(s => s.live).length + ' live · ' + list.filter(s => s.enabled && !s.live && s.ready !== true).length + ' still proving themselves</p></div>'
       + (list.length ? list.map(card).join('') : '<div class="empty">No bot has survived the lab yet.</div>'),
       after(el) { afterCards(el); } };
   };

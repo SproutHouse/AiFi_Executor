@@ -133,6 +133,7 @@ button.bt-row:hover .bt-rt b{text-decoration:underline;text-decoration-color:var
 .bt-bt{margin:var(--s3) 0}
 .bt-bt td,.bt-bt th{text-align:right}
 .bt-bt .l{text-align:left}
+.bt-bt table{white-space:normal}
 .bt-nr{margin:var(--s2) 0;padding-left:18px;font-size:var(--fs-sm);color:var(--ink-2)}
 .bt-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--s4)}
 .bt-links .cap code{font-family:var(--mono)}

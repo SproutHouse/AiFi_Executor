@@ -207,3 +207,4 @@ button.fl-b::before{content:"";position:absolute;left:-2px;right:-2px;top:50%;he
 @media(hover:none){.fl-tile,.fl-ro{-webkit-touch-callout:none}}
 
 @media(prefers-reduced-motion:reduce){.fl-tile,.fl-tile:hover,.fl-tile:active{transition:none;transform:none}}
+.fl-lm{color:var(--muted)}

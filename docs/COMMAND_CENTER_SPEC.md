@@ -197,12 +197,12 @@ Shown only when relevant.
 
 | Cell | Value (snapshot) | Sub-line | Source |
 |---|---|---|---|
-| **Bots** | "6 of 6 OK" | "0 late · 0 failed · 0 halted" | Count of rows whose status lvl ∈ {ok, info}. The sub-line splits the other rows so it adds up to (total − OK): late = `k` ∈ late_now / stale / exits (a late daily bot holding positions reads "Exits unchecked"), failed, halted = halt / thr_halt; then " · n waiting" (v1 rows) and " · n other" only when non-zero |
+| **Bots** | "6 of 6 OK" | "0 late · 0 failed · 0 halted" | Count of rows whose status lvl ∈ {ok, info}. The sub-line splits the other rows so it adds up to (total − OK): late = `k` ∈ late_now / stale / exits (a late daily bot holding positions reads "Exits unchecked"), failed, halted = halt / thr_halt; then " · n page behind" (`k` behind, §12.2), " · n waiting" (v1 rows) and " · n other" only when non-zero |
 | **Last 24 h** | "62 of 62" | "checks on time · 23 signals · 0 bought · 1 sold" | On time / slots are counted on the same extended beat the strips draw (`COMP.beat24`: the pushed `A.beat` plus "-" for every close past its late limit since, beads whose close is within the last 24 h, `.` not counted); raw `A.last24` only for a row without a beat. So a stalled runner shows "36 of 62" after 10 h and "0 of 62" after a day, never a frozen "62 of 62". Signals / bought / sold stay Σ `A.last24`, with " · as of {oldest late row's last_t}" when any reporting row is late or stale. Checked at push time: 62 of 62 |
 | **Open** | "6 · 6" | "positions · carry pairs · in 4 bots" | Σ `A.n_open` over rows with `A.kind` not carry (Fast 1 + Trend 2 + A01 3); Σ `A.carry.pairs` over carry rows; count of rows with `n_open>0`. Positions and pairs are never summed together; a row without `kind` (v1) is in neither and the sub-line adds "n of m bots reporting". |
 
 KPI values are numbers only, one line (`white-space: nowrap`); the words sit in the sub-line.
-| **Fleet (paper)** | "−0.17%" | "drawdown 0.78% · lab, as of 12:44 am" | `X.fleet.totals.paper.ret_pct` and `.dd_pct`, dated by **`X.gen`**. "—" plus "the lab hasn't published" when absent. Never computed on the client. A live total joins only when `X.fleet.totals.live` exists. |
+| **Fleet (paper)** | "−2.85%" | "drawdown 3.00% · worst 3.65% · 8 bots" | `E.paper` (§12.4): every enabled paper bot's own pot summed by the push at each check, `ret_pct` = sum now / sum of starts − 1, `dd_pct` = below the summed series' own peak now, `dd_max_pct` its worst. Until 2026-10-16 this was the lab's day-old `X.fleet.totals.paper`, whose drawdown divided by the sum of each bot's own peak (3.84% where the fleet was 3.00% below its peak). "—" plus "after the next check" when absent. A live total from the lab joins, dated "lab, as of …", only when `X.fleet.totals.live` exists. |
 
 **(c) Switch row.** Small pills that **wrap** onto a second line and never scroll sideways, so on phone they stay above the fold.
 
@@ -248,7 +248,11 @@ KPI values are numbers only, one line (`white-space: nowrap`); the words sit in 
 
 ### 3.6 Fleet log: "What just happened"
 
-- Merged from every `A.recent`, newest first, 10 rows. Desktop shows two columns below the grid; phone shows one.
+- Merged from every `A.recent` (≤ 5 per bot), newest first, 10 rows. Desktop shows two columns below the grid; phone shows one.
+- A bot whose week held more loud events than its row carries (`A.recent_more`) gets one muted line right after its
+  oldest kept event: "4 older events this week on its page ›" (→ its timeline), so the log never drops them silently.
+- A sale or a raised stop reads **% of pot first, R in brackets** (the row's 10th column, §12.5): "Sold AAVE −0.68% of
+  pot (−0.29 R, exit)", since 1 R is a different share of the pot on every bot.
 - Each row: `[bot name chip] [fmt.when(t)] [word.event(row) sentence]`. Examples:
   - "Fast · 1:05 am · Stop raised on CRV, locks +0.38 R"
   - "Carry · Wed 12:19 pm · Started closing HYPE carry · funding −0.2%/yr"
@@ -282,7 +286,7 @@ would be off the first scroll on a laptop and three screens down on a phone.
   | passed the full audit | `funnel.passed_audit` ("—") | "6 waiting for the final-year test" (`funnel.waiting_holdout`, hidden when 0 or absent) |
   | passed the unseen final year | `funnel.passed_holdout` (`X.lab.survivors`) | "1 turned down at the lab's final review" (`funnel.vetoed`, else `lab.vetoed`; hidden when 0) |
   | trading in the arena (paper) | `X.shortlist[]` enabled and not live ("—" without a shortlist) | "n bots retired" (`lab.retired` > 0) |
-  | ready for you | `X.shortlist[]` ready and not live | "n already live" |
+  | ready for you | `X.shortlist[]` with `ready === true` and not live (since 2026-10-16 "ready" means execution verified AND strong evidence, §12.7) | "n already live" |
 
 - Two links to the AiFi Lab page (§11): "Watch last night's run ›" (`/lab#floor`) and "Every strategy tested ›" (`/lab#log`).
 - **Last night** (`X.lab.last {date, tried, passed}`): "Last night: 18 recipes tested, 0 passed" while the date is
@@ -314,7 +318,8 @@ The existing FOOT sentence, then "Rules & docs · Log out".
 | **Empty** (`agents: []` or 404) | One card: "No bot has reported yet. Each bot appears here after its first check." No header, no KPI zeros; the Bot factory card (`#fl-labw`) stays below it. |
 | **Fetch errors** | The existing `bootCard`s: 401 "Signed out" + Sign in; network "Can't reach the dashboard" + Retry; 5xx or parse "The fleet data couldn't be read" + Retry. |
 | **Offline after load** | Tiles keep their data. The capsule reads "Offline · last seen 2:42 am". The 30 s tick keeps recomputing status, so tiles honestly turn Late or Stale. |
-| **Stale tile** | The status line reads "Stale · no check for 9 h" in red. The tile gets a 3px inset `--bad` left edge and a 1px `--bad` border. The caption adds "as of Tue 4:05 pm". Numbers dim to 60%. |
+| **Stale tile** | The status line reads "Stale · no check for 9 h" in red. The tile gets a 3px inset `--bad` left edge and a 1px `--bad` border. The caption adds "as of Tue 4:05 pm". Numbers dim to 60%. The status sentence names who to suspect from the server's heartbeat (§12.2), never "the runner may be down" while it is fresh. |
+| **Page behind** | The bot ran but its page did not get the numbers (§12.2): "Page behind · checked 7:06 am, page shows 4:05 am", bad while the update fails (`A.push_fail`), warn while it is only pending. The tile is styled and dated like a stale one. |
 | **Failed / Halted / Buying stopped / Exits unchecked** | The status word comes from `status()` (bad tier styling). The problem sentence replaces the age text. |
 | **Due** | Accent dot, the word "Due now · usually by 3:24 am". No animation. |
 | **Paper / live** | `A.mode`: `.pill.pt` "Paper" (violet), or "Live" (1px accent outline + static dot). If `sb.mode.req ≠ eff`: amber pill "Paper (live requested)". |
@@ -399,7 +404,7 @@ The tile (`a.fl-tile`) is about **236 px** tall on phone, at most 7 rows.
 |---|---|---|---|
 | **Signal trader** (core, wide, fast) | **Trades** "4" · sub "closed" (`A.rec.n`) | **Won** "1 of 4" · sub "3 lost" (`A.rec.w`, `A.rec.l`; "—" when n = 0) | **Holding** "1 coin" · sub "+0.72 R open" (`A.n_open`, `A.rec.open_R`; "Nothing" when 0) |
 | **Rebalancer** (trend, arena) | **Holding** "BTC, ETH" (`A.held`); with 3 or more coins the value is "3 coins" and the tickers (first 3 + "+n") are its caption, since three tickers never fit a 98px cell | **Invested** "68% of pot" (`A.deployed_pct`) | **Closed trades** "0" · sub "judged yearly" (Trend) / "day 2 of 42" (arena) (`A.rec.n`) |
-| **Funding collector** (carry) | **Pairs** "6" · sub "1 closing · 2 evening legs" (`A.carry.pairs`, `.exiting`, `.stuck`) | **Funding kept** "34%" · sub "of what it could earn · too early" (`A.carry.capture_pct`; "too early" while `now − A.since < 14 d`; after that amber text "below 80% gate" when under `A.carry.gate_pct`) | **Capital in use** "138%" · sub "of pot" (`A.carry.cap_pct`) |
+| **Funding collector** (carry) | **Pairs** "6" · sub "1 closing · 2 evening legs" (`A.carry.pairs`, `.exiting`, `.stuck`), else "use 108% of pot" (`.cap_pct`) | **Funding kept** "61%" · sub "of what it could earn · too early" (`A.carry.capture_pct`, lifetime over open and closed pairs, §12.3; " · open pairs" when `capture_scope` is "open"; "too early" while `now − A.since < 14 d`; after that amber text "below 80% gate" when under `A.carry.gate_pct`) | **Hedge result** "−2.36%" · sub "of pot" (`A.carry.leg_pct`, §12.3; an older row without it keeps **Capital in use**) |
 
 **Never on a tile:**
 - On deck counts, blocked-signal detail, per-tile countdowns, backtest sub-lines, "% at risk", slot counts.
@@ -497,18 +502,18 @@ All six tiles read **On schedule**. Next checks:
 | Cell | Source |
 |---|---|
 | Holding "2 coins" | `L.pos.length` |
-| Invested "68% of pot" | Σ `L.pos[].size_pct` |
+| Invested "68% of pot" · "at the last prices" | Σ `L.pos[].val_pct` (the positions at their last marks, §12.6; `size_pct`, the entry size, for an older bundle) |
 | Open result "−0.35% of pot · −0.09 R" | Σ `L.pos[].pnl_pct`, `L.rec.open_R` |
-| Drawdown "0.67% · risk halves at 25%, stops at 45%" | `L.state.thr.dd_pct`, `L.cfg.thr` |
+| Drawdown "0.67% · risk halves at 25%, stops at 45%" | `L.pot.dd_pct` (from the latest equity point; the engine's `L.state.thr.dd_pct` is measured before its check's own point, so it lags a check), `L.cfg.thr` |
 
-- Verdict: Trend reads "Judged yearly · day 5 of 365" (from `L.origin.t`). Arena reads `X.shortlist[].not_ready[0]` ("2 of 42 days in the arena"), or "Ready for you" (good).
+- Verdict: Trend reads "Judged yearly · day 5 of 365" (from `L.origin.t`). Arena reads "Day 13 of 42 in the arena" (the day counted live from the roster's `arena.enrolled`, the 42 from `X.shortlist[].not_ready[0]`; the lab's own sentence only when it has no day count), or "Ready for you" (good) only when `ready === true`.
 
 **Funding collector**
 
 | Cell | Source |
 |---|---|
 | Pairs "6 · 5 open · 1 closing" | `L.carry_sum.pairs`, `.open`, `.exiting` |
-| Funding kept "34% of what it could earn" | `L.carry_sum.capture_pct`, against "go-live gate 80%" (`.gate_pct`) |
+| Funding kept "61% of what it could earn · every pair, closed ones too" | `L.carry_sum.capture_pct` (lifetime, §12.3; "open pairs only" when `capture_scope` is "open"), against "go-live gate 80%" (`.gate_pct`) |
 | Collected "+0.14% of pot · costs 0.09%" | `.fund_pct`, `.cost_pct` |
 | Result "−1.07% of pot" · "the pot since it started" | `L.pot.chg_pct`, the hero's own figure |
 
@@ -560,8 +565,10 @@ All six tiles read **On schedule**. Next checks:
 - `COMP.positionCard(p, {first: i===0})` for each `L.pos[]` (existing R-ladder cards; a tap opens `SHEETS.pos`).
 - Rebalancers add a **Weights** list above the cards, from `L.tw`: "BTC · target 36% · holding 35% · hold".
 - **Risk line, signal bots only:** "1.01% of pot at risk (cap 4%) · 1 of 6 slots".
-- **Stops line, all non-carry bots, worded by sign:** "If every stop were hit: +0.36% of pot (the stops have locked in gains)" for Fast; "If every stop were hit: −10.27% of pot" for Trend.
-  - Sources: `L.risk.used_pct`, `cap_pct`, `n_open`, `max`, `stops_hit_pct`.
+- **Stops line, all non-carry bots:** the further loss from the last prices first, then the result against the entries,
+  worded by sign: "If every stop were hit: −5.18% of pot from here (−3.92% against the entries)"; "… −0.40% of pot from
+  here (+0.36% against the entries: the stops have locked in gains)".
+  - Sources: `L.risk.used_pct`, `cap_pct`, `n_open`, `max`, `stops_drop_pct` (§12.6), `stops_hit_pct`.
 - Rebalancers **never** show "% at risk" or slots, on the card or in its sheet (positions.js keys on `p.kind === 'target'`, so the sheet outside the page wrapper agrees). Their exit sentence is "Exits if its protective stop (14.2% below) is touched, or when a rebalance takes its target weight to 0." — never a daily or weekly turn, and no "No fixed target" line.
 
 **Funding collector:** one card per `L.carry[]`, stuck pairs first.
@@ -578,7 +585,7 @@ All six tiles read **On schedule**. Next checks:
 ### 5.6 Equity (`#overview-equity`)
 
 - An inline SVG (no library) from `G.eq.pct`: line, zero baseline, and a drawdown band from `G.eq.dd`, 100% × 140px.
-- Text: "Now 2.68% below its peak · worst 2.86% · risk halves at 10%, buying stops at 20%" (`L.state.thr.dd_pct`, max of `G.eq.dd`, `L.cfg.thr`).
+- Text: "Now 2.68% below its peak · worst 2.86% · risk halves at 10%, buying stops at 20%" (`L.pot.dd_pct`, max of `G.eq.dd` else `L.pot.dd_max_pct`, `L.cfg.thr`).
 - "Interactive curve ›" → `#results/curve`, which keeps the lazy lightweight-charts curve.
 
 ### 5.7 Health and schedule (`#overview-health`)
@@ -605,15 +612,19 @@ All six tiles read **On schedule**. Next checks:
 
     | Measure | Backtest | Paper so far |
     |---|---|---|
-    | Return | 17.3%/yr (7.75 yrs) | +0.50% in 2 days |
-    | Worst drawdown | 18.0% | 0.21% |
+    | Return | 17.3%/yr (7.75 yrs) | +0.08% in 12 days (`L.pot.chg_pct`, this bot's own pot) |
+    | Worst drawdown | 18.0% | 3.72% (`L.pot.dd_max_pct`) |
     | Sharpe | 1.13 (holdout 0.76) | too early |
-    | Matches its backtest | — | 100% of 26 checks |
-    | Days in arena | — | 2 of 42 |
+    | Matches its backtest | — | 100% of 420 checks, then "lab, 5:38 am" (only the lab measures it) |
+    | Days in arena | — | 13 of 42 (counted live) |
 
-  - `not_ready[]` as a list;
-  - "Ready for you" plus "How to switch it live ›" (`data-sheet="shortlist"`).
-- **Fleet share**: `X.fleet.members[agent].share_pct` ("34.4% of the fleet, equal risk"), or `X.fleet.excluded[agent].why`.
+    Until 2026-10-16 the paper column read the lab's day-old `X.shortlist[].paper` (A02 showed −2.07% beside a +0.09%
+    headline). A number only the lab has says "lab, <its gen time>".
+  - the lab's evidence block, `COMP.labEvidence(s)` (§12.7), headed "Evidence · lab, <time>"; the table wraps its cells so all three
+    columns fit a 375 px phone;
+  - `not_ready[]` as a list (a "N of 42 days" count rewritten with the live day), captioned "Not ready yet, the lab says · lab, <time>";
+  - "Ready for you" plus "How to switch it live ›" (`data-sheet="shortlist"`), only when `ready === true`.
+- **Fleet share**: `X.fleet.members[agent].share_pct` ("34.4% of the fleet, equal risk · lab, 5:38 am"), or `X.fleet.excluded[agent].why`.
 - Links: "Full rules ›" (`#rules`), "Weekly review ›" (`#results/review`), "Controls ›" (read-only link to the GitHub control workflow with the inputs to type).
 
 ### 5.9 Per-kind differences
@@ -702,7 +713,12 @@ No prices, so no `px`.
 | `cap_pct` | Σ | 138.1 |
 | `apr` | capital-weighted over pairs not exiting | 14.6 |
 | `fund_pct`, `cost_pct`, `net_pct` | Σ | 0.14 / 0.09 / −1.39 |
-| `capture_pct` | `round((Σfunding_income − Σfees)/Σtheo_funding·100)`, null if Σtheo ≤ 0 | 34 (checked: (1.4116 − 0.9322)/1.4177 = 33.8%) |
+| `capture_pct` | Lifetime since 2026-10-16 (§12.3): `round((Σfunding_income − Σfees)/Σtheo_funding·100)` over the open pairs AND the closed ones (a closed record's theoretical funding is its `theo_funding`, else recovered from its `capture`); the open pairs only, with `capture_scope` "open", when a closed record cannot say; null if Σtheo ≤ 0 | 61 (2026-10-16: 60.5%; the open pairs alone 70%) |
+| `capture_scope` | "all" \| "open" | "all" |
+| `capture_open_pct` | the open pairs' own capture (the old `capture_pct`); bot page only | 70 |
+| `fund_all_pct`, `cost_all_pct` | funding income and fees over every pair, % of the starting pot; bot page only | +0.459 / 0.18 |
+| `leg_pct`, `leg_open_pct` | the hedge/legging result over every pair (booked spot and perp P&L + closed `gross` + the open legs at the last marks), and its open part, % of the starting pot; `leg_open_pct` bot page only | −2.36 / +1.84 |
+| `closed_n`, `closed_ret_pct` | closed pairs, and Σ pnl / Σ capital × 100 (never a sum of returns on different capitals); bot page only | 4 / −1.89 |
 | `open_pct` | Σ open P&L on both legs at the last check's marks (spot mark, perp mark from the run's readings); bot page only, left out of `row.carry` | +0.29 |
 | `closed_pct` | Σ `pnl` of closed carry trades; bot page only | null |
 
@@ -769,14 +785,20 @@ In `run_events`, `carry_in` adds `(c, R.t)` to `matched_open` (so the ledger cro
 | `rec.win`, `rec.w`, `rec.l`, `rec.closed_R` | float \| null, int, int, float | `G.stats.all.win`; counts of non-carry `G.trades.rows` with R > 0 and R ≤ 0; `L.rec.closed_R` |
 | `last24` | object | copy of `L.last24` |
 | `beat`, `act` | as in §6.1 | copies of `L.beat`, `L.act` |
-| `recent` | `[≤3 event rows]` | `L.events` with `lv ≥ 2` and type ∉ {blocked, board, review}, newest first |
+| `recent` | `[≤5 event rows]` | `L.events` with `lv ≥ 2` and type ∉ {blocked, board, review}, newest first; a sale or a raised stop carries its % of pot as a 10th column |
+| `recent_more` | int | how many such events of the bundle's 7-day window did not fit (plus any `fit_row` cut) |
+| `ran_t` | int \| null | when the state's newest check ran (`runs/last_run.json`); the fleet step refreshes it for every row (§12.2) |
+| `push_fail` | `{since, why, alerted}` \| absent | set by the fleet step while this bot's pushes fail; `since` survives the streak, `alerted` turns true once a job holding the alert channel has reported it (§12.1) |
+| `open_pct` | float \| null | Σ `L.pos[].pnl_pct`: the open result in % of pot (§12.5) |
 | `held` | `[≤8 coins]` | `L.pos[].c` + `L.carry[].c` |
-| `deployed_pct` | float \| null | Σ `L.pos[].size_pct` + Σ `L.carry[].cap_pct` (1 dp) |
+| `deployed_pct` | float \| null | Σ `L.pos[].val_pct` (at the last marks) + Σ `L.carry[].cap_pct` (1 dp) |
 | `carry` | object (carry only) | copy of `L.carry_sum` |
 
 **Row size**
-- Typical 1.4–1.6 KB; asserted ≤ 2,048 B.
-- `fit_row()` trims in this order: `recent` → 1 row, then `spark` → 12 points, then `sb.alerts` → 1.
+- Typical 1.5–2.0 KB; asserted ≤ 3,072 B (2,048 B until 2026-10-16: A03's 428-character description cut its `recent`
+  to one row, so the master's log silently lost its buy).
+- `fit_row()` trims in this order: `desc` → 160 characters, then `spark` → 12 points, then `sb.alerts` → 1, then
+  `recent` → 1 row, then none; every cut `recent` row is counted in `recent_more`.
 - About 9 KB for 6 bots, about 27 KB for 17.
 - `scrub_assert(row, "exec:agents", B.money)` runs in the push child before the row is written (today only a test covers it).
 
@@ -787,8 +809,11 @@ In `run_events`, `carry_in` adds `(c, R.t)` to `matched_open` (so the ledger cro
  "fleet": {"halt": false, "reason": null, "since": null},
  "host":  {"name": "alwaysdata", "t": 1790834826, "fails": 0, "ok": true},
  "order": ["core","wide-4h","fast-1h","trend-1d","carry-1h","arena-01"],
+ "paper": {"n": 8, "ret_pct": -2.85, "dd_pct": 3.0, "dd_max_pct": 3.65, "since": 1790203756, "t": 1792148802},
  "agents": [ ...rows in roster order, enabled and disabled... ]}
 ```
+
+- `paper` (2026-10-16): the paper fleet as one pot, §12.4; null without a paper bot.
 
 - Keys come in this order, so `v` and `gen` lead.
 - `fleet`:
@@ -817,7 +842,9 @@ In `run_events`, `carry_in` adds `(c, R.t)` to `matched_open` (so the ledger cro
      2. if not `--dry` **and** Cloudflare secrets are present, runs `dashboard_push.py --fleet <dir>` with the Cloudflare-only env. On the Paris server there are no secrets, so it prints "no Cloudflare secrets: fleet not pushed" and skips.
      3. removes the dir.
    - New flag `--fleet-only` skips the loop.
-   - A failed agent push leaves that bot's previous row, which the client shows as Late or Stale by clock. Exit codes are unchanged.
+   - A failed agent push leaves that bot's previous row, marked `push_fail` by the fleet step; the client shows "Page
+     behind" (§12.1–12.2). Since 2026-10-16 a failed push or fleet step makes the job exit non-zero after the fleet step,
+     every child has a time limit, and the fleet step also rebuilds every agent whose page is behind its state.
 4. **`dashboard-sync.yml`.** The path filter now also emits `fleet=1` when `state/FLEET_HALT` or `state/FLEET_HALT.since` changed. The run step becomes:
 
    `if [ -n "$ONLY" ]; then python3 scripts/run_agents.py --push-only --only "$ONLY"; elif [ "$FLEET" = "1" ]; then python3 scripts/run_agents.py --fleet-only; fi`
@@ -847,11 +874,13 @@ Reads also drop. Push children no longer read `exec:agents` or `exec:factory`; t
   | `C` | `last_slot + bar` |
   | `next` | `C + lag·60` (`lag = 20` when `lag_n < 3`) |
   | `lateAt` | `C + lim·60` |
-  | `staleAt` | `C + min(bar, max(14400, lim·60 + 3600))` |
-  | `exitsAt` | `C + min(7200, bar)` |
+  | `staleAt` | `C + min(max(bar, 7200), max(14400, lim·60 + 3600))` |
+  | `exitsAt` | `C + 7200` |
 
   - 4 h: identical to today.
-  - 1 h (Fast, lim 35): due 3:15, late 3:35, stale 4:00 am.
+  - 1 h (Fast, lim 35): due 3:15, late 3:35, stale 5:00 am (2026-10-16: one missed hourly check is Late, not Stale;
+    its exits count as unchecked when it turns stale).
+  - When the page is behind its bot (§12.2) the clock runs from the newest check the state records (`ran_t`).
   - 1 d (Trend, lim 180): due from 9:15 pm, late 11:00 pm, Exits unchecked from 11:00 pm (positions held), stale midnight.
 - `rowBundle(A, E)`:
 
@@ -1000,7 +1029,8 @@ Light and dark from the existing tokens. Tiles use `--glass` in both. Status tin
 - A carry fixture:
   - `pos()` returns no carry row while `risk.n_open == 6`;
   - `carry[]` keys pass FORBIDDEN_KEY and no string carries a fixture money figure;
-  - `carry_sum.capture_pct == round((Σfi − Σfees)/Σtheo·100)`;
+  - `carry_sum.capture_open_pct == round((Σfi − Σfees)/Σtheo·100)` over the open pairs, and `capture_pct` the same over
+    open and closed pairs (§12.3);
   - `capture_pct` is null for exiting pairs and for theo ≤ 0;
   - `unhedged` is info at `--now` = stuck + 2 h and warn at stuck + 4 h + 1 bar.
 - A target fixture: arena's 13 lines → 3 `tw` rows; `parse_line` returns typed events (not SKIP) for resized and all four carry verbs; no duplicate `bought` for a `carry_in` open.
@@ -1008,7 +1038,7 @@ Light and dark from the existing tokens. Tiles use `--glass` in both. Status tin
 - `act` 10 days after the last event still returns the ledger or position action (not null).
 - Ledger carry rows: R null and `cap_ret_pct` set; `stats.all.n` excludes carry.
 - Row v1 field **types** unchanged (`halt` bool, `thr` str, `alerts` int, `failed` bool).
-- Row ≤ 2,048 B on every fixture, and ≤ 1,600 B with no alerts.
+- Row ≤ 3,072 B on every fixture (≤ 2,048 B until §12), and ≤ 1,600 B with no alerts on the small fixtures.
 - Envelope key order `v, gen, …`.
 - `--fleet`: newest-gen merge, keeps rows of agents not pushed, exactly one bulk call, `exec:factory` only when changed.
 - Rows-dir mode bulk keys == `[latest, ledger, stamp]` (+ docs); standalone mode unchanged (the existing assertion at test_dashboard_bundle.py:250 still holds).
@@ -1282,3 +1312,112 @@ cookie), every lab tip key, and renders the page and sheets from the invented `c
 shape; with and without a day record) and the replay plan (real order, within its 15–60 s, never two pods in a slot).
 `tests/test_dashboard_client.py` asserts the words. Preview with `node cloud/dev/preview.mjs cloud/dev/kv.json 8788
 --overlay cloud/dev/fx_lab.json`.
+
+## 12. Dashboard truth and loud failures (review package D, 2026-10-16)
+
+A full review found the dashboard could fail silently, blame the wrong thing and show stale or mismatched numbers. Every
+fix keeps §1: only R and % of pot, missing is "—", words first. Tests: `tests/test_dashboard_review.py` (one class per
+finding), `tests/test_command_center.py`, and the client harness `tests/client_join_check.mjs` (`facts.review`, asserted in
+`tests/test_dashboard_client.py`) on the invented `cloud/dev/fx_factory_v3.json`.
+
+### 12.1 A failed push is loud, once (D1)
+
+- `run_agents.py` records every failed push with its reason (the push child's own `<id>.fail.json` in the rows dir:
+  "data check: forbidden key 'gross' at exec:latest.funnel.week.by_check", "Cloudflare: …", "build error (KeyError)";
+  else "timed out after 5 min" / "push exited 1"), still runs the fleet step, then exits 1. A cycle child stops after
+  15 min, a push after 5, the fleet step after 6 (`limit_of`), each counted as failed, so one hung bot cannot hold up the
+  rest; `dashboard-sync` allows 45 min.
+- The fleet step marks each failing bot's stored row `push_fail: {since, why, alerted}`; `since` survives the streak, and
+  it reports only the streaks the owner has not been told about (`_fleet.json` → `new_fail`). `run_agents.py` sends ONE
+  alert for them ("Executor: dashboard not updating", priority high, through the engine's `alert()`) and runs the fleet step
+  with `--alerts` when it holds the webhook, which sets `alerted`; a streak that starts in a job without the webhook
+  (review, deploy, control) is told by the next sync job. A continuing streak is silent, and the next successful push
+  replaces the row, which ends it. GitHub's runners keep nothing between jobs, so the marker lives in the row. When the
+  fleet step itself fails nothing can be marked: that job sends one alert of its own.
+- A stored row that fails the privacy assert is replaced by a bare row with `push_fail` "data check": one bad row never
+  freezes the whole index.
+- `dashboard-sync.yml` passes `ALERT_WEBHOOK`. `run_agents.py` alone holds the webhook (the fleet kill switch's alert used to
+  go nowhere: `secrets()` had taken the webhook out of the environment before `fleet_guard()` called `notify()`).
+
+### 12.2 Page behind, and who to suspect when a bot is stale (D1b, D3)
+
+- Every row carries `ran_t`, when the committed state's newest check ran; the fleet step refreshes it for rows it did not
+  push. A payload that cannot be built or fails the privacy assert writes only an error stamp, `exec:<id>:stamp` =
+  `{v, gen, t: ran_t, err: "data check" | "build"}`, and exits 3; the bot page keeps it in `S.stamp`.
+- `status()` (core, `behindOf`): when the state records a newer check than the page shows (`ran_t` or the stamp's `t`
+  more than a minute past `clock.last_t`), "Page behind" leads: "it checked at 10:06 pm, but this page still shows
+  1:05 am: a privacy check refused the new numbers (failing since 11:07 pm). The bot itself is running." Bad while
+  `push_fail` is set, warn while the update is only pending. The clock then runs from that newest check, the hero and the
+  tile add "as of <the page's check>", the schedule line says "Last check 10:06 pm (this page shows 1:05 am)", the
+  status pill's age is how far behind the page is (newest check − the page's check, "Page behind 9h"), and the Health
+  sheet names the raw reason.
+- A stale bot (no check at all) never reads "the runner may be down" while the server's heartbeat (`E.host.t`) is under
+  2 h old: "…, though the server is running: this bot's checks are not landing." With an old heartbeat but a fresh index:
+  "The server may be down: its last tick was …"; with both old: "The server, or the dashboard update, may be down."
+- Config and engine names never block a payload: the keys of `by_check`, `checks`, `risk.by_book`, ledger
+  `stats.book / tier / kind / reason` and `books[].why` are names (a book called "funding" or "gross" is fine); they are
+  still screened for currency text and everything below them is scanned. A `ScrubError` names the rule and the path,
+  never the offending text (the Action log is public).
+
+### 12.3 A funding collector over its whole life (D5, D9)
+
+`carry_sum.capture_pct` counts every pair, open and closed (old closed records: theoretical funding from their own
+`capture`; the open pairs only, `capture_scope` "open", when a record cannot say). The hedge result, `leg_pct`, is what the
+coin and its short did not cancel: booked spot and perp P&L of every pair plus the open legs at the last marks. Funding,
+costs and the hedge result are % of the starting pot, so the bot page's waterfall adds up to the pot's change: "funding
++0.46% · costs −0.18% · hedge −2.36% → −2.08% of pot · the rest is rounding". Closed pairs read "4 pairs closed · −1.89% on
+the capital they used" (Σ pnl / Σ capital), never a sum of returns on different capitals. The tile shows Funding kept
+(lifetime) and Hedge result.
+
+### 12.4 The fleet's paper pot (D7)
+
+The envelope's `paper` is computed by the push from every enabled paper bot's `equity.jsonl`: the summed series on the union
+of check times (each bot's last point carried forward, its start pot before its first point), `ret_pct` = sum now / sum
+of starts − 1, `dd_pct` how far the summed series is below its own peak now, `dd_max_pct` its worst. Ratios only. The
+master's Fleet (paper) KPI reads it; the lab's figure is no longer shown for paper.
+
+### 12.5 % of pot first (D8, D17)
+
+1 R is a different share of the pot on every bot (Trend's −0.57 R sale was −2.91% of its pot). Every sale and every raised
+stop in `exec:latest.events` carries its result in % of pot as a 10th column (a sale: its trade's pnl over the pot at its
+close, the ledger's `pnl_pct`; a stop: R × the position's risk over the pot then). `act.pot_pct` does the same for the
+last action, and the row's `open_pct` for open positions. The tiles and the log read "−0.82% of pot (−0.45 R)". A check
+that sold one coin and bought another shows both: `act.also` = `[[type, coins ≤ 3, n]]` → "Bought INJ · sold AAVE".
+
+### 12.6 Smaller truths in the bundle
+
+- **Usual start (D11):** `clock.lag_med_min` counts the first good check of each slot; a daily bot re-runs in its 180-min
+  window, and counting the re-runs put its "next check" about an hour late (67 → 8 min).
+- **Since start (D16):** a paper bot's "since start" is measured from its paper pot when its first equity point sits within
+  0.5% below it (that point already carries the first check's fees): Trend −3.83%, not −3.77%.
+- **Drawdown (D15):** `pot.dd_pct` / `pot.dd_max_pct` from the latest equity point; the bot page's drawdown cells and meter
+  read them (the engine's figure in `state.thr` lags a check).
+- **Invested (D14):** `pos[].val_pct`, a position at its last mark; `size_pct` stays the entry size.
+- **Stops (D13):** `risk.stops_drop_pct`, the further loss if every stop were hit from the last marks (null when a mark is
+  missing), shown before the result against the entries.
+- **vs holding (D12):** a rebalancer's benchmark is the coin it holds, so its trades never ship `rel_R`.
+- **Exits (D6):** "<coin>: 1h flip but no mark price" raises the exit-failed alert like the other timeframes; exit code
+  "1h flip" → `h1` ("hourly turn"); "h4" always reads "4-hour turn" (on an hourly bot it is the 4-hour gate).
+- **Missed pushes (D2):** the fleet step rebuilds every enabled agent whose stored row was pushed before its state's newest
+  check (row `gen` < `ran_t`), with the one `exec:agents` read it already makes, and writes it in the same bulk call.
+
+### 12.7 The lab's evidence (lab contract 2026-10-16)
+
+Each `X.shortlist[]` entry may carry `deflated_at_trial`, `deflated_now`, `trials_now`, `bench.{dev,holdout,paper}`
+(`days, bot_pct, btc_pct, btc_same_risk_pct, excess_pct_yr, excess_t, sharpe_bot, sharpe_btc, sharpe_diff_z` or null),
+`execution {ok, checks[{check, ok, detail}], orders, invested_days, healthy_run_frac, return_gap_pct}` and `evidence {level,
+alpha_t_own, alpha_t_btc, needed_t, unseen_days, months_more}`; all optional, "—" when missing. `COMP.labEvidence(s)`
+(factory.js) renders, on the Shortlist cards and an arena bot's Strategy section: "Not luck, now: 62% sure (99.1% at its
+trial; 214 recipes tried by now)" (replaces "Real, not luck 99.x%"); "vs Bitcoin" per period ("Backtest (2,740 days): bot
++420.0% · Bitcoin +610.0% held, +300.0% at the same risk · beats it by 4.1%/yr (t 1.4)"); "Execution verified ✓/✗" with
+its checks; "Edge evidence: moderate (t 1.4 of 2.0 needed, about 5 more months)" with a meter (the weaker of the two t).
+"Ready" now means execution verified AND strong evidence: "Ready for you" (pill, Needs-you item, funnel count, go-live
+steps) appears only for `ready === true`. The lab's own paper snapshot on a Shortlist card says "lab, <time>". Tips:
+`TIP.fxe`.
+
+### 12.8 The Worker
+
+`login()` compares the password in constant time (both sides hashed, every byte compared) and pauses 1 s before every
+"Wrong password."; the cookie's signature is compared the same way. `/api/factory`, `/api/lab` and `/api/lab/day` (the
+lab's payloads) pass through `kvLab()`: text with nothing suspicious is served as is; otherwise any money key (equity, cash,
+notional, pnl, fees, …) is dropped and any currency text blanked. The push guards `exec:factory` the same way.

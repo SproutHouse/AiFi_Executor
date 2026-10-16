@@ -1,0 +1,80 @@
+{
+ "_note": "INVENTED numbers, no lab data: exec:factory with the lab's 2026-10-16 evidence contract on every shortlisted bot (deflated_at_trial / deflated_now / trials_now, bench dev / holdout / paper against Bitcoin held and Bitcoin at the same risk, execution with its checks, evidence level with t and months). One bot of each kind: moderate evidence and verified execution (not ready), execution not verified with weak evidence (no unseen-year bench), and ready (strong evidence, verified). Used by tests/client_join_check.mjs; preview: node cloud/dev/preview.mjs <kv.json> 8790 --overlay cloud/dev/fx_factory_v3.json",
+ "exec:factory": {
+  "v": 1,
+  "gen": "2026-10-16T09:38:13Z",
+  "lab": {
+   "tried": 60,
+   "survivors": 3,
+   "by_family": {"bull_momentum": {"tried": 30, "survived": 2}, "rs_rotation": {"tried": 10, "survived": 1}, "sma_trend": {"tried": 20, "survived": 0}},
+   "last_batch": "2026-10-16",
+   "gates_version": 2,
+   "vetoed": 1,
+   "retired": 0,
+   "funnel": {"tested": 60, "passed_cheap": 40, "passed_audit": 9, "waiting_holdout": 4, "passed_holdout": 3, "vetoed": 1},
+   "last": {"date": "2026-10-16", "tried": 12, "passed": 0}
+  },
+  "regime": {"now": "bull", "since": "2026-08-24"},
+  "shortlist": [
+   {
+    "agent": "arena-02", "name": "A02 Bull", "recipe": "fx-b0000002", "family": "bull_momentum", "tag": "invented",
+    "hypothesis": "An invented idea: hold the strongest coins while the whole market rises.",
+    "enrolled": "2026-10-03", "enabled": true, "live": false, "status": "incubating", "days": 12.4,
+    "backtest": {"sharpe": 1.4, "cagr_pct": 25.0, "max_dd_pct": 19.0, "years": 7.5, "deflated": 0.991, "alpha_t": 2.2, "holdout_sharpe": 0.9, "regimes": {"bull": 40.0, "bear": 5.0, "crisis": -3.0}},
+    "paper": {"ret_pct": -2.07, "dd_pct": 3.72, "weight_match_pct": 100, "weight_checks": 420},
+    "deflated_at_trial": 0.991, "deflated_now": 0.62, "trials_now": 214,
+    "bench": {
+     "dev": {"days": 2740, "bot_pct": 420.0, "btc_pct": 610.0, "btc_same_risk_pct": 300.0, "excess_pct_yr": 4.1, "excess_t": 1.4, "sharpe_bot": 1.4, "sharpe_btc": 0.95, "sharpe_diff_z": 1.7},
+     "holdout": {"days": 365, "bot_pct": 18.0, "btc_pct": 30.0, "btc_same_risk_pct": 12.0, "excess_pct_yr": 6.0, "excess_t": 0.8, "sharpe_bot": 1.1, "sharpe_btc": 0.9, "sharpe_diff_z": 0.4},
+     "paper": {"days": 13, "bot_pct": 0.6, "btc_pct": -1.2, "btc_same_risk_pct": -0.5, "excess_pct_yr": 9.5, "excess_t": 0.3, "sharpe_bot": 0.8, "sharpe_btc": -0.6, "sharpe_diff_z": 0.2}
+    },
+    "execution": {"ok": true, "orders": 38, "invested_days": 11, "healthy_run_frac": 1.0, "return_gap_pct": 0.12,
+                  "checks": [{"check": "orders matched the backtest", "ok": true, "detail": "38 of 38"},
+                             {"check": "every check ran cleanly", "ok": true, "detail": "13 of 13 days"},
+                             {"check": "paper return close to the replay", "ok": true, "detail": "gap 0.12%"}]},
+    "evidence": {"level": "moderate", "alpha_t_own": 1.9, "alpha_t_btc": 1.4, "needed_t": 2.0, "unseen_days": 378, "months_more": 4.6},
+    "ready": false, "not_ready": ["13 of 42 days in the arena", "edge evidence moderate (t 1.4 of 2.0)"]
+   },
+   {
+    "agent": "arena-03", "name": "A03 Bull", "recipe": "fx-b0000003", "family": "bull_momentum", "tag": "invented",
+    "enrolled": "2026-10-05", "enabled": true, "live": false, "status": "incubating", "days": 10.4,
+    "backtest": {"sharpe": 1.5, "cagr_pct": 27.0, "max_dd_pct": 21.0, "years": 7.5, "deflated": 0.995},
+    "paper": {"ret_pct": -2.94, "dd_pct": 3.65, "weight_match_pct": 97, "weight_checks": 350},
+    "deflated_at_trial": 0.995, "deflated_now": 0.41, "trials_now": 214,
+    "bench": {"dev": {"days": 2740, "bot_pct": 450.0, "btc_pct": 610.0, "btc_same_risk_pct": 320.0, "excess_pct_yr": -0.8, "excess_t": -0.3}, "holdout": null, "paper": null},
+    "execution": {"ok": false, "orders": 30, "invested_days": 9, "healthy_run_frac": 0.9, "return_gap_pct": -0.9,
+                  "checks": [{"check": "orders matched the backtest", "ok": false, "detail": "27 of 30"},
+                             {"check": "every check ran cleanly", "ok": true, "detail": "10 of 11 days"}]},
+    "evidence": {"level": "weak", "alpha_t_own": 0.6, "alpha_t_btc": -0.3, "needed_t": 2.0, "unseen_days": 10, "months_more": 30},
+    "ready": false, "not_ready": ["11 of 42 days in the arena", "execution not verified"]
+   },
+   {
+    "agent": "arena-09", "name": "A09 Ready", "recipe": "fx-b0000009", "family": "rs_rotation", "tag": "invented",
+    "enrolled": "2026-08-20", "enabled": true, "live": false, "status": "ready", "days": 57.4,
+    "backtest": {"sharpe": 1.3, "cagr_pct": 20.0, "max_dd_pct": 15.0, "years": 7.5, "deflated": 0.999},
+    "paper": {"ret_pct": 4.1, "dd_pct": 2.0, "weight_match_pct": 100, "weight_checks": 57},
+    "deflated_at_trial": 0.999, "deflated_now": 0.97, "trials_now": 214,
+    "bench": {"dev": {"days": 2740, "bot_pct": 300.0, "btc_pct": 610.0, "btc_same_risk_pct": 150.0, "excess_pct_yr": 7.0, "excess_t": 2.6},
+              "holdout": {"days": 365, "bot_pct": 22.0, "btc_pct": 30.0, "btc_same_risk_pct": 9.0, "excess_pct_yr": 11.0, "excess_t": 2.1},
+              "paper": {"days": 57, "bot_pct": 4.1, "btc_pct": 2.0, "btc_same_risk_pct": 1.1, "excess_pct_yr": 19.0, "excess_t": 1.2}},
+    "execution": {"ok": true, "orders": 12, "invested_days": 50, "healthy_run_frac": 0.98, "return_gap_pct": 0.05, "checks": [{"check": "orders matched the backtest", "ok": true, "detail": "12 of 12"}]},
+    "evidence": {"level": "strong", "alpha_t_own": 2.4, "alpha_t_btc": 2.2, "needed_t": 2.0, "unseen_days": 422, "months_more": 0},
+    "ready": true, "not_ready": []
+   },
+   {
+    "agent": "arena-01", "name": "A01 Old shape", "recipe": "fx-b0000001", "family": "rs_rotation", "tag": "invented",
+    "enrolled": "2026-09-29", "enabled": true, "live": false, "status": "incubating", "days": 16.4,
+    "backtest": {"sharpe": 1.1, "cagr_pct": 17.0, "max_dd_pct": 18.0, "years": 7.5, "deflated": 0.997, "alpha_t": 2.0},
+    "paper": {"ret_pct": -2.9, "dd_pct": 4.09, "weight_match_pct": 100, "weight_checks": 208},
+    "ready": "yes", "not_ready": ["16 of 42 days in the arena"]
+   }
+  ],
+  "fleet": {
+   "members": [{"agent": "arena-02", "name": "A02 Bull", "kind": "directional", "mode": "paper", "vol_pct": 20.0, "erc_pct": 50.0, "regime_w": 1.0, "share_pct": 50.0}],
+   "excluded": [],
+   "totals": {"paper": {"agents": 8, "ret_pct": -3.44, "dd_pct": 4.43}},
+   "kill": {"halt": false, "reason": null, "max_live_dd_pct": 15, "apply_regime_weights": false},
+   "method": "invented"
+  }
+ }
+}

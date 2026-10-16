@@ -39,7 +39,8 @@
                  word.kind(k, long?) · word.tier(t) · word.dir(1|0|null) · word.range(rg) · word.dist(d, held?)
                  word.reason(code, v, long?) · word.reasons([[code, v]…], long?) · word.codes("vol 0.73,fund 68")
                  word.exit(rsn, tradeRow?) · word.outcome(o) · word.stage(code) · word.run(run) → {k, w, s} · word.lag(min, ok)
-                 word.event(eventsRow) → {html, ic, lv, t, type, c} · word.alert(alert) → html
+                 word.event(eventsRow) → {html, ic, lv, t, type, c} (a 10th column on sold / trail: % of pot, shown first,
+                   R in brackets) · word.alert(alert) → html
                  word.punct(b) the punctuality sentence · word.list([…]) · word.plural(n, one, many?)
                  word.bar(b?) 'hourly' | '4-hour' | 'daily' · word.every(b?) 'every hour' | 'every 4 hours' | 'every day'
                  word.kindName(kind, bar_s?) "Signal trader · hourly" ("—" for an unknown kind)
@@ -67,7 +68,7 @@
  Pages           PAGE 'fleet' (the Command Center, "/") | 'bot' ("/?a=<id>") | 'lab' ("/lab": VIEWS.lab, no polling) · AGENT
                  the bot id, null on the master and the lab page
                  AGENTS rows of exec:agents (null until loaded) · S.E the exec:agents envelope · rowOf(id) → row | null
-                 rowBundle(row, env?) → a status pseudo-bundle (§6.7) or null for a v1 row · kindOf(b?) → 'flip' |
+                 rowBundle(row, env?) → a status pseudo-bundle (§6.7, plus ran/pf/host/egen) or null for a v1 row · kindOf(b?) → 'flip' |
                  'target' | 'carry' (cfg.kind → row.kind → inference) · kindInfo(b?) → {kind, inferred}
                  loadAgents() → Promise<rows> (never rejects) · loadFactory(force?) → Promise<factory | null> (5 min cache)
                  botHref(id, hash?) "/?a=<id>#<hash>" · goFleet() back to the master (history.back() when we came from it)
@@ -75,7 +76,8 @@
                  switchAgent(id) → botHref(id), a replace on a bot page (a shim; ex.agent is never written) · ready() → the page has
                  its data · navHash('#tab/sub') (bot page: replaceState + route) · legacyHash() (boot.js, before boot)
                  ssGet(k) / ssSet(k, v | null) sessionStorage, never throw
- State           S = {b, ledger, ledgerGen, ledgerErr, cursor, tab, sub, prev, st, net, seenAt, seenEv, sheet, E}
+ State           S = {b, ledger, ledgerGen, ledgerErr, cursor, tab, sub, prev, st, net, seenAt, seenEv, sheet, E, stamp}
+                   S.stamp the last /api/stamp (bot page; {err} when a push failed: status() then says "Page behind")
                    S.b exec:latest · S.prev the bundle before the last arrival · S.st = status(S.b), refreshed on the
                    30 s tick · S.net 'ok'|'checking'|'offline'|'signedout' · S.seenEv = ex.seenEv as it was when
                    Activity opened (the "new since your last visit" marker) · S.sheet {kind, arg} of the open sheet
@@ -85,7 +87,9 @@
                  loadLWC() → Promise<LightweightCharts> (lightweight-charts 4.2.3 from jsdelivr, injected once)
  Status (§3)     clock(b?, nowS?) → {phase:'countdown'|'due'|'late'|'stale'|'none', C, lag, lim, next, lateAt, staleAt,
                    exitsAt, sched, lastT, lastSlot, age, over, toNext, rng, lagN, nOpen, exits, now}
-                 status(b?, nowS?) → {lvl:'ok'|'info'|'warn'|'bad', dot, word, age, wide, sentence(html), k, items[], K}
+                 status(b?, nowS?) → {lvl:'ok'|'info'|'warn'|'bad', dot, word, age, wide, sentence(html), k, items[], K, pb, shown}
+                   pb = {ran, pf} when the page is behind its bot (behindOf: row ran_t / push_fail, or a stamp's err), then
+                   k 'behind' "Page behind" leads (bad while the update fails) and K runs from ran; shown = the page's check
                    items[i] = {lvl, k, word, sentence(html), act:{label, href | cycle}, age, wide, head}
                  DOT[lvl] → dot class (ok due gap bad) · LVCLS[lvl] → '' | 'warn' | 'bad'
  Shell           openSheet(html | {html, after, cls}, key?) · showSheet(kind, arg, el?) · closeSheet() · refreshSheet()
@@ -322,7 +326,7 @@ const GLOSS = {
   gateRun: { t: 'Gate Run', d: 'A replay of one recorded check: every name moves down the engine’s gates in order and stops where the record says it stopped.' },
   heartbeat: { t: 'Heartbeat', d: () => 'One cell per ' + bw() + ' close' + (BAR === 14400 ? ' for the last 7 days' : '') + '. Each cell is a recorded check: on time, late, failed or missed.' },
   late: { t: 'Late check', d: c => 'A check that started more than ' + q(c.late_min, ' minutes', 'the late limit') + ' after the ' + bw() + ' close. Its data is too old to buy on, so buys are skipped for that bar; exits still run.' },
-  vsHolding: { t: 'vs holding', d: 'A trade’s R minus what simply holding the book’s benchmark over the same hours would have made, in the same R. Positive means the trade beat holding.' },
+  vsHolding: { t: 'vs holding', d: 'A trade’s R minus what simply holding the book’s benchmark over the same hours would have made, in the same R. Positive means the trade beat holding. Signal traders only: a rebalancer’s benchmark is the coin it holds, so it would be compared with itself.' },
   pf: { t: 'Profit factor', d: 'Total R won divided by total R lost. Above 1 the wins outweigh the losses; with no losing trade yet it has no value.' },
   goLive: { t: 'Go-live gates', d: c => { const g = c.gates || {}; return 'What the paper record must show before real money: ' + q(g.n, ' closed trades', 'enough closed trades') + ', ' + (g.avg_R != null ? 'an average above +' + g.avg_R + ' R' : 'a positive average R') + ', a worst drawdown under ' + q(g.dd_pct, '%', 'the limit') + ', and costs of at most ' + q(g.cost_R, ' R', 'the cost limit') + ' per trade.'; } },
   paper: { t: 'Paper', d: 'The bot runs every rule on real market data, but no order reaches the exchange. Fills and costs are simulated.' },
@@ -332,7 +336,7 @@ const GLOSS = {
   checks: { t: 'Safety checks', d: c => 'The checks every signal must pass before a buy' + (Array.isArray(c.checks) && c.checks.length ? ', in order: ' + c.checks.join(', ') + '.' : '.') },
   line: { t: 'Momentum Cloud line', d: () => 'The ' + bw() + ' trend line. A close above it turns the ' + bw() + ' bullish; a close below it turns it bearish.' },
   due: { t: 'Due', d: () => 'The check for the last ' + bw() + ' close should land about now. It is not late until the limit passes.' },
-  stale: { t: 'Stale', d: c => 'No check within ' + fmt.dur(staleGap(BAR, num(c.late_min) || 45)) + ' of ' + aBw('a') + ' close. The runner may be down.' },
+  stale: { t: 'Stale', d: c => 'No check within ' + fmt.dur(staleGap(BAR, num(c.late_min) || 45)) + ' of ' + aBw('a') + ' close. The status line says whether the server is still running.' },
 };
 function gloss(k) {
   const g = GLOSS[k]; if (!g) return null;
@@ -343,7 +347,7 @@ function tip(k) { const g = gloss(k); return '<button class="tip" type="button" 
 
 // ========================================================================================== words ==
 const KIND = { flip: ['flip', '4-hour flip'], pullback: ['pullback', 'pullback into the band'] };
-const EXIT = { stop: 'stop hit', h4: '4-hour turn', d: 'daily turn', w: 'weekly turn', flatten: 'manual flatten', nostop: 'no stop possible', exch: 'exchange stop', fund: 'funding fell below its exit rate', other: 'exit' };
+const EXIT = { stop: 'stop hit', h1: 'hourly turn', h4: '4-hour turn', d: 'daily turn', w: 'weekly turn', flatten: 'manual flatten', nostop: 'no stop possible', exch: 'exchange stop', fund: 'funding fell below its exit rate', other: 'exit' };
 const OUTCOME = { blocked: 'Blocked by a check', recorded: 'Recorded, not traded', expired: 'Expired (old approval model)', notfilled: 'Order not filled', bought: 'Bought' };
 const EV_IC = { bought: 'up', sold: 'down', trail: 'raise', blocked: 'block', recorded: 'rec', proposed: 'rec', expired: 'clock', notfilled: 'x',
   late: 'clock', failed: 'bad', halt: 'pause', resume: 'play', thr_halt: 'pause', thr_half: 'warn', recon: 'bad', no_stop: 'bad', close_failed: 'bad',
@@ -430,9 +434,11 @@ const word = {
   },
   event: e => {
     if (!Array.isArray(e)) return { html: '', ic: 'info', lv: 0 };
-    const [t, ty, c, kind, tier, lv, det, R, rel] = e;
+    const [t, ty, c, kind, tier, lv, det, R, rel, pp] = e;
     const C = c ? chip(c, t) : '', k = word.kind(kind), D = det == null ? '' : esc(det);
     const Rs = v => '<span class="' + fmt.cls(v) + '">' + fmt.R(v) + '</span>';
+    // a sale or a raised stop: % of pot first (1 R is a different share of pot per bot), R in brackets
+    const RP = (v, x) => num(pp) != null ? '<span class="' + fmt.cls(pp) + '">' + fmt.pct(pp) + '</span> of pot (' + Rs(v) + (x ? ', ' + x : '') + ')' : Rs(v) + (x ? ' (' + x + ')' : '');
     const dirs = s => String(s || '').split(',').map(x => x.trim()).filter(Boolean).map(x => {
       if (x === 'a in') return 'now one flip away';
       if (x === 'a out') return 'no longer one flip away';
@@ -442,8 +448,8 @@ const word = {
     let s;
     switch (ty) {
       case 'bought': { const sp = (String(det || '').match(/stop ([\d.]+)/) || [])[1]; s = 'Bought ' + C + (KIND[kind] ? ' on a ' + word.kind(kind, true) : kind === 'carry' ? ' (a carry pair)' : '') + (tier === 'A' || tier === 'B' ? ' (' + word.tier(tier).toLowerCase() + ')' : '') + (sp ? ', stop ' + fmt.pctu(sp, 1) + ' below' : ''); break; }
-      case 'sold': s = 'Sold ' + C + ' ' + Rs(R) + ' (' + word.exit(det) + ')' + (rel != null ? ' · ' + Rs(rel) + ' vs holding' : ''); break;
-      case 'trail': s = C + ' stop raised' + (R != null ? (rz(R, 2) < 0 ? ', still risks ' : ', locks ') + Rs(R) : ''); break;
+      case 'sold': s = 'Sold ' + C + ' ' + RP(R, word.exit(det)) + (rel != null ? ' · ' + Rs(rel) + ' vs holding' : ''); break;
+      case 'trail': s = C + ' stop raised' + (R != null ? (rz(R, 2) < 0 ? ', still risks ' : ', locks ') + RP(R) : ''); break;
       case 'blocked': {
         const rs = esc(word.reasons(word.codes(det), true)) || 'a safety check';
         s = tier === 'A' ? C + ' would have bought (auto grade), blocked: ' + rs : C + ' ' + k + (tier === 'B' ? ' (watch-only)' : '') + ' blocked: ' + rs; break;
@@ -499,7 +505,7 @@ function runHooks(name, ...a) { hooksOf(name).forEach(fn => call(fn, ...a)); }
 const TABS = ['overview', 'results', 'activity', 'rules'];
 const TITLE = { overview: 'Overview', results: 'Trades', activity: 'Activity', rules: 'Rules', fleet: 'Command center', lab: 'AiFi Lab' };
 const S = { b: null, ledger: null, ledgerGen: null, ledgerErr: null, cursor: null, tab: 'overview', sub: null, prev: null,
-            st: null, net: 'checking', seenAt: 0, seenEv: 0, sheet: null, bootErr: null, booting: false, E: null, prevE: null, agentsErr: null };
+            st: null, net: 'checking', seenAt: 0, seenEv: 0, sheet: null, bootErr: null, booting: false, E: null, prevE: null, agentsErr: null, stamp: null };
 // Whether the page has its data: the bundle on a bot page, the exec:agents envelope on the master.
 function ready() { return PAGE === 'lab' || (PAGE === 'fleet' ? !!S.E : !!S.b); }
 function runsOf(b) { b = b || S.b; return b && Array.isArray(b.runs) ? b.runs : []; }
@@ -571,9 +577,10 @@ function barOf(b) {
   const r = rowOf(AGENT);
   return (r && (num(r.bar_s) || TF[r.tf])) || 14400;
 }
-// How long after its close a check counts as missed for good: a whole bar, but never under 4 h nor under the late
-// limit plus an hour (so an hourly bot is stale at the next close, a daily one 4 h after its close).
-function staleGap(bar, lim) { return Math.min(bar, Math.max(14400, lim * 60 + 3600)); }
+// How long after its close a check counts as missed for good: a whole bar but at least 2 h, and never under 4 h nor
+// under the late limit plus an hour (an hourly bot is stale after two missed checks, not one late hour; a daily one 4 h
+// after its close). Exits count as unchecked 2 h after the close; for an hourly bot that is when it turns stale.
+function staleGap(bar, lim) { return Math.min(Math.max(bar, 7200), Math.max(14400, lim * 60 + 3600)); }
 // clock(b, now): §3.1 with the per-bar rule (COMMAND_CENTER_SPEC §6.7). C is the next close the engine owes a check
 // for; every time is recomputed from now. A 4-hour bot gives exactly the same output as before the rule.
 function clock(b, now) {
@@ -581,7 +588,7 @@ function clock(b, now) {
   const k = clockOf(b), lim = limOf(b), bar = barOf(b);
   if (!k || k.last_slot == null || k.last_t == null) return { phase: 'none', now, lim, lag: 20, C: null, next: null, nOpen: nOpen(b), exits: false };
   const lag = (k.lag_n != null && k.lag_n < 3) ? 20 : (numv(k.lag_med_min) ?? 20);
-  const C = k.last_slot + bar, next = Math.round(C + lag * 60), lateAt = C + lim * 60, staleAt = C + staleGap(bar, lim), exitsAt = C + Math.min(7200, bar);
+  const C = k.last_slot + bar, next = Math.round(C + lag * 60), lateAt = C + lim * 60, staleAt = C + staleGap(bar, lim), exitsAt = C + 7200;
   const phase = now < next ? 'countdown' : now < lateAt ? 'due' : now < staleAt ? 'late' : 'stale';
   const n = nOpen(b);
   return { phase, now, C, lag, lim, next, lateAt, staleAt, exitsAt, sched: C + (numv(k.sched_min) ?? 5) * 60, lastT: k.last_t, lastSlot: k.last_slot,
@@ -593,29 +600,64 @@ const LVCLS = { ok: '', info: '', warn: 'warn', bad: 'bad' };
 const COVERED = new Set(['failed', 'halt', 'thr_halt', 'thr_half', 'fallback', 'late']);     // alerts the state already speaks for
 const AWORD = { unhedged: 'Legs uneven', exit_slow: 'Closing slow' };                                                    // a warn alert's own word ("Check" otherwise)
 const HOLD = '#overview/holding';
+// The page is behind its bot (2026-10-16): the committed state records a newer check than this page shows, because the
+// dashboard update failed or has not landed. From the row's ran_t and push_fail (rowBundle; a bot page reads its own row)
+// and a failed push's error stamp (S.stamp.err). → {ran, pf} or null.
+function behindOf(b, K) {
+  let ran = num(b && b.ran), pf = b && isObj(b.pf) ? b.pf : null;
+  if (PAGE === 'bot' && b && b === S.b) {
+    const A = rowOf(AGENT), s = S.stamp;
+    if (A) { ran = num(A.ran_t); pf = isObj(A.push_fail) ? A.push_fail : null; }
+    if (isObj(s) && s.err) { const t = isoS(s.t); if (t != null && (ran == null || t > ran)) ran = t; pf = pf || { why: String(s.err) }; }
+  }
+  return ran != null && K.lastT != null && ran > K.lastT + 60 ? { ran, pf } : null;
+}
+// Why the page is behind, in plain words (the raw reason stays in the Health sheet).
+function pfWords(pf) {
+  const w = String((pf && pf.why) || '');
+  return /^data check/.test(w) ? 'a privacy check refused the new numbers' : /^Cloudflare/.test(w) ? 'the dashboard store refused them'
+    : /timed out/.test(w) ? 'the update timed out' : /^build/.test(w) ? 'the new numbers could not be put together' : 'the update failed';
+}
+// Who to suspect when a bot is stale: the server's own heartbeat (exec:agents host.t, refreshed by every dashboard sync)
+// and the index's age tell "the server is down" from "this bot's checks are not landing". Never blame the runner while
+// its heartbeat is fresh.
+function staleWhy(b, now) {
+  const E = S.E || {}, h = (b && isObj(b.host) && b.host) || (isObj(E.host) && E.host) || null, ht = h ? isoS(h.t) : null, eg = isoS((b && b.egen) || E.gen);
+  if (ht != null && now - ht < 7200) return [', though the server is running: this bot’s checks are not landing.', '· its checks are not landing'];
+  if (eg != null && now - eg < 7200) return ['. The server may be down: its last tick was ' + esc(ht != null ? fmt.when(ht) : 'not recorded') + '.', '· the server may be down'];
+  return ['. The server, or the dashboard update, may be down.', '· the server may be down'];
+}
 // status(b, now): one truth for the capsule, rail mirror, verdict, alert rail and the master's tiles. The first item marked
-// head sets the headline (§3.2 precedence); every item goes to the alert rail and the Health sheet.
+// head sets the headline (§3.2 precedence); every item goes to the alert rail and the Health sheet. When the page is behind
+// (behindOf), the clock runs from the newest check the state records, and "Page behind" leads.
 function status(b, now) {
   b = b === undefined ? S.b : b;
-  const K = clock(b, now);
+  let K = clock(b, now);
   if (!b) return { lvl: 'info', dot: 'mute', word: 'Checking…', age: '', wide: '', sentence: 'Checking…', k: 'none', items: [], K };
+  const pb = behindOf(b, K), shown = K.lastT;
+  if (pb) { const bar = barOf(b); K = clock(Object.assign({}, b, { clock: Object.assign({}, clockOf(b), { last_t: pb.ran, last_slot: Math.floor(pb.ran / bar) * bar }) }), K.now); }
   const st = stateOf(b), last = st.last || {}, halt = st.halt || {}, thr = st.thr || {}, m = modeOf(b), T = t => esc(fmt.when(t));
   const ageLast = K.lastT != null ? fmt.age(K.age) : '', items = [];
   const RUNBOOK = { label: 'Runbook', href: '#rules/operations' };
   const add = (lvl, k, wd, sentence, o) => items.push(Object.assign({ lvl, k, word: wd, sentence, act: null, age: ageLast, wide: '', head: true }, o));
   const dd = thr.dd_pct != null ? fmt.pctu(thr.dd_pct, 1) : null, lims = thrOf(b);
+  const behind = () => add(pb.pf ? 'bad' : 'warn', 'behind', 'Page behind', '<b>Page behind</b> · it checked at ' + T(pb.ran) + ', but this page still shows ' + T(shown)
+    + (pb.pf ? ': ' + pfWords(pb.pf) + (num(pb.pf.since) != null ? ' (failing since ' + T(pb.pf.since) + ')' : '') : ' (the update has not landed yet)') + '. The bot itself is running.',
+    { act: RUNBOOK, age: fmt.age(pb.ran - shown), wide: '· checked ' + fmt.when(pb.ran) + ', page shows ' + fmt.when(shown) });   // age: how far behind
+  if (pb && pb.pf) behind();
   if (last.failed) add('bad', 'failed', 'Failed', '<b>Needs you</b> · the ' + T(last.t) + ' check stopped early' + (last.abort ? ' (' + esc(last.abort) + ')' : '') + '. Exits may not have been checked.',
     { act: { label: 'See check', cycle: last.t }, wide: '· the ' + fmt.when(last.t) + ' check stopped early' });
   if (halt.set) add('bad', 'halt', 'Halted', '<b>Halted</b> since ' + (halt.since ? T(halt.since) : 'unknown') + ': ' + esc(halt.reason || 'manual halt') + '. No new buys; exits still run.',
     { act: RUNBOOK, wide: '· no new buys' });
   if (thr.state === 'halted') add('bad', 'thr_halt', 'Buying stopped', '<b>Buying stopped</b> · drawdown ' + (dd || '—') + ' reached the ' + (lims[1] != null ? esc(lims[1]) + '% ' : '') + 'limit.',
     { act: { label: 'Positions', href: HOLD }, wide: dd ? '· drawdown ' + dd : '' });
-  if (K.phase === 'stale') add('bad', 'stale', 'Stale', '<b>Stale</b> · no check for ' + esc(fmt.age(K.age)) + '. The runner may be down.', { act: RUNBOOK, wide: '· the runner may be down' });
+  if (K.phase === 'stale') { const w = staleWhy(b, K.now); add('bad', 'stale', 'Stale', '<b>Stale</b> · no check for ' + esc(fmt.age(K.age)) + w[0], { act: RUNBOOK, wide: w[1] }); }
   if (K.exits) add('bad', 'exits', 'Exits unchecked', '<b>Needs you</b> · exits not checked since ' + T(K.lastT) + '.',
     { act: { label: 'See positions', href: HOLD }, age: fmt.age(K.over), wide: '· since ' + fmt.when(K.lastT) });
   const alerts = Array.isArray(b.alerts) ? b.alerts.filter(a => a && typeof a === 'object') : [];
   const actOf = a => a.c && /^(gap|close_failed|exit_failed|unhedged|exit_slow)$/.test(a.k) ? { label: 'See position', href: HOLD } : a.k === 'entry_failed' ? { label: 'See check', cycle: a.t != null ? a.t : last.t } : RUNBOOK;
   for (const a of alerts) if (a.lv === 'bad' && !COVERED.has(a.k)) add('bad', a.k, 'Needs you', word.alert(a), { act: actOf(a), wide: '· see the alert' });
+  if (pb && !pb.pf) behind();
   if (K.phase === 'late' && !K.exits) add('warn', 'late_now', 'Late', '<b>Late</b> · no check yet for the ' + T(K.C) + ' close. After ' + T(K.lateAt) + ' it skips buys.',
     { act: RUNBOOK, age: fmt.age(K.over), wide: '· no check for the ' + fmt.time(K.C) + ' close' });
   if (m.req && m.eff && m.req !== m.eff) add('warn', 'fallback', 'Paper fallback', '<b>Live requested, running paper</b>: ' + esc(m.note || 'live requirements missing') + '.', { act: RUNBOOK, wide: '· live requested' });
@@ -636,8 +678,8 @@ function status(b, now) {
     ? { lvl: 'info', k: 'none', word: 'No checks yet', age: '', wide: '', sentence: '<b>No checks yet</b> · the first check after deployment writes here.' }
     : { lvl: 'ok', k: 'ok', word: 'On schedule', age: ageLast, wide: K.next ? '· next check ≈ ' + fmt.when(K.next) : '', sentence: '<b>All clear</b> · nothing needs you.' };
   const gen = isoS(b.gen || b.generated);
-  const trail = gen != null && K.lastT != null && gen - K.lastT > 600 ? ' · pushed ' + fmt.when(gen) : '';
-  return { lvl: head.lvl, dot: DOT[head.lvl], word: head.word, age: head.age, wide: (head.wide || '') + trail, sentence: head.sentence, k: head.k, items, K, head };
+  const trail = !pb && gen != null && K.lastT != null && gen - K.lastT > 600 ? ' · pushed ' + fmt.when(gen) : '';
+  return { lvl: head.lvl, dot: DOT[head.lvl], word: head.word, age: head.age, wide: (head.wide || '') + trail, sentence: head.sentence, k: head.k, items, K, head, pb, shown };
 }
 
 // ================================================================================= fetch + ledger ==
@@ -703,7 +745,8 @@ function rowBundle(A, E) {
   const halt = fl.halt && !(st.halt && st.halt.set)
     ? Object.assign({}, st, { halt: { set: true, reason: 'fleet halt: ' + (fl.reason || 'no reason given'), since: fl.since } }) : st;
   return { v: 2, gen: A.gen, clock: Object.assign({}, ck, { bar_s: ck.bar_s || A.bar_s || TF[A.tf] }), state: halt, cfg: isObj(sb.cfg) ? sb.cfg : {},
-           mode: sb.mode, alerts: Array.isArray(sb.alerts) ? sb.alerts : [], risk: sb.risk, runs: [] };
+           mode: sb.mode, alerts: Array.isArray(sb.alerts) ? sb.alerts : [], risk: sb.risk, runs: [],
+           ran: num(A.ran_t), pf: isObj(A.push_fail) ? A.push_fail : null, host: isObj(E.host) ? E.host : null, egen: E.gen };
 }
 // The bot's kind: its bundle's cfg.kind, its row's kind, or inferred from what it holds and logs (said as inferred).
 const KINDS = { flip: 1, target: 1, carry: 1 };
@@ -969,7 +1012,8 @@ function stTip(st, b, A) {
     ok: 'It checks the market ' + ev + '. Its last check' + (K.lastT != null ? ' (' + fmt.ago(K.lastT) + ')' : '') + ' ran on time.' + (K.next != null ? ' Next check about ' + T(K.next) + '.' : ''),
     due: 'Its ' + T(K.C) + ' check should land any minute' + (K.rng ? ' (usually ' + K.rng[0] + '–' + K.rng[1] + ' min after)' : '') + '. Nothing is wrong unless it is still missing at ' + T(K.lateAt) + '.',
     late_now: 'Its ' + T(K.C) + ' check is past its ' + (K.lim || limOf(b)) + '-min limit, so this round’s buys are skipped. Sells are checked once it runs.',
-    stale: 'No check for ' + fmt.age(K.age) + ', though it checks ' + ev + '. The server may be down, so these numbers may be out of date.',
+    stale: 'No check for ' + fmt.age(K.age) + ', though it checks ' + ev + ', so these numbers may be out of date. The line beside it says whether the server is still running.',
+    behind: st.pb ? 'It checked at ' + T(st.pb.ran) + ', but the dashboard did not get the new numbers' + (st.pb.pf ? ' (its update is failing)' : '') + ', so this page shows ' + T(st.shown) + '. The bot keeps running and trading.' : null,
     exits: 'It holds coins, but no check since ' + T(K.lastT) + ' has looked at selling them.',
     failed: 'Its last check stopped partway, so its sells may not have been checked.',
     halt: 'Buying is off, set by you or the fleet kill switch. It still sells when its rules say so.',
@@ -1004,10 +1048,13 @@ const KTIP = {
   target: 'It keeps a set mix of coins and adjusts it at each check, instead of trading single signals.',
   carry: 'It holds a coin plus an equal short bet on it, so price moves mostly cancel, and earns the funding fees traders pay.',
 };
+// An arena bot's day in its trial, counted live from its enrolment date (the lab's snapshot only as a fallback), and the
+// trial's length from the lab's not_ready sentence.
 function arenaDays(id) {
-  const s = fxCache && Array.isArray(fxCache.shortlist) ? fxCache.shortlist.find(x => x && x.agent === id) : null;
-  const m = s && /(\d+)\s+of\s+(\d+)\s+days/.exec(String(s.not_ready || ''));
-  return { day: s && num(s.days) != null ? Math.floor(s.days) : null, of: m ? m[2] : null };
+  const s = fxCache && Array.isArray(fxCache.shortlist) ? fxCache.shortlist.find(x => x && x.agent === id) : null, A = rowOf(id);
+  const m = s && /(\d+)\s+of\s+(\d+)\s+days/.exec(String(s.not_ready || '')), e = A && isObj(A.arena) && /^(\d{4})-(\d\d)-(\d\d)/.exec(String(A.arena.enrolled || ''));
+  const d = e ? (nowS() - Date.UTC(+e[1], e[2] - 1, +e[3]) / 1000) / 86400 : s && num(s.days);
+  return { day: d != null ? Math.max(0, Math.floor(d)) : null, of: m ? m[2] : null };
 }
 const FXT = {
   '': ['Bot factory', 'The AiFi Lab, a separate program, designs and tests new bot recipes every night. This shows how many it tried and how few got through.'],
@@ -1016,7 +1063,7 @@ const FXT = {
   audit: ['Passed the full audit', 'A strict review: realistic costs, many market periods, and a test that the result isn’t luck.'],
   holdout: ['Passed the unseen final year', 'The lab hides the latest year of prices while it designs. A recipe gets one try to work on that year.'],
   arena: ['Trading in the arena', 'A recipe that passed everything trades on paper, no real money, for a trial of several weeks, and must keep matching its backtest.'],
-  ready: ['Ready for you', 'It finished its trial and matched its backtest. Going live is always your call; nothing switches by itself.'],
+  ready: ['Ready for you', 'Its paper trading was checked against its backtest (execution verified) and the evidence of an edge is strong. Going live is always your call; nothing switches by itself.'],
   last: ['Nightly batch', 'The lab’s latest nightly batch: new recipes tested, and how many passed every check.'],
   fam: ['By strategy type', 'The kinds of idea the lab tests: recipes tried and passed for each.'],
   study: ['Research', 'A bigger experiment to learn which ideas are worth testing. A study, not a bot.'],
@@ -1067,8 +1114,9 @@ const TIP = {
   invested: ['Invested', 'The share of its pot in coins right now; the rest waits in cash.'],
   closed: ['Closed trades', 'Trades it has fully exited. A rebalancer trades rarely, so it is judged over a year (an arena bot over its trial), not by trade count.'],
   pairs: ['Pairs', 'Each pair is a coin plus an equal short bet on it, so price moves mostly cancel while it collects funding.'],
-  kept: (a, el) => { const A = tipRow('', el), c = (onPage(A) ? S.b.carry_sum : A && A.carry) || {}; return ['Funding kept', 'The share of the funding it could earn that it kept after costs and timing. It needs ' + (num(c.gate_pct) ?? 80) + '% to go live; its first 2 weeks are too early to judge.']; },
+  kept: (a, el) => { const A = tipRow('', el), c = (onPage(A) ? S.b.carry_sum : A && A.carry) || {}; return ['Funding kept', 'The share of the funding it could earn that it kept after costs and timing, over every pair it ever held, closed ones included' + (c.capture_scope === 'open' ? ' (here only the open pairs: older closed pairs did not record it)' : '') + '. It needs ' + (num(c.gate_pct) ?? 80) + '% to go live; its first 2 weeks are too early to judge.']; },
   capuse: ['Capital in use', 'How much of the pot its pairs tie up. It can pass 100%: each pair counts the coin and the short.'],
+  legs: ['Hedge result', 'What the coin and its short bet did not cancel out, over every pair: booked when legs were trimmed or a pair closed, plus the open legs at the last prices. With funding minus costs, it makes up the pot’s change.'],
   beads: (a, el) => {
     const bar = tipBar(tipRow('', el)), m = /^(\d+)\/(\d+)$/.exec(a);
     return ['Heartbeat', 'One dot per check' + (bar ? ' (' + barw(bar, 1) + ')' : '') + ', oldest left. Green on time, amber late, red failed; a magenta ring means it traded. A dashed empty dot was missed; the empty magenta dot is the next check.'
@@ -1079,7 +1127,7 @@ const TIP = {
   bots: ['Bots', 'Bots running normally. Below: how many are late, failed or halted (stopped by a safety rule or by you).'],
   day: ['Last 24 h', 'Checks in the past day that ran on time, all bots together. Below: signals seen, and the buys and sells that followed.'],
   open: ['Open', 'Coins held now by the traders and rebalancers, then the funding pairs, counted apart (a pair is two positions).'],
-  fleet: ['Fleet (paper)', 'All paper bots as one pretend pot: its change, and its worst drop from a peak (drawdown). Worked out by the AiFi Lab.'],
+  fleet: ['Fleet (paper)', 'All paper bots as one pretend pot: its change since each started, how far it is below its best point now (drawdown), and its worst drop. Worked out from every bot’s own pot at its latest check.'],
   kill: a => a === 'halt' ? ['Fleet halted', 'The fleet kill switch is on: no bot buys; sells still run.'] : a ? ['Fleet running', 'The fleet kill switch is off. If it trips, every bot stops buying but keeps selling.'] : ['Kill switch', 'Not in this data yet.'],
   market: ['Market', 'The AiFi Lab’s read of the crypto market: bull (rising), bear (falling) or crisis. Some bots buy only in a bull market.'],
   server: a => [a || 'Server', 'The always-on computer that runs the bots’ checks. A tick is it waking to run them, about hourly.'],
@@ -1194,7 +1242,8 @@ SHEETS.health = function () {
   const thrW = { normal: 'Allowed', halved: 'Risk halved', halted: 'Stopped', unknown: 'unknown' }[thr.state] || 'unknown';
   const f = [];
   const lm = last.late_min != null ? last.late_min : (lastRun(b) || {}).lm;
-  f.push(['Last check', K.lastT != null ? esc(fmt.when(K.lastT)) + ' · ' + (last.failed ? '<span class="neg">stopped early</span>' + (lm != null ? ' (started ' + esc(lm) + ' min after the close)' : '') : esc(word.lag(lm, last.fresh))) : na()]);
+  f.push(['Last check', st.pb ? esc(fmt.when(st.pb.ran)) + ' <span class="sub">(this page shows ' + esc(fmt.when(st.shown)) + ')</span>'
+    : K.lastT != null ? esc(fmt.when(K.lastT)) + ' · ' + (last.failed ? '<span class="neg">stopped early</span>' + (lm != null ? ' (started ' + esc(lm) + ' min after the close)' : '') : esc(word.lag(lm, last.fresh))) : na()]);
   const PH = { countdown: ['On schedule', ''], due: ['Due now', 'due'], late: [K.exits ? 'Late, exits unchecked' : 'Late', 'late'], stale: ['Stale', 'stale'] }[K.phase];
   if (PH) f.push(['Clock', esc(PH[0]) + (PH[1] ? ' ' + tip(PH[1]) : '')]);
   if (K.C != null) {
@@ -1208,6 +1257,8 @@ SHEETS.health = function () {
   f.push(['Drawdown', thr.dd_pct != null ? esc(fmt.pctu(thr.dd_pct, 1)) : na()]);
   const gen = isoS(b.gen || b.generated);
   f.push(['Data pushed', gen != null ? esc(fmt.when(gen)) + ' <span class="sub" data-ago="' + gen + '">' + esc(fmt.ago(gen)) + '</span>' : na()]);
+  if (st.pb) f.push(['Dashboard update', 'behind: checked ' + esc(fmt.when(st.pb.ran)) + ', shown ' + esc(fmt.when(st.shown))
+    + (st.pb.pf ? ' · <span class="neg">failing</span>' + (num(st.pb.pf.since) != null ? ' since ' + esc(fmt.when(st.pb.pf.since)) : '') + (st.pb.pf.why ? ' <span class="sub">(' + esc(st.pb.pf.why) + ')</span>' : '') : '')]);
   if (b.diag && b.diag.unparsed) f.push(['Unread engine lines', esc(fmt.int(b.diag.unparsed))]);
   const tr = b.diag && isObj(b.diag.trim) ? b.diag.trim : null;   // the push kept exec:latest within 50 KB
   if (tr && (num(tr.dx) || num(tr.board))) f.push(['Trimmed to fit', esc([num(tr.dx) ? 'distances of the ' + word.plural(tr.dx, 'oldest check') : '', num(tr.board) ? word.plural(tr.board, 'older reading change') : ''].filter(Boolean).join(' · '))]);
@@ -1434,8 +1485,8 @@ async function poll(user) {
       loadFactory();
     } else {
       const st = await getJSON(api('/api/stamp'), 10000);
-      P.err = 0; S.net = 'ok'; S.seenAt = nowS();
-      if (st && st.gen && (!S.b || st.gen !== S.b.gen) && P.gaveUp !== st.gen) await pull(st.gen, 0);
+      P.err = 0; S.net = 'ok'; S.seenAt = nowS(); S.stamp = isObj(st) ? st : null;     // a failed push's stamp says why (status)
+      if (st && st.gen && !st.err && (!S.b || st.gen !== S.b.gen) && P.gaveUp !== st.gen) await pull(st.gen, 0);
     }
   } catch (e) {
     if (e && e.kind === 'auth') S.net = 'signedout';
@@ -1537,13 +1588,13 @@ function bootCard(title, text, btn) {
   return '<div class="card rise"><div class="empty"><h2 style="color:var(--ink);font-size:var(--fs-lg);margin-bottom:6px">' + esc(title) + '</h2>'
     + '<p style="margin:0 0 12px">' + esc(text) + '</p>' + (btn || '') + '</div></div>';
 }
-// The words that name this bot's bar in the shared vocabulary (gate labels, the flip, the exit on its line).
+// The words that name this bot's bar in the shared vocabulary (gate labels, the flip). Exit codes name their own
+// timeframe (h1 hourly, h4 4-hour, d daily): on an hourly bot "h4" is its 4-hour gate turning, so it is never renamed.
 function barWords() {
   const w = word.bar();
   STAGE.n.w = cap1(w) + ' not ready';
   GATES[4].label = cap1(w) + ' signal';
   KIND.flip[1] = w + ' flip';
-  EXIT.h4 = w + ' turn';
 }
 async function boot() {
   if (S.booting) return;

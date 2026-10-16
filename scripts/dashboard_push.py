@@ -20,7 +20,7 @@ Without the variable (a manual run) the push still read-merges exec:agents inlin
   python3 scripts/dashboard_push.py --fleet DIR        merge the rows in DIR into exec:agents (one read, one bulk write)
   --state DIR / --config DIR / --docs DIR / --now TS   read another state tree (demo, tests) or pin the clock
 """
-import argparse, hashlib, json, math, os, re, time, urllib.error, urllib.parse, urllib.request
+import argparse, hashlib, json, math, os, re, time, traceback, urllib.error, urllib.parse, urllib.request
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,8 +41,11 @@ LATEST_BUDGET, DX_KEEP = 50 * 1024, 12   # exec:latest raw bytes (spec §15); th
 BEAT_N = {3600: 24, 14400: 18, 86400: 14}  # heartbeat slots per bar length (Command Center §6.1)
 ACTED = ("bought", "sold", "resized", "carry_in", "carry_out", "carry_closed")   # event types that are the bot acting
 CARRY_GATE_PCT = 80                        # capture-efficiency go-live gate when settings.carry.capture_gate_pct is absent
-ROW_BUDGET, ROW_SPARK_N, ROW_RECENT_N = 2048, 24, 3   # one exec:agents row (§6.3)
+ROW_BUDGET, ROW_SPARK_N, ROW_RECENT_N = 3072, 24, 5   # one exec:agents row (§6.3)
 ROW_KEYS = ("last_t", "last_slot", "late_min", "lag_med_min", "lag_rng", "lag_n", "limit_min", "sched_min", "bar_s")
+# carry_sum keys that stay on the bot page: the tile reads the rest (row budget)
+ROW_CARRY_DROP = ("open_pct", "closed_pct", "capture_open_pct", "fund_all_pct", "cost_all_pct", "closed_n", "closed_ret_pct", "leg_open_pct")
+PAPER_BASE_TOL = 0.005                     # a paper pot's first equity point may sit this far below pot_usd_paper (entry fees)
 
 # The order risk.pre_trade runs its checks in (tests/test_dashboard_bundle.py asserts it equals what pre_trade returns).
 PRE_TRADE_ORDER = ["not halted", "throttle allows entries", "data fresh and run on time", "no reconciliation mismatch",
@@ -52,13 +55,18 @@ PRE_TRADE_ORDER = ["not halted", "throttle allows entries", "data fresh and run 
 # Command Center test reads both methods' add("…") names and asserts these lists match, so the Rules tab cannot drift).
 TARGET_CHECKS = ["not halted", "throttle allows entries", "data fresh and run on time", "no reconciliation mismatch", "equity positive",
                  "gross exposure cap", "above the exchange minimum", "price sanity band", "universe filters"]
-CARRY_CHECKS = ["not halted", "throttle allows entries", "no reconciliation mismatch", "equity positive", "universe filters", "price sanity band"]
+# A collector's list ends with the free-capital check cycle.carry_step appends after carry_checks (carry_capital, 2026-10-16:
+# a new pair takes only the capital the open pairs leave free); it refuses as "gross exposure cap".
+CARRY_CHECKS = ["not halted", "throttle allows entries", "no reconciliation mismatch", "equity positive", "universe filters", "price sanity band",
+                "gross exposure cap"]
 CHECK_CODES = {"not halted": "halt", "throttle allows entries": "thr", "data fresh and run on time": "fresh",
                "no reconciliation mismatch": "recon", "sizing accepted": "sizing", "no open position in this coin": "dup",
                "below max positions": "maxpos", "equity positive": "equity", "open-risk cap": "cap", "gross exposure cap": "gross",
                "book open-risk cap": "bookcap", "price sanity band": "sanity", "universe filters": "universe"}
 OUTCOME = {"pre-trade": "blocked", "policy": "recorded", "proposal": "expired", "execution": "notfilled", "approval": "blocked"}
-RSN = {"stop": "stop", "4h flip": "h4", "daily flip": "d", "weekly flip": "w", "manual flatten": "flatten",
+# Exit reasons: a flip names its timeframe (cycle.py writes f"{tf} flip"): on an hourly bot "4h flip" is its 4-hour
+# gate turning and "1h flip" its own bar, so each keeps its own code (h1 reads "hourly turn", h4 always "4-hour turn").
+RSN = {"stop": "stop", "4h flip": "h4", "1h flip": "h1", "1d flip": "d", "daily flip": "d", "weekly flip": "w", "manual flatten": "flatten",
        "no stop possible": "nostop", "stop (exchange)": "exch", "funding below exit": "fund"}
 # the fixed why strings in signals.py (lines 13, 15, 18, 28, 30)
 WHY = {"weekly Momentum Cloud not bullish": "w", "daily Momentum Cloud not bullish": "d", "4-hour reading not ready": "n",
@@ -162,6 +170,17 @@ def median(xs):
 
 def pos_ts(p):
     return int(p.get("opened_ts") or ts_of(p.get("opened")) or 0)
+
+
+def paper_base(first, pot):
+    """The pot "since start" is measured from: a paper bot's first equity point is written after its first check, so it
+    already carries that check's entry fees; when it sits just below the configured paper pot (within PAPER_BASE_TOL), the
+    pot itself is the start. Anything else (a live pot, a later reset, a pot above the setting) keeps the first point."""
+    if not isinstance(first, (int, float)) or first <= 0:
+        return None
+    if isinstance(pot, (int, float)) and not isinstance(pot, bool) and pot >= first and (pot - first) <= pot * PAPER_BASE_TOL:
+        return float(pot)
+    return float(first)
 
 
 # ---------------------------------------------------------------------------------------- reason codes (§7) --
@@ -286,7 +305,7 @@ _P = {k: re.compile(v) for k, v in {
     "not_on_exchange": r"^(\S+): not on the exchange and no sell fill",
     "exit_failed": r"^(\S+): exit management failed \((\w+)",
     "gap": r"^(\S+): no reading on one timeframe",
-    "nomark": r"^(\S+): (?:weekly|daily|4h) flip but no mark price",
+    "nomark": r"^(\S+): (?:weekly|daily|4h|1h|1d) flip but no mark price",
     "trail": r"^(\S+): stop trailed to ([\d.e+-]+)$",
     "target": r"^(\S+): target \d+% of pot, holding \d+% → \w+$",
     "resized": r"^(\S+): resized to (\d+)% of pot, stop \S+$",
@@ -680,6 +699,9 @@ class Bundle:
         self.rec_ev = {}                     # coin → times of its sold / carry_closed events (t_rec)
         self.exit_ev = {}                    # coin → newest carry_out event time (a pair whose exit_ts predates the engine field)
         self.gate_pct = num(cc.get("capture_gate_pct") or CARRY_GATE_PCT)
+        # "vs holding" is a trade's R minus its book benchmark's; a rebalancer's benchmark is the coin it holds, so the
+        # figure would compare the coin with itself: it is never shipped for target trades or target bots
+        src.trades_all = [dict(x, rel_R=None) if (x.get("kind") == "target" or self.kind == "target") else x for x in src.trades_all]
         # E, the effective mode's latest equity, lives only here
         self.EQ = []
         for p in src.eq_all:
@@ -687,6 +709,8 @@ class Bundle:
                 self.EQ.append((int(p.get("ts") or ts_of(p.get("t")) or 0), float(p["equity"])))
         self.EQ.sort()
         self.E = self.EQ[-1][1] if self.EQ and self.EQ[-1][1] > 0 else None
+        # the base every "since start" figure is measured from (in memory only)
+        self.base = paper_base(self.EQ[0][1] if self.EQ else None, s.get("pot_usd_paper") if self.eff == "paper" else None)
         # the pot figures no outgoing string may write (scrub_assert, scrub_md): first, latest and peak equity
         self.money = money_set([e for _t, e in self.EQ[:1] + self.EQ[-1:]] + [max((e for _t, e in self.EQ), default=None)]
                                + [s.get("pot_usd_paper")])
@@ -766,9 +790,15 @@ class Bundle:
         return {"t": R.t, "mode": R.mode} if R else {"t": None, "mode": self.eff}
 
     def clock(self):
+        """The usual start is measured on the FIRST good check of each slot: a daily bot re-runs inside its 180-min window
+        (00:05, 01:05, 02:05 UTC), and counting the re-runs put its "next check" about an hour late."""
         L = self.last_eff
         lo = (self.now // BAR - SLOTS_N) * BAR
-        lags = [R.lm for R in self.eff_runs if R.fresh and not R.failed and R.slot > lo]
+        first = {}
+        for R in self.eff_runs:
+            if R.fresh and not R.failed and R.slot > lo and (R.slot not in first or R.t < first[R.slot].t):
+                first[R.slot] = R
+        lags = [R.lm for _s, R in sorted(first.items())]
         n = len(lags)
         return {"last_t": L.t if L else None, "last_slot": L.slot if L else None, "late_min": L.lm if L else None,
                 "lag_med_min": num(median(lags) if n >= 3 else LAG_FALLBACK_MIN, 1), "lag_rng": [min(lags), max(lags)] if n else None,
@@ -874,16 +904,23 @@ class Bundle:
         return out
 
     def pot(self):
+        """Since start (from `self.base`), this week, the sparkline, and the drawdown from the LATEST equity point: the
+        engine's throttle figure in state.thr is measured before the check's own point is written, so it lags a check."""
         EQ = self.EQ
         net = True if self.eff == "paper" else bool(self.X.transfers)
-        if not EQ or not EQ[0][1]:
-            return {"since": None, "n_pts": len(EQ), "chg_pct": None, "wk_chg_pct": None, "net": net, "spark": []}
-        base = EQ[0][1]
+        if not EQ or not EQ[0][1] or not self.base:
+            return {"since": None, "n_pts": len(EQ), "chg_pct": None, "wk_chg_pct": None, "net": net, "spark": [], "dd_pct": None, "dd_max_pct": None}
+        base = self.base
         wk = [e for t, e in EQ if t <= self.now - WEEK]
         ref = wk[-1] if wk else base
+        peak = worst = 0.0
+        for _t, e in EQ:
+            peak = max(peak, e)
+            worst = max(worst, (peak - e) / peak * 100 if peak > 0 else 0.0)
         return {"since": EQ[0][0], "n_pts": len(EQ), "chg_pct": num((EQ[-1][1] / base - 1) * 100),
                 "wk_chg_pct": num((EQ[-1][1] / ref - 1) * 100) if ref else None, "net": net,
-                "spark": [[t, num((e / base - 1) * 100)] for t, e in EQ[-SPARK_N:]]}
+                "spark": [[t, num((e / base - 1) * 100)] for t, e in EQ[-SPARK_N:]],
+                "dd_pct": num((peak - EQ[-1][1]) / peak * 100) if peak > 0 else None, "dd_max_pct": num(worst)}
 
     def pos(self):
         out = []
@@ -924,7 +961,8 @@ class Bundle:
                         "r_lock": num(net(stop) / risk_amt) if risk_amt else None,
                         "pnl_pct": self.ratio(net(mark)) if mark else None,
                         "risk_pct": num(p["risk_pct"]) if isinstance(p.get("risk_pct"), (int, float)) else self.ratio(risk_amt),
-                        "size_pct": self.ratio(notional, 1), "lev": p.get("leverage"), "to_stop_pct": to_stop,
+                        "size_pct": self.ratio(notional, 1), "val_pct": self.ratio(notional * mark / entry if mark else notional, 1),
+                        "lev": p.get("leverage"), "to_stop_pct": to_stop,
                         "cost_R": num((fee_in + notional * (mark / entry) * self.fee + fund) / risk_amt) if (mark and risk_amt) else None,
                         "stops": stops,
                         "exits": {"h4_pct": to_stop, "d_pct": num((mark - h["dline"]) / mark * 100) if (mark and h.get("dline")) else None,
@@ -937,21 +975,26 @@ class Bundle:
         s, P = self.X.s, self.positions
         ra = sum(float(p.get("risk_amt") or 0) for p in P.values())
         gross = sum(float(p.get("notional") or 0) for p in P.values())
-        hit = 0.0
+        hit, drop, drop_n = 0.0, 0.0, 0
         for p in P.values():
             try:
                 e, st, no = float(p["entry"]), float(p["stop"]), float(p["notional"])
             except (KeyError, TypeError, ValueError):
                 continue
             hit += (st - e) / e * no - float(p.get("entry_fee") or 0) - no * (st / e) * self.fee - float(p.get("funding_paid") or 0)
+            mk = p.get("mark")
+            if isinstance(mk, (int, float)) and not isinstance(mk, bool) and mk > 0:   # from the last mark down to the stop, plus the exit fee
+                drop += (st - mk) / e * no - no * (st / e) * self.fee
+                drop_n += 1
         by = {}
         for bn, b in self.X.books.items():
             mine = [p for p in P.values() if p.get("book") == bn]
             by[bn] = {"used_pct": self.ratio(sum(float(p.get("risk_amt") or 0) for p in mine)), "cap_pct": num(b["cap"]),
                       "share_pct": num(b["share"]), "n": len(mine)}
+        n_stop = sum(1 for p in P.values() if p.get("kind") != "carry")
         return {"n_open": len(P), "max": s.get("max_positions"), "used_pct": self.ratio(ra), "cap_pct": num(s.get("open_risk_cap_pct")),
                 "gross_x": num(gross / self.E) if self.E else None, "gross_cap_x": num(s.get("gross_exposure_cap_x")),
-                "stops_hit_pct": self.ratio(hit), "by_book": by}
+                "stops_hit_pct": self.ratio(hit), "stops_drop_pct": self.ratio(drop) if drop_n and drop_n == n_stop else None, "by_book": by}
 
     def rec(self, pos_rows):
         tr = [x for x in self.trades if x.get("kind") != "carry"]     # carry "R" is return on capital, not R
@@ -1049,8 +1092,9 @@ class Bundle:
             if isinstance(R.doc.get("events"), list):            # E3: copy the engine's rows
                 for e in R.doc["events"]:
                     if isinstance(e, dict):
+                        rel = None if (self.kind == "target" or e.get("kind") == "target") else num(e.get("rel_R"))
                         rows.append([R.t, e.get("type"), e.get("c"), e.get("kind"), e.get("tier"),
-                                     int(e.get("lv", LEVEL.get(e.get("type"), 1))), e.get("detail"), num(e.get("R")), num(e.get("rel_R"))])
+                                     int(e.get("lv", LEVEL.get(e.get("type"), 1))), e.get("detail"), num(e.get("R")), rel])
                 for c in R.entered:
                     self.matched_open.add((c, R.t))
             else:
@@ -1085,6 +1129,8 @@ class Bundle:
                         lv = 2 if tier == "A" else 1
                     elif typ == "late":
                         lv = 2 if R.n_open else 1
+                    if self.kind == "target" or kind == "target":   # "vs holding" would compare the coin with itself
+                        rel = None
                     rows.append([R.t, typ, c, kind, tier, lv, detail, Rv, rel])
             if prev is not None and prev.halt and not R.halt:
                 rows.append([R.t, "resume", None, None, None, 1, None, None, None])
@@ -1197,7 +1243,45 @@ class Bundle:
                 self.exit_ev[e[2]] = max(self.exit_ev.get(e[2], 0), e[0])
             if e[1] in ("sold", "carry_closed") and e[2] and e[0]:
                 self.rec_ev.setdefault(e[2], []).append(e[0])
+        for e in events:                     # a 10th column: the result in % of pot, since 1 R is a different share of pot per bot
+            if e[1] in ("sold", "trail") and e[2] and len(e) == 9:
+                p = self.pot_pct_of(e)
+                if p is not None:
+                    e.append(p)
         return runs, events
+
+    def trade_at(self, coin, t):
+        """The closed trade a 'sold' line at check time t recorded: the one whose t_rec is t, else the newest close of that
+        coin within the two bars before it."""
+        cands = [x for x in self.X.trades_all if x.get("coin") == coin and ts_of(x.get("closed"))]
+        hit = [x for x in cands if self.t_rec(x) == t]
+        if hit:
+            return hit[0]
+        near = [x for x in cands if t - 2 * BAR <= ts_of(x["closed"]) <= t + 60]
+        return max(near, key=lambda x: ts_of(x["closed"])) if near else None
+
+    def pot_pct_of(self, e):
+        """A sale's result (as the ledger's pnl_pct: over the pot at its close), or what a raised stop locks in, as % of
+        the pot at that time (never money)."""
+        t, typ, c = e[0], e[1], e[2]
+        if not self.EQ:
+            return None
+        if typ == "sold":
+            x = self.trade_at(c, t)
+            pnl, ec = (x.get("pnl"), self.e_close(ts_of(x.get("closed")) or t)) if x else (None, None)
+            return num(pnl / ec * 100) if ec and isinstance(pnl, (int, float)) and not isinstance(pnl, bool) else None
+        ec = self.e_close(t)
+        if not ec:
+            return None
+        Rv = e[7]
+        if not isinstance(Rv, (int, float)):
+            return None
+        p = self.positions.get(c)
+        ra = p.get("risk_amt") if p and pos_ts(p) <= t else None
+        if ra is None:
+            x = next((x for x in self.X.trades_all if x.get("coin") == c and (ts_of(x.get("opened")) or 0) <= t <= (ts_of(x.get("closed")) or 0) + BAR), None)
+            ra = x.get("risk_amt") if x else None
+        return num(Rv * ra / ec * 100) if isinstance(ra, (int, float)) and not isinstance(ra, bool) and ra > 0 else None
 
     def t_rec(self, x):
         """When the owner learned of a close: the check that recorded it. A paper stop's t_out is the open of the bar that
@@ -1354,7 +1438,30 @@ class Bundle:
         out.sort(key=lambda r: (r["stuck_t"] is None, r["stuck_t"] or 0))
         return out
 
+    @staticmethod
+    def closed_carry(x):
+        """A closed carry record → (funding income, fees, theoretical funding or None, leg P&L, capital). Old records
+        carry no theo_funding: it comes back from their capture, (income − fees) / theo; None when that cannot be known."""
+        f = lambda k: float(x[k]) if isinstance(x.get(k), (int, float)) and not isinstance(x.get(k), bool) else None
+        fi = f("funding_income") if f("funding_income") is not None else (-f("funding") if f("funding") is not None else 0.0)
+        fees = f("fees") or 0.0
+        theo = f("theo_funding")
+        if theo is None and "capture" in x:          # carry.capture() is None exactly when the theoretical funding was 0
+            cap = f("capture")
+            theo = (fi - fees) / cap if cap else 0.0
+        legs = f("gross")
+        if legs is None:
+            legs = (f("spot_pnl") or 0.0) + (f("perp_pnl") or 0.0) if (f("spot_pnl") is not None or f("perp_pnl") is not None) \
+                else (f("pnl") - fi + fees if f("pnl") is not None else 0.0)
+        return fi, fees, theo, legs, f("capital") or f("risk_amt")
+
     def carry_sum(self, rows):
+        """Totals over the open pairs, plus the lifetime view (open AND closed pairs, D5 2026-10-16): the funding kept
+        of what the rule could earn (`capture_pct`, "all"; it falls back to the open pairs, `capture_scope` "open", when a
+        closed record's theoretical funding cannot be recovered), all funding and fees, and the hedge/legging result
+        (`leg_pct`): what the coin and its short did not cancel, booked when legs were trimmed or closed plus the open legs
+        at the last marks. These three are % of the STARTING pot (self.base, like pot.chg_pct), so funding − fees + legs is
+        the pot's change since start, up to rounding."""
         P = [p for _c, p in self.carry_pos()]
         opn = [self.leg_open(c, p) for c, p in self.carry_pos()]
         cl = [x for x in self.trades if x.get("kind") == "carry" and isinstance(x.get("pnl"), (int, float))]
@@ -1365,15 +1472,34 @@ class Bundle:
         stuck = [r["stuck_t"] for r in rows if r["stuck_t"]]
         w = [(r["apr"], r["cap_pct"]) for r in rows if r["st"] != "exiting" and r["apr"] is not None and r["cap_pct"]]
         theo = tot("theo_funding")
+        cap_open = int(round((tot("funding_income") - tot("fees")) / theo * 100)) if theo > 0 else None
+        C = [self.closed_carry(x) for x in cl]
+        known = all(c[2] is not None for c in C)
+        fi_all = tot("funding_income") + sum(c[0] for c in C)
+        fee_all = tot("fees") + sum(c[1] for c in C)
+        th_all = theo + sum(c[2] or 0.0 for c in C)
+        open_legs = sum(o for o in opn if o is not None)
+        legs = tot("spot_pnl") + tot("perp_pnl") + sum(c[3] for c in C) + open_legs
+        caps = [(float(x["pnl"]), c[4]) for x, c in zip(cl, C) if c[4]]
+        start = lambda x, nd=2: num(x / self.base * 100, nd) if self.base else None      # % of the starting pot
+        if known and th_all > 0:
+            capture, scope = int(round((fi_all - fee_all) / th_all * 100)), "all" if C else "open"
+        else:
+            capture, scope = cap_open, "open"
         return {"pairs": len(rows), "open": st.count("open"), "entering": st.count("entering"), "exiting": st.count("exiting"),
                 "stuck": len(stuck), "stuck_t": min(stuck) if stuck else None, "fix_h": self.fix_h, "gate_pct": self.gate_pct,
                 "cap_pct": self.ratio(tot("capital"), 1),
                 "apr": num(sum(a * k for a, k in w) / sum(k for _a, k in w), 1) if w else None,
                 "fund_pct": self.ratio(tot("funding_income"), 3), "cost_pct": self.ratio(tot("fees"), 3),
                 "net_pct": self.ratio(tot("funding_income") - tot("fees") + tot("spot_pnl") + tot("perp_pnl")),
-                "capture_pct": int(round((tot("funding_income") - tot("fees")) / theo * 100)) if theo > 0 else None,
-                # the parts the pot also holds: open leg P&L at the marks, and the pairs already closed (bot page only)
-                "open_pct": self.ratio(sum(o for o in opn if o is not None)) if any(o is not None for o in opn) else None,
+                "capture_pct": capture, "capture_scope": scope,
+                "leg_pct": start(legs) if all(o is not None for o in opn) else None,
+                "leg_open_pct": start(open_legs) if opn and all(o is not None for o in opn) else None,
+                # bot page only (ROW_CARRY_DROP): the open pairs' own capture, lifetime funding and fees, the closed pairs
+                "capture_open_pct": cap_open, "fund_all_pct": start(fi_all, 3), "cost_all_pct": start(fee_all, 3),
+                "closed_n": len(cl), "closed_ret_pct": num(sum(p for p, _k in caps) / sum(k for _p, k in caps) * 100) if caps else None,
+                # the parts the pot also holds: open leg P&L at the marks, and the pairs already closed
+                "open_pct": self.ratio(open_legs) if any(o is not None for o in opn) else None,
                 "closed_pct": self.ratio(sum(float(x.get("pnl") or 0) for x in cl)) if cl else None}
 
     def tw(self):
@@ -1422,25 +1548,30 @@ class Bundle:
 
     def last_act(self, events):
         """The bot's newest action, any age: 7-day acted events, the newest closed trade, every open position or pair.
-        Same type within 60 s are one action (cs ≤ 3 coins, n coins). None only when nothing was ever done."""
-        cands = []          # (t, order, ty, c, R, cap_pct, pct)
+        Same type within 60 s are one action (cs ≤ 3 coins, n coins). None only when nothing was ever done. A sale also
+        carries its result in % of pot (`pot_pct`), and the other actions of the same check ride along in `also`
+        ([type, coins ≤ 3, n]): a rotation that sold one coin and bought another shows both."""
+        cands = []          # (t, order, ty, c, R, cap_pct, pct, pot_pct)
         chron = sorted(enumerate(events), key=lambda ie: (ie[1][0] or 0, ie[0]))
         for j, (_i, e) in enumerate(chron):
             if e[1] in ACTED and e[0]:
                 pct = int(e[6]) if e[1] == "resized" and str(e[6] or "").isdigit() else None
-                cands.append((e[0], j, e[1], e[2], e[7] if e[1] == "sold" else None, None, pct))
+                sold = e[1] == "sold"
+                cands.append((e[0], j, e[1], e[2], e[7] if sold else None, None, pct, e[9] if sold and len(e) > 9 else None))
         base = len(cands) + 1
         if self.trades:
             x = self.trades[-1]
             t, Rv = self.t_rec(x), x.get("R")            # the check that recorded it, so its 'sold' event merges with it
             if t:
                 if x.get("kind") == "carry":
-                    cands.append((t, base, "carry_closed", x.get("coin"), None, num(Rv * 100) if isinstance(Rv, (int, float)) else None, None))
+                    cands.append((t, base, "carry_closed", x.get("coin"), None, num(Rv * 100) if isinstance(Rv, (int, float)) else None, None, None))
                 else:
-                    cands.append((t, base, "sold", x.get("coin"), num(Rv), None, None))
+                    ec, pnl = self.e_close(ts_of(x.get("closed")) or 0), x.get("pnl")
+                    pp = num(pnl / ec * 100) if ec and isinstance(pnl, (int, float)) and not isinstance(pnl, bool) else None
+                    cands.append((t, base, "sold", x.get("coin"), num(Rv), None, None, pp))
         for c, p in self.positions.items():
             if isinstance(p, dict) and pos_ts(p):
-                cands.append((pos_ts(p), base + 1, "carry_in" if p.get("kind") == "carry" else "bought", c, None, None, None))
+                cands.append((pos_ts(p), base + 1, "carry_in" if p.get("kind") == "carry" else "bought", c, None, None, None, None))
         if not cands:
             return None
         top = max(cands, key=lambda x: (x[0], x[1]))
@@ -1451,14 +1582,22 @@ class Bundle:
                 coins.append(x[3])
                 by[x[3]] = list(x)
             else:                                   # the same action seen twice (run line and ledger): keep what each knows
-                for k in (4, 5, 6):
+                for k in (4, 5, 6, 7):
                     if by[x[3]][k] is None:
                         by[x[3]][k] = x[k]
         one = by[coins[0]]
-        Rs = [by[c][4] for c in coins]
-        return {"t": top[0], "ty": top[2], "cs": coins[:3], "n": len(coins),
-                "R": num(sum(Rs)) if top[2] == "sold" and all(r is not None for r in Rs) else None,
-                "cap_pct": one[5] if len(coins) == 1 else None, "pct": one[6] if len(coins) == 1 else None}
+        Rs, Ps = [by[c][4] for c in coins], [by[c][7] for c in coins]
+        other = {}
+        for x in sorted(cands, key=lambda x: (-x[0], -x[1])):
+            if x[2] != top[2] and abs(x[0] - top[0]) <= 60 and x[3] not in other.setdefault(x[2], []):
+                other[x[2]].append(x[3])
+        out = {"t": top[0], "ty": top[2], "cs": coins[:3], "n": len(coins),
+               "R": num(sum(Rs)) if top[2] == "sold" and all(r is not None for r in Rs) else None,
+               "cap_pct": one[5] if len(coins) == 1 else None, "pct": one[6] if len(coins) == 1 else None,
+               "pot_pct": num(sum(Ps)) if top[2] == "sold" and all(p is not None for p in Ps) else None}
+        if other:
+            out["also"] = [[ty, cs[:3], len(cs)] for ty, cs in other.items()]
+        return out
 
     def latest(self):
         halt, mode = self.halt(), self.mode_block()
@@ -1563,8 +1702,8 @@ class Bundle:
                 b[RSN.get(x.get("reason"), "other") if key == "reason" else (x.get(key) or "?")].append(x)
             return {k: self.stats(v) for k, v in b.items()}
         eq_pct, eq_dd, worst = [], [], 0.0
-        if self.EQ and self.EQ[0][1]:
-            base, peak = self.EQ[0][1], 0.0
+        if self.EQ and self.EQ[0][1] and self.base:
+            base, peak = self.base, 0.0
             for i, (t, e) in enumerate(self.EQ):
                 peak = max(peak, e)
                 dd = (peak - e) / peak * 100 if peak > 0 else 0.0
@@ -1659,6 +1798,22 @@ def scrub_md(text, money=()):
 
 
 # ------------------------------------------------------------------------------------------ privacy assert --
+# Maps whose KEYS are names from the config or the engine, never amounts: pre-trade check names (by_check, checks), book
+# names (risk.by_book, ledger stats.book), grades, signal kinds and exit codes (stats.tier / kind / reason) and universe
+# codes (books[].why). A book called "funding" or a check called "gross" must not block the whole payload (2026-10-06:
+# Fast's page froze on by_check["gross"]). Their keys are still screened for currency text, and every value below them
+# is scanned like any other.
+NAMED_MAP = re.compile(r"\.(?:by_check|checks|by_book|why)$|\.stats\.(?:book|tier|kind|reason)$")
+
+
+class ScrubError(AssertionError):
+    """A payload failed the privacy assert. The message names the rule and the path only, never the offending text: the
+    Action log of this public repository is public."""
+    def __init__(self, what, path):
+        super().__init__(f"{what} at {path}")
+        self.what, self.path = what, path
+
+
 def scrub_assert(obj, where="bundle", money=()):
     """Walk every key and string of a payload; raise on a forbidden key, a forbidden string, a string that writes
     one of the pot figures in `money` (free text that slipped past the scrubber) or a non-finite number."""
@@ -1666,21 +1821,20 @@ def scrub_assert(obj, where="bundle", money=()):
     while stack:
         o, path = stack.pop()
         if isinstance(o, dict):
+            named = bool(NAMED_MAP.search(path))
             for k, v in o.items():
-                # by_check maps pre-trade check NAMES to counts ("gross" is the gross-exposure check, not an amount)
-                named = path.endswith(".by_check") or path.endswith(".checks")
                 if (not named and FORBIDDEN_KEY.match(str(k))) or FORBIDDEN_STR.search(str(k)):
-                    raise AssertionError(f"forbidden key {k!r} at {path}")
+                    raise ScrubError(f"forbidden key {str(k)[:24]!r}", path)
                 stack.append((v, f"{path}.{k}"))
         elif isinstance(o, (list, tuple)):
             stack.extend((v, f"{path}[{i}]") for i, v in enumerate(o))
         elif isinstance(o, str):
             if FORBIDDEN_STR.search(o):
-                raise AssertionError(f"forbidden string at {path}: {o[:60]!r}")
+                raise ScrubError("forbidden string", path)
             if text_money(o, money) is not None:
-                raise AssertionError(f"a pot figure written as text at {path}")
+                raise ScrubError("a pot figure written as text", path)
         elif isinstance(o, float) and (math.isnan(o) or math.isinf(o)):
-            raise AssertionError(f"non-finite number at {path}")
+            raise ScrubError("non-finite number", path)
 
 
 def set_bar(config):
@@ -1701,7 +1855,14 @@ def build(state=None, config=None, now=None):
     stamp = {"v": V, "gen": latest["gen"], "t": latest["clock"]["last_t"]}
     for name, p in (("exec:latest", latest), ("exec:ledger", ledger), ("exec:stamp", stamp)):
         scrub_assert(p, name, B.money)
-    return {"latest": latest, "ledger": ledger, "stamp": stamp, "unparsed": B.unparsed_lines, "money": B.money}
+    return {"latest": latest, "ledger": ledger, "stamp": stamp, "unparsed": B.unparsed_lines, "money": B.money,
+            "ran_t": ts_of((B.X.last_run or {}).get("t"))}
+
+
+def error_stamp(ran_t, now, err):
+    """What a push writes when its payload cannot be built or fails the privacy assert: no numbers, only when the state's
+    newest check ran and why the page did not get it, so the bot page can say "Page behind" instead of guessing."""
+    return {"v": V, "gen": iso_ms(now), "t": ran_t, "err": err}
 
 
 def dumps(o):
@@ -1724,12 +1885,16 @@ def _get(d, *ks):
     return d
 
 
-def agent_summary(b):
+def agent_summary(b, agent=None):
     """One agent's row in exec:agents (row v2, Command Center §6.3): what the master page's tile and status engine read.
     Ratios, R, counts, ids and times only. The v1 fields keep their names and types (halt bool, thr str, failed bool,
-    alerts int), so the v1 client keeps working; `signals` is gone."""
+    alerts int), so the v1 client keeps working; `signals` is gone. `ran_t` is when the state's newest check ran (the
+    fleet step refreshes it for every row, so a row whose push failed shows that the page is behind, not the bot);
+    `recent` rows of a sale or a raised stop carry their result in % of pot as a 10th column; `recent_more` counts the
+    week's events that did not fit, so the master's log never drops a bot's latest events silently."""
+    aid = agent or C.AGENT
     L, G = b["latest"], b.get("ledger") or {}
-    me = next((a for a in C.agents() if a.get("id") == C.AGENT), {"id": C.AGENT})
+    me = next((a for a in C.agents() if a.get("id") == aid), {"id": aid})
     cfg, clock, state, pot = L.get("cfg") or {}, L.get("clock") or {}, L.get("state") or {}, L.get("pot") or {}
     tf = cfg.get("tf")
     if not tf:
@@ -1743,9 +1908,11 @@ def agent_summary(b):
     rank = {"bad": 0, "warn": 1}
     sb_alerts = sorted([a for a in (L.get("alerts") or []) if isinstance(a, dict) and a.get("lv") in rank], key=lambda a: rank[a["lv"]])
     pos, carry = L.get("pos") or [], L.get("carry") or []
-    sizes = [p.get("size_pct") for p in pos] + [c.get("cap_pct") for c in carry]
+    sizes = [p.get("val_pct", p.get("size_pct")) for p in pos] + [c.get("cap_pct") for c in carry]   # at market (D14)
+    pnl = [p.get("pnl_pct") for p in pos]
+    loud = [e for e in (L.get("events") or []) if e[5] >= 2 and e[1] not in ("blocked", "board", "review")]
     arena = me.get("arena") if isinstance(me.get("arena"), dict) else None
-    row = {"id": C.AGENT, "name": me.get("name", C.AGENT), "desc": me.get("desc", ""), "tf": tf,
+    row = {"id": aid, "name": me.get("name", aid), "desc": me.get("desc", ""), "tf": tf, "ran_t": b.get("ran_t"),
            "mode": _get(L, "mode", "eff"), "gen": L.get("gen"), "last_t": clock.get("last_t"),
            "rec": dict({k: _get(L, "rec", k) for k in ("n", "tot_R", "avg_R", "rel_R_avg", "open_R")},
                        win=_get(G, "stats", "all", "win"), w=sum(1 for r in Rs if r > 0), l=sum(1 for r in Rs if r <= 0),
@@ -1761,12 +1928,13 @@ def agent_summary(b):
                   "alerts": sb_alerts[:3], "risk": {"n_open": _get(L, "risk", "n_open")}},
            "since": pot.get("since"), "wk_pct": pot.get("wk_chg_pct"),
            "last24": L.get("last24"), "beat": L.get("beat"), "act": L.get("act"),
-           "recent": [e for e in (L.get("events") or []) if e[5] >= 2 and e[1] not in ("blocked", "board", "review")][:ROW_RECENT_N],
+           "recent": loud[:ROW_RECENT_N], "recent_more": max(0, len(loud) - ROW_RECENT_N),
            "held": ([p.get("c") for p in pos] + [c.get("c") for c in carry])[:8],
-           "deployed_pct": num(sum(sizes), 1) if all(isinstance(x, (int, float)) for x in sizes) else None}
+           "deployed_pct": num(sum(sizes), 1) if all(isinstance(x, (int, float)) for x in sizes) else None,
+           "open_pct": num(sum(pnl)) if pnl and all(isinstance(x, (int, float)) for x in pnl) else None}
     row.update(spark_of(pot, ROW_SPARK_N))
     if "carry_sum" in L:                     # the waterfall parts stay on the bot page (row budget)
-        row["carry"] = {k: v for k, v in L["carry_sum"].items() if k not in ("open_pct", "closed_pct")}
+        row["carry"] = {k: v for k, v in L["carry_sum"].items() if k not in ROW_CARRY_DROP}
     return fit_row(row, pot)
 
 
@@ -1776,20 +1944,28 @@ def spark_of(pot, n):
 
 
 def fit_row(row, pot=None, budget=ROW_BUDGET):
-    """Keep one exec:agents row within ROW_BUDGET bytes: recent → 1 row, then spark → 12 points, then sb.alerts → 1,
-    then (never seen in practice) recent → none and the description cut. Raises if it still does not fit."""
+    """Keep one exec:agents row within ROW_BUDGET bytes. The latest events go last (2026-10-16: A03's long description
+    cut its `recent` from 3 rows to 1, so the master's log silently lost its buy): the description is cut to 160
+    characters, then spark → 12 points, then sb.alerts → 1, then recent → 1 row, then none; every recent row cut is
+    counted in `recent_more`, which the log shows. Raises if it still does not fit."""
     def size():
         return len(dumps(row))
-    if size() > budget:
-        row["recent"] = row["recent"][:1]
+
+    def cut_recent(n):
+        k = len(row.get("recent") or [])
+        if k > n:
+            row["recent"] = row["recent"][:n]
+            row["recent_more"] = int(row.get("recent_more") or 0) + k - n
+    if size() > budget and len(row.get("desc") or "") > 160:
+        row["desc"] = row["desc"][:159].rstrip() + "…"
     if size() > budget:
         row.update(spark_of(pot or {}, 12) if pot else {"spark": row["spark"][-12:]})
     if size() > budget:
         row["sb"]["alerts"] = row["sb"]["alerts"][:1]
     if size() > budget:
-        row["recent"] = []
+        cut_recent(1)
     if size() > budget:
-        row["desc"] = row["desc"][:max(0, len(row["desc"]) - (size() - budget) - 1)].rstrip() + "…"
+        cut_recent(0)
     if size() > budget:
         raise AssertionError(f"exec:agents row for {row.get('id')} is {size()} B, over {budget} B")
     return row
@@ -1825,29 +2001,139 @@ def fleet_block():
     return {"halt": True, "reason": reason, "since": since if since is not None else (ts_of(iso) if iso else None)}
 
 
-def envelope(prev_raw, rows, newest=False, gen=None):
-    """exec:agents v2: {v, gen, fleet, host, order, agents}. Each row in `rows` replaces the stored one (with newest=True
-    only when its gen ≥ the stored gen); rows of agents not in `rows` are kept; rows of agents off the roster are dropped.
-    `agents` follows the roster (enabled and disabled); `order` is the enabled roster ids."""
+def state_dir(agent):
+    return C.ROOT / "state" if agent == "core" else C.ROOT / "state" / "agents" / agent
+
+
+def config_dir(agent):
+    return C.ROOT / "config" if agent == "core" else C.ROOT / "agents" / agent
+
+
+def ran_t_of(agent, state=None):
+    """When the agent's newest committed check ran (runs/last_run.json, never a dry run; the run logs when that file is
+    missing), or None."""
+    rdir = Path(state or state_dir(agent)) / "runs"
+    d = C.load_json(rdir / "last_run.json")
+    if isinstance(d, dict) and d.get("t"):
+        return ts_of(d["t"]) if not d.get("dry") else None
+    ts = [ts_of(x.get("t")) for f in sorted(rdir.glob("*.jsonl")) for x in C.read_jsonl(f) if isinstance(x, dict) and not x.get("dry")] if rdir.is_dir() else []
+    return max((t for t in ts if t), default=None)
+
+
+def fleet_paper(roster):
+    """The paper fleet as ONE pot, from every enabled paper bot's own equity.jsonl (D7 2026-10-16; the lab's figure was a
+    day old and divided by the sum of each bot's own peak, which overstates the drawdown): the summed series on the union
+    of check times (each bot's last point carried forward, its start pot before its first point), ratios only. ret_pct =
+    sum now / sum of starts − 1; dd_pct = how far the summed series sits below its own peak now; dd_max_pct = its worst."""
+    series = []
+    for a in roster:
+        if not a.get("enabled", True):
+            continue
+        good = [p for p in C.read_jsonl(state_dir(a["id"]) / "ledger" / "equity.jsonl")
+                if isinstance(p, dict) and isinstance(p.get("equity"), (int, float)) and not isinstance(p.get("equity"), bool) and p["equity"] > 0]
+        if not good or good[-1].get("mode") != "paper":          # a bot that went live leaves the paper fleet
+            continue
+        pts = sorted(x for x in ((int(p.get("ts") or ts_of(p.get("t")) or 0), float(p["equity"])) for p in good if p.get("mode") == "paper") if x[0])
+        base = paper_base(pts[0][1], (C.load_json(config_dir(a["id"]) / "settings.json") or {}).get("pot_usd_paper")) if pts else None
+        if base:
+            series.append((base, pts))
+    if not series:
+        return None
+    times = sorted({t for _b, pts in series for t, _e in pts})
+    at, cur = [0] * len(series), [b for b, _p in series]
+    total0 = sum(cur)
+    total = peak = total0
+    worst = 0.0
+    for t in times:
+        for i, (_b, pts) in enumerate(series):
+            while at[i] < len(pts) and pts[at[i]][0] <= t:
+                cur[i] = pts[at[i]][1]
+                at[i] += 1
+        total = sum(cur)
+        peak = max(peak, total)
+        worst = max(worst, (peak - total) / peak * 100)
+    return {"n": len(series), "ret_pct": num((total / total0 - 1) * 100), "dd_pct": num((peak - total) / peak * 100),
+            "dd_max_pct": num(worst), "since": min(p[0][0] for _b, p in series), "t": times[-1]}
+
+
+def push_why(e):
+    """Why a push failed, in a few words that never carry a payload's text or a number from the state."""
+    if isinstance(e, ScrubError):
+        return f"data check: {e.what} at {e.path}"[:120]
+    if isinstance(e, (KVReadError, RuntimeError)) and str(e).startswith(("cloudflare", "could not read", "bulk write", "KV namespace")):
+        return f"Cloudflare: {str(e)[:100]}"
+    return f"build error ({type(e).__name__})"
+
+
+def mark_fails(have, fails, pushed, now, report, can_alert=False):
+    """A failed push leaves the bot's previous row; it gains push_fail {since, why, alerted}. `since` survives every later
+    failure; report["new_fail"] lists the streaks whose owner has not been told yet (one alert per streak) and `alerted`
+    becomes true once a job that holds the alert channel (`can_alert`, run_agents.py's --alerts) has reported it, so a
+    streak that starts in a job without the webhook (review, deploy) is still told by the next sync job. A successful
+    push replaces the row and so ends the streak (report["cleared"])."""
+    for aid, why in sorted(fails.items()):
+        if aid in pushed:
+            continue
+        old = have.get(aid)
+        pf = old.get("push_fail") if isinstance(old, dict) and isinstance(old.get("push_fail"), dict) else None
+        since = pf.get("since") if pf and isinstance(pf.get("since"), (int, float)) else int(now)
+        told = bool(pf and pf.get("alerted") is True)
+        me = next((a for a in C.agents() if a.get("id") == aid), {"id": aid})
+        base = old if isinstance(old, dict) else {"id": aid, "name": me.get("name", aid), "desc": me.get("desc", ""), "enabled": bool(me.get("enabled", True))}
+        have[aid] = dict(base, push_fail={"since": since, "why": str(why)[:120], "alerted": told or bool(can_alert)})
+        (report["still_fail"] if told else report["new_fail"])[aid] = str(why)[:120]
+
+
+def envelope(prev_raw, rows, newest=False, gen=None, fails=None, report=None, now=None, can_alert=False):
+    """exec:agents v2: {v, gen, fleet, host, order, paper, agents}. Each row in `rows` replaces the stored one (with
+    newest=True only when its gen ≥ the stored gen); rows of agents not in `rows` are kept; rows of agents off the roster
+    are dropped. `agents` follows the roster (enabled and disabled); `order` is the enabled roster ids. Rows not pushed now
+    get `ran_t` from the committed state (so the page can tell "page behind" from "bot stopped"), `fails` {id: why} marks
+    push failures (mark_fails), and `paper` is the fleet's paper pot (fleet_paper). A stored row that fails the privacy
+    assert is replaced by a bare row with push_fail "data check", so one bad row can never freeze the whole index."""
+    now = time.time() if now is None else now
+    report = report if isinstance(report, dict) else {}
+    for k in ("new_fail", "still_fail", "cleared"):
+        report.setdefault(k, {})
     try:
         prev = json.loads(prev_raw) if prev_raw else {}
     except ValueError:                       # nothing to keep: say so and rebuild from the rows (never freeze a bad index)
         print("warning: stored exec:agents is not JSON; rebuilding it from this job's rows")
         prev = {}
     have = {r["id"]: r for r in (prev.get("agents") or []) if isinstance(r, dict) and isinstance(r.get("id"), str)} if isinstance(prev, dict) else {}
+    pushed = set()
     for r in rows:
         old = have.get(r["id"])
         if newest and old and str(old.get("gen") or "") > str(r.get("gen") or ""):
             continue
+        if isinstance(old, dict) and isinstance(old.get("push_fail"), dict):
+            report["cleared"][r["id"]] = old["push_fail"].get("why")
         have[r["id"]] = r
+        pushed.add(r["id"])
     roster = C.agents()
-    return {"v": 2, "gen": gen or iso_ms(time.time()), "fleet": fleet_block(), "host": host_block(),
-            "order": [a["id"] for a in roster if a.get("enabled", True)], "agents": [have[a["id"]] for a in roster if a["id"] in have]}
+    fails = dict(fails or {})
+    for aid, r in list(have.items()):
+        if aid in pushed:
+            continue
+        try:
+            scrub_assert(r, f"exec:agents[{aid}]")
+        except ScrubError as e:
+            me = next((a for a in roster if a.get("id") == aid), {"id": aid})
+            have[aid] = {"id": aid, "name": me.get("name", aid), "desc": me.get("desc", ""), "enabled": bool(me.get("enabled", True))}
+            fails.setdefault(aid, push_why(e))
+        ran = ran_t_of(aid)
+        if ran is not None:
+            have[aid] = dict(have[aid], ran_t=ran)
+    if fails:
+        mark_fails(have, fails, pushed, now, report, can_alert)
+    return {"v": 2, "gen": gen or iso_ms(now), "fleet": fleet_block(), "host": host_block(),
+            "order": [a["id"] for a in roster if a.get("enabled", True)], "paper": fleet_paper(roster),
+            "agents": [have[a["id"]] for a in roster if a["id"] in have]}
 
 
-def agents_index(prev_raw, b):
+def agents_index(prev_raw, b, row=None):
     """This agent's row merged into the stored exec:agents (standalone pushes and --kv-json)."""
-    row = agent_summary(b)
+    row = row or agent_summary(b)
     scrub_assert(row, "exec:agents", b.get("money") or ())
     env = envelope(prev_raw, [row], gen=b["latest"].get("gen"))
     scrub_assert(env, "exec:agents")
@@ -1871,6 +2157,35 @@ def save_row(rows_dir, row):
     tmp = d / f".{row['id']}.json.tmp"
     tmp.write_text(dumps({"v": 2, "row": row}))
     os.replace(tmp, d / f"{row['id']}.json")
+
+
+AGENT_RX = re.compile(r"[a-z][a-z0-9-]{1,23}")
+
+
+def write_fail(rows_dir, agent, why):
+    """<id>.fail.json in the job's rows dir: this agent's push failed, and why (run_agents.py writes one too, for a
+    timeout or a crash). The fleet step turns it into the row's push_fail."""
+    d = Path(rows_dir)
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"{agent}.fail.json").write_text(dumps({"v": 1, "why": str(why)[:120]}))
+
+
+def read_fails(rows_dir):
+    """{agent: why} from the job's <id>.fail.json files. Unreadable or foreign files are skipped."""
+    out = {}
+    if not rows_dir or not Path(rows_dir).is_dir():
+        return out
+    for f in sorted(Path(rows_dir).glob("*.fail.json")):
+        aid, d = f.name[:-len(".fail.json")], C.load_json(f)
+        if AGENT_RX.fullmatch(aid) and isinstance(d, dict) and isinstance(d.get("why"), str):
+            out[aid] = d["why"][:120]
+    return out
+
+
+def write_result(rows_dir, res):
+    """_fleet.json: what the fleet step did, for run_agents.py (which alerts once per new failure streak)."""
+    if rows_dir and Path(rows_dir).is_dir():
+        (Path(rows_dir) / "_fleet.json").write_text(dumps(res))
 
 
 def kv_pairs(b, docs, remote_index):
@@ -1962,17 +2277,43 @@ def namespace_id():
 FACTORY_MAX_BYTES = 200_000
 
 
+# The lab's own payload passes through this push as exec:factory. The lab sends ratios only; as a guard, any key that can
+# only be money is dropped and any currency text blanked before it is published (the Worker does the same on the way out).
+LAB_MONEY_KEY = re.compile(r"^(equity|cash|unrealized|notional|sz|risk_amt|entry_fee|funding_paid|fees|pnl|margin|min_notional_usd|"
+                           r"pot_usd_paper|balance|target_n)$")
+
+
+def defang(o, dropped, path="exec:factory"):
+    if isinstance(o, dict):
+        out = {}
+        for k, v in o.items():
+            if LAB_MONEY_KEY.match(str(k)):
+                dropped.append(f"{path}.{k}")
+                continue
+            out[k] = defang(v, dropped, f"{path}.{k}")
+        return out
+    if isinstance(o, list):
+        return [defang(v, dropped, f"{path}[{i}]") for i, v in enumerate(o)]
+    if isinstance(o, str) and FORBIDDEN_STR.search(o):
+        dropped.append(path)
+        return "—"
+    return o
+
+
 def factory_payload():
     """factory/factory.json (written by the AiFi Lab: shortlist evidence, fleet allocation, lab totals) as the
-    exec:factory value, or None. Ratios, percentages and ids only; capped in size; never required."""
+    exec:factory value, or None. Ratios, percentages and ids only (defang() guards it); capped in size; never required."""
     raw = C.load_json(C.ROOT / "factory" / "factory.json")
     if not isinstance(raw, dict) or raw.get("v") != 1:
         return None
-    out = dumps(raw)
+    dropped = []
+    out = dumps(defang(raw, dropped))
+    if dropped:
+        print(f"exec:factory: dropped {len(dropped)} money field(s) the lab sent: {', '.join(dropped[:5])}")
     return out if len(out) <= FACTORY_MAX_BYTES else None
 
 
-def write_kv_json(path, b, docs):
+def write_kv_json(path, b, docs, row=None):
     """The local preview's KV: every key a fresh namespace would hold. Returns the pairs a real push would write,
     judged against the doc:index already in the file."""
     prev = C.load_json(path) or {}
@@ -1983,7 +2324,7 @@ def write_kv_json(path, b, docs):
     pairs, index = kv_pairs(b, docs, prev_index)
     full = {k: v for k, v in prev.items() if k.startswith("exec:")}          # keep the other agents' payloads
     full.update({key("latest"): pairs[key("latest")], key("ledger"): pairs[key("ledger")], key("stamp"): pairs[key("stamp")], "doc:index": dumps(index)})
-    full["exec:agents"] = dumps(agents_index(prev.get("exec:agents"), b))
+    full["exec:agents"] = dumps(agents_index(prev.get("exec:agents"), b, row))
     fac = factory_payload()
     if fac:
         full["exec:factory"] = fac
@@ -1999,26 +2340,76 @@ def bulk_write(ns, pairs):
         raise RuntimeError(f"bulk write failed: {res.get('errors')}")
 
 
-def fleet_push(rows_dir):
-    """`--fleet DIR`, once per job: read exec:agents once, merge the job's rows (newest gen wins, other agents' rows kept,
-    agents off the roster dropped), rebuild fleet / host / order, and write exec:agents, plus exec:factory only when its
-    bytes differ from the stored value, in ONE bulk call. An empty DIR only refreshes the envelope."""
-    rows = read_rows(rows_dir) if rows_dir and Path(rows_dir).is_dir() else []
+def replay_behind(prev_raw, rows, fails, now=None):
+    """D2 (2026-10-16): a sync job pushes only the agents its own commit changed, so a failed, cancelled or dropped job
+    (GitHub keeps one pending job per concurrency group) left those updates out until the bot's NEXT check. Here, with the
+    one exec:agents read the fleet step already makes, every enabled agent whose stored row was pushed before its state's
+    newest check (row gen < last_run t), and that this job neither pushed nor saw fail, is rebuilt from the checkout and
+    written in the same bulk call → (pairs, rows + replayed rows, fails, replayed ids). A replay that cannot be built
+    becomes a push failure with an error stamp, like a failing push child."""
+    now = time.time() if now is None else now
+    try:
+        prev = json.loads(prev_raw) if prev_raw else {}
+    except ValueError:
+        prev = {}
+    have = {r["id"]: r for r in (prev.get("agents") or []) if isinstance(r, dict) and isinstance(r.get("id"), str)} if isinstance(prev, dict) else {}
+    pairs, out, fails, done = {}, list(rows), dict(fails), []
+    pushed = {r["id"] for r in rows}
+    for a in C.agents():
+        aid = a["id"]
+        if not a.get("enabled", True) or aid in pushed or aid in fails:
+            continue
+        ran = ran_t_of(aid)
+        old = have.get(aid)
+        if ran is None or (old is not None and (ts_of(old.get("gen")) or 0) >= ran):
+            continue
+        try:
+            b = build(state_dir(aid), config_dir(aid), now)
+            row = agent_summary(b, aid)
+            scrub_assert(row, "exec:agents", b["money"])
+        except Exception as e:  # noqa: BLE001 — one bot that cannot be built must not stop the fleet write
+            fails[aid] = push_why(e)
+            pairs[key("stamp", aid)] = dumps(error_stamp(ran, now, "data check" if isinstance(e, AssertionError) else "build"))
+            print(f"fleet: replay of {aid} failed: {fails[aid]}")
+            continue
+        pairs.update({key("latest", aid): dumps(b["latest"]), key("ledger", aid): dumps(b["ledger"]), key("stamp", aid): dumps(b["stamp"])})
+        out.append(row)
+        done.append(aid)
+    return pairs, out, fails, done
+
+
+def fleet_push(rows_dir, can_alert=False):
+    """`--fleet DIR`, once per job: read exec:agents once, rebuild the agents whose page is behind their state
+    (replay_behind), merge the job's rows (newest gen wins, other agents' rows kept, agents off the roster dropped), mark
+    this job's push failures (push_fail, one streak marker per row), rebuild fleet / host / order / paper, and write
+    exec:agents, plus exec:factory only when its bytes differ from the stored value, plus the replayed agents' own keys, in
+    ONE bulk call. An empty DIR only refreshes the envelope. What happened goes to DIR/_fleet.json for run_agents.py."""
+    have_dir = bool(rows_dir) and Path(rows_dir).is_dir()
+    rows = read_rows(rows_dir) if have_dir else []
+    fails = read_fails(rows_dir) if have_dir else {}
     ns = namespace_id()
     try:
         prev = kv_get_strict(ns, "exec:agents")
     except KVReadError as e:                 # leave the stored index alone: tiles go Late by clock, which is honest
         print(f"fleet: {e}; exec:agents NOT written ({len(rows)} row{'' if len(rows) == 1 else 's'} dropped this job)")
+        write_result(rows_dir, {"ok": False, "why": "could not read the fleet index (exec:agents)"})
         raise SystemExit(1)
-    env = envelope(prev, rows, newest=True)
+    now = time.time()
+    extra, rows, fails, replayed = replay_behind(prev, rows, fails, now)
+    report = {}
+    env = envelope(prev, rows, newest=True, fails=fails, report=report, now=now, can_alert=can_alert)
     scrub_assert(env, "exec:agents")
     pairs = {"exec:agents": dumps(env)}
     fac = factory_payload()
     if fac and kv_get(ns, "exec:factory") != fac:          # written only when the lab changed it (KV write budget)
         pairs["exec:factory"] = fac
+    pairs.update(extra)
     bulk_write(ns, pairs)
-    print(f"fleet: pushed {', '.join(pairs)} ({len(rows)} new row{'' if len(rows) == 1 else 's'}: {', '.join(r['id'] for r in rows) or 'none'}); "
-          f"exec:agents {len(pairs['exec:agents'])} B")
+    write_result(rows_dir, {"ok": True, "new_fail": report["new_fail"], "still_fail": report["still_fail"], "cleared": report["cleared"],
+                            "replayed": replayed})
+    print(f"fleet: pushed {', '.join(pairs)} ({len(rows)} new row{'' if len(rows) == 1 else 's'}: {', '.join(r['id'] for r in rows) or 'none'}"
+          f"{'; replayed ' + ', '.join(replayed) if replayed else ''}); exec:agents {len(pairs['exec:agents'])} B"
+          + (f"; push failing: {', '.join(sorted(report['new_fail']) + sorted(report['still_fail']))}" if report["new_fail"] or report["still_fail"] else ""))
 
 
 def main(argv=None):
@@ -2026,15 +2417,22 @@ def main(argv=None):
     ap.add_argument("--kv-json", metavar="FILE", help="write every KV pair to FILE instead of Cloudflare (no network)")
     ap.add_argument("--build-only", metavar="FILE", help="write {latest, ledger, stamp} to FILE (no network)")
     ap.add_argument("--fleet", metavar="DIR", help="merge the rows saved in DIR into exec:agents (one read, one bulk write)")
+    ap.add_argument("--alerts", action="store_true", help="with --fleet: this job holds the alert channel, so a new push failure counts as told")
     ap.add_argument("--state", help="state dir (default: $EXECUTOR_STATE or state/)")
     ap.add_argument("--config", help="config dir (default: config/)")
     ap.add_argument("--docs", help="docs dir (default: docs/)")
     ap.add_argument("--now", type=float, help="pin the clock (unix seconds)")
     a = ap.parse_args(argv)
     if a.fleet:
-        fleet_push(a.fleet)
+        fleet_push(a.fleet, a.alerts)
         return
-    b = build(a.state, a.config, a.now)
+    rows_dir = os.environ.get("EXECUTOR_ROWS_DIR")
+    try:                                     # built and asserted before anything is written: the three payloads and the row
+        b = build(a.state, a.config, a.now)
+        row = agent_summary(b)
+        scrub_assert(row, "exec:agents", b["money"])
+    except Exception as e:  # noqa: BLE001 — a payload that cannot be built still tells the page why it is behind
+        return push_failed(e, a, rows_dir)
     for line in b["unparsed"]:               # the Action log is the only place the raw lines appear
         print(f"unparsed summary line: {line}")
     docs = doc_texts(a.docs or C.DOCS)
@@ -2043,32 +2441,34 @@ def main(argv=None):
         print(f"bundle → {a.build_only} (latest {len(dumps(b['latest']))} B, ledger {len(dumps(b['ledger']))} B)")
         return
     if a.kv_json:
-        pairs = write_kv_json(a.kv_json, b, docs)
+        pairs = write_kv_json(a.kv_json, b, docs, row)
         print(f"kv → {a.kv_json}: a push would write {len(pairs)} keys ({', '.join(pairs)}); "
               f"latest {len(pairs[key('latest')])} B, ledger {len(pairs[key('ledger')])} B, unparsed {len(b['unparsed'])}")
         return
-    rows_dir = os.environ.get("EXECUTOR_ROWS_DIR")
-    row = None
-    if rows_dir:                             # asserted before anything is written, like the three payloads
-        row = agent_summary(b)
-        scrub_assert(row, "exec:agents", b["money"])
-    ns = namespace_id()
-    raw = kv_get(ns, "doc:index")
-    try:
-        remote_index = json.loads(raw) if raw else None
-    except ValueError:
-        remote_index = None
-    pairs, _ = kv_pairs(b, docs, remote_index)
     agents_err = None
-    if not rows_dir:                         # standalone or manual run: read-merge exec:agents inline, as before
+    try:
+        ns = namespace_id()
+        raw = kv_get(ns, "doc:index")
         try:
-            pairs["exec:agents"] = dumps(agents_index(kv_get_strict(ns, "exec:agents"), b))
-        except KVReadError as e:             # this bot's own payloads still go; the shared index is left as it is
-            agents_err = e
-        fac = factory_payload()
-        if fac and kv_get(ns, "exec:factory") != fac:          # written only when the lab changed it (KV write budget)
-            pairs["exec:factory"] = fac
-    bulk_write(ns, pairs)
+            remote_index = json.loads(raw) if raw else None
+        except ValueError:
+            remote_index = None
+        pairs, _ = kv_pairs(b, docs, remote_index)
+        if not rows_dir:                     # standalone or manual run: read-merge exec:agents inline, as before
+            try:
+                pairs["exec:agents"] = dumps(agents_index(kv_get_strict(ns, "exec:agents"), b, row))
+            except KVReadError as e:         # this bot's own payloads still go; the shared index is left as it is
+                agents_err = e
+            fac = factory_payload()
+            if fac and kv_get(ns, "exec:factory") != fac:      # written only when the lab changed it (KV write budget)
+                pairs["exec:factory"] = fac
+        bulk_write(ns, pairs)
+    except (RuntimeError, OSError) as e:     # Cloudflare refused or could not be reached: the old row stays, and says so
+        why = push_why(e)
+        print(f"push failed: {why}")
+        if rows_dir:
+            write_fail(rows_dir, C.AGENT, why)
+        raise SystemExit(1)
     if rows_dir:                             # only after a successful write: a failed push leaves the old row in place
         save_row(rows_dir, row)
     print(f"pushed {len(pairs)} keys to KV ({', '.join(pairs)}); latest {len(pairs[key('latest')])} B, ledger {len(pairs[key('ledger')])} B"
@@ -2076,6 +2476,36 @@ def main(argv=None):
     if agents_err:
         print(f"exec:agents NOT written: {agents_err}")
         raise SystemExit(1)
+
+
+def push_failed(e, a, rows_dir):
+    """The payload could not be built, or failed the privacy assert (D3): nothing of it is written. Instead a minimal stamp
+    {v, gen, t: the state's newest check, err} goes to exec:<id>:stamp, so the bot page says "Page behind" and why; the
+    rows dir gets <id>.fail.json, which the fleet step turns into the row's push_fail (and run_agents.py into one alert).
+    Exits 3."""
+    why = push_why(e)
+    print(f"push failed: {why}")
+    if not isinstance(e, ScrubError):        # frames only: an exception's own text may quote a value from the state
+        traceback.print_tb(e.__traceback__)
+        print(type(e).__name__)
+    stamp = error_stamp(ran_t_of(C.AGENT, a.state or C.STATE), a.now if a.now is not None else time.time(),
+                        "data check" if isinstance(e, AssertionError) else "build")
+    scrub_assert(stamp, "exec:stamp")
+    if rows_dir:
+        write_fail(rows_dir, C.AGENT, why)
+    if a.build_only:
+        raise SystemExit(3)
+    if a.kv_json:                            # the preview's KV: the old payloads stay, the stamp says why
+        prev = C.load_json(a.kv_json) or {}
+        prev[key("stamp")] = dumps(stamp)
+        Path(a.kv_json).write_text(json.dumps(prev, indent=1, ensure_ascii=False) + "\n")
+        raise SystemExit(3)
+    try:
+        bulk_write(namespace_id(), {key("stamp"): dumps(stamp)})
+        print(f"error stamp written to {key('stamp')}: the page says it is behind, and why")
+    except Exception as e2:  # noqa: BLE001
+        print(f"the error stamp could not be written either: {push_why(e2)}")
+    raise SystemExit(3)
 
 
 if __name__ == "__main__":

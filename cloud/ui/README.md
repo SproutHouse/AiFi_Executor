@@ -61,6 +61,10 @@ Core only routes it (`ready()` is true at once); lab.js loads its own data, play
        `COMP.sparkSvg(values, {w, h, t0, t1, label})` → html, the pot sparkline (numbers or `[t, v]` pairs);
        `COMP.roster()` → html, the rail's mini roster; `COMP.fleetSummary()` (master only) and `COMP.fleetLoading()`
        (fleet.js); `COMP.fleetFactory(factory, done)` → html, the master's Bot factory card (fleet.js).
+     - `COMP.labEvidence(shortlistEntry)` → html, the lab's evidence for one shortlisted bot: not luck now (and at its
+       trial), vs Bitcoin held and at the same risk for the backtest, the unseen year and paper, execution verified with
+       its checks, the edge evidence meter (factory.js; the Shortlist cards and an arena bot's Strategy section). Every
+       field is optional ("—"); "Ready for you" is shown only for `ready === true`.
    - `SHEETS[kind] = (arg, el) → html | {html, after?(sheetEl) → cleanup?, cls?}`, opened by ONE delegated click on the
      nearest `[data-cursor] [data-health] [data-cycle] [data-name] [data-pos] [data-trade] [data-sheet="kind:arg"]`.
      Kinds: `name` (gaterun; `data-at` = run t), `cycle` (gaterun), `pos` (positions), `trade` (results), `health`
@@ -70,7 +74,8 @@ Core only routes it (`ready()` is true at once); lab.js loads its own data, play
      `route(tab, sub)`, `theme(t)`, `hide()`, `show()`, `status(st)` (after every `refreshShell()`), `agents(rows, env)`
      (after every `/api/agents` load: boot, each bot-page arrival, each master poll).
 3. **Shared state** lives in core's `S`: `S.E` (the `exec:agents` envelope; its rows are `AGENTS`, one by `rowOf(id)`),
-   `S.b` (the `exec:latest` bundle, bot pages only), `S.ledger` (lazy `exec:ledger`, via
+   `S.b` (the `exec:latest` bundle, bot pages only), `S.stamp` (the last `/api/stamp`; a failed push's stamp carries
+   `err`, and `status()` then says "Page behind"), `S.ledger` (lazy `exec:ledger`, via
    `loadLedger()`), `S.cursor` (the shared cycle cursor, spec §5, set with `setCursor(t, opts)`, followed with
    `onCursor(fn)`), `S.tab`, `S.sub`, `S.prev` (the previous bundle, for arrival diffs), `S.st` (the current `status()`).
    Time comes from `nowMs()` / `nowS()` so tests can override it (`window.__exNow`).
@@ -78,7 +83,7 @@ Core only routes it (`ready()` is true at once); lab.js loads its own data, play
    `cap1`, `fmt.*` (spec §14), `val()/na()/safe()` for missing data (spec §1.8), `STAGE`/`GATES` (spec §12),
    `GLOSS` + `tip(key)`, hover tips `TIP` + `hint(key, arg?, focus?)` (an element opts in with `data-tk="key:arg"`; the
    words live in core's `TIP`, COMMAND_CENTER_SPEC §3.11; a page's own module may add its keys, as lab.js adds `lab`,
-   `chk`, `lbby` and `lbv`, never change core's), `FAM` / `famName(id)`, `word.*`, `chip()`, `icon()`,
+   `chk`, `lbby` and `lbv` and factory.js adds `fxe`, never change core's), `FAM` / `famName(id)`, `word.*`, `chip()`, `icon()`,
    `openSheet()`, `closeSheet()`, `stagger()`, `countUp()`,
    `reduced`, `setSeg()/initSegs()`, `masks()`, `mdTables()` (markdown tables into a disclosure), `getJSON()`, `loadLedger()`, `loadLWC()` (lazy lightweight-charts),
    `every1s()`, `toast()`, `setPlay()`, `refreshShell()`; and for pages and bars: `PAGE`, `AGENT`, `BAR` (this bot's bar,

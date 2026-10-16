@@ -142,7 +142,10 @@ class Carry(Fixtures):
     def test_sum(self):
         cs, P = self.carry["latest"]["carry_sum"], F.CARRY_POS.values()
         fi, fees, theo = (sum(p[k] for p in P) for k in ("funding_income", "fees", "theo_funding"))
-        self.assertEqual(cs["capture_pct"], round((fi - fees) / theo * 100))
+        self.assertEqual(cs["capture_open_pct"], round((fi - fees) / theo * 100))
+        sol = F.CARRY_TRADES[0]                                                               # closed: theo from its capture
+        s_fi, s_theo = -sol["funding"], (-sol["funding"] - sol["fees"]) / sol["capture"]
+        self.assertEqual((cs["capture_pct"], cs["capture_scope"]), (round((fi + s_fi - fees - sol["fees"]) / (theo + s_theo) * 100), "all"))
         self.assertEqual({k: cs[k] for k in ("pairs", "open", "entering", "exiting", "stuck", "stuck_t", "fix_h", "gate_pct")},
                          {"pairs": 6, "open": 4, "entering": 1, "exiting": 1, "stuck": 2, "stuck_t": F.STUCK1, "fix_h": 3, "gate_pct": 80})
         E = F.CARRY_EQ[-1]
@@ -220,7 +223,11 @@ class KindRules(unittest.TestCase):
             body = body[:body.index("return all(")]
             return re.findall(r'\badd\("([^"]+)"', body)
         self.assertEqual(names("target_checks"), DP.TARGET_CHECKS)
-        self.assertEqual(names("carry_checks"), DP.CARRY_CHECKS)
+        # a collector: carry_checks' own list, then the free-capital check carry_step appends (carry_capital, 2026-10-16)
+        cap = re.search(r'def carry_capital\(.*?return \{"check": "([^"]+)"', src, re.S)
+        self.assertIsNotNone(cap, "cycle.py carry_capital() no longer returns a named check")
+        self.assertIn("checks.append(self.carry_capital(", src)
+        self.assertEqual(names("carry_checks") + [cap.group(1)], DP.CARRY_CHECKS)
 
 
 class Target(Fixtures):
@@ -299,7 +306,7 @@ class Rows(Fixtures):
         r = self.rows()
         c, t = r["carry"], r["target"]
         self.assertEqual((c["kind"], c["bar_s"], c["enabled"], c["arena"], c["twin_of"]), ("carry", 3600, True, None, None))
-        self.assertEqual(c["carry"], {k: v for k, v in self.carry["latest"]["carry_sum"].items() if k not in ("open_pct", "closed_pct")})
+        self.assertEqual(c["carry"], {k: v for k, v in self.carry["latest"]["carry_sum"].items() if k not in DP.ROW_CARRY_DROP})
         self.assertEqual(sorted(c["held"]), sorted(F.CARRY_POS))
         self.assertEqual(c["deployed_pct"], round(sum(x["cap_pct"] for x in self.carry["latest"]["carry"]), 1))
         self.assertEqual(t["arena"], {"recipe": "rot-e335df0b", "family": "rs_rotation", "tag": "bull specialist", "enrolled": "2026-09-29"})
@@ -323,7 +330,7 @@ class Rows(Fixtures):
         self.assertEqual(b["spark_t"], [spark[-24:][0][0], spark[-1][0]])
         self.assertTrue(all(e[5] >= 2 and e[1] not in ("blocked", "board", "review") for e in b["recent"]))
         self.assertEqual(b["recent"], sorted(b["recent"], key=lambda e: -e[0]))
-        self.assertLessEqual(len(b["recent"]), 3)
+        self.assertLessEqual(len(b["recent"]), DP.ROW_RECENT_N)
 
     def test_size_and_privacy(self):
         for name, r in self.rows().items():
@@ -336,19 +343,24 @@ class Rows(Fixtures):
         assert_no_money(self, self.rows()["synthetic"], S.MONEY)
 
     def test_fit_row_trims_in_order(self):
+        # 2026-10-16: the latest events go last (A03's long description used to cut its log to one row, silently)
         r = row_for(self.carry_late, "carry-1h")
         pot = {"spark": [[1790000000 + i * 3600, round(-0.01 * i, 2)] for i in range(30)]}
         r.update(DP.spark_of(pot, 24))
-        r["recent"] = [[1, "sold", "X", None, None, 2, None, 0.1, None]] * 3
+        r["desc"] = "d" * 400
+        r["recent"], r["recent_more"] = [[1, "sold", "X", None, None, 2, None, 0.1, None]] * 3, 0
         r["sb"]["alerts"] = [{"lv": "warn", "k": "late", "t": 1, "c": None, "text": "x" * 120}] * 3
-        base = len(DP.dumps(r))
-        DP.fit_row(r, pot, budget=base - 1)
-        self.assertEqual((len(r["recent"]), len(r["spark"]), len(r["sb"]["alerts"])), (1, 24, 3))
         DP.fit_row(r, pot, budget=len(DP.dumps(r)) - 1)
-        self.assertEqual((len(r["spark"]), len(r["sb"]["alerts"])), (12, 3))
+        self.assertEqual((len(r["desc"]), len(r["recent"]), len(r["spark"]), len(r["sb"]["alerts"])), (160, 3, 24, 3))
+        DP.fit_row(r, pot, budget=len(DP.dumps(r)) - 1)
+        self.assertEqual((len(r["recent"]), len(r["spark"]), len(r["sb"]["alerts"])), (3, 12, 3))
         self.assertEqual(r["spark_t"], [1790000000 + 18 * 3600, 1790000000 + 29 * 3600])
         DP.fit_row(r, pot, budget=len(DP.dumps(r)) - 1)
-        self.assertEqual(len(r["sb"]["alerts"]), 1)
+        self.assertEqual((len(r["recent"]), len(r["sb"]["alerts"])), (3, 1))
+        DP.fit_row(r, pot, budget=len(DP.dumps(r)) - 1)
+        self.assertEqual((len(r["recent"]), r["recent_more"]), (1, 2))
+        DP.fit_row(r, pot, budget=len(DP.dumps(r)) - 1)
+        self.assertEqual((r["recent"], r["recent_more"]), ([], 3))
         with self.assertRaises(AssertionError):
             DP.fit_row(r, None, budget=100)
 
@@ -357,7 +369,7 @@ class Envelope(Fixtures):
     def test_key_order_and_shape(self):
         with mock.patch.object(DP.C, "agents", lambda: ROSTER):
             env = DP.agents_index(None, self.syn)
-        self.assertEqual(list(env), ["v", "gen", "fleet", "host", "order", "agents"])
+        self.assertEqual(list(env), ["v", "gen", "fleet", "host", "order", "paper", "agents"])
         self.assertEqual(env["v"], 2)
         self.assertEqual(env["gen"], self.syn["latest"]["gen"])
         self.assertEqual(env["order"], ["core", "carry-1h", "arena-01", "beat-1h"])            # enabled roster ids
@@ -397,7 +409,7 @@ class FleetStep(Fixtures):
             return {"exec:agents": remote_agents, "exec:factory": remote_factory}.get(k)
         with mock.patch.object(DP, "api", fake_api), mock.patch.object(DP, "kv_get", fake_get), mock.patch.object(DP, "kv_get_strict", strict or fake_get), \
                 mock.patch.object(DP, "factory_payload", lambda: factory), mock.patch.object(DP.C, "agents", lambda: ROSTER), \
-                contextlib.redirect_stdout(io.StringIO()):
+                mock.patch.object(DP, "ran_t_of", lambda *a, **k: None), contextlib.redirect_stdout(io.StringIO()):
             DP.main(["--fleet", str(rows_dir)])
         bulks = [p for path, p in calls if path.endswith("/bulk")]
         return bulks, reads
@@ -517,9 +529,11 @@ class RowsDirPush(Fixtures):
 
     def test_no_row_after_a_failed_write(self):
         with tempfile.TemporaryDirectory() as d:
-            with self.assertRaises(RuntimeError):
+            with self.assertRaises(SystemExit) as cm:
                 self.push(d, ok=False)
-            self.assertEqual(list(Path(d).iterdir()), [])
+            self.assertEqual(cm.exception.code, 1)
+            self.assertEqual([f.name for f in Path(d).iterdir()], ["core.fail.json"])          # no row: the old one stays
+            self.assertEqual(DP.read_fails(d), {"core": "Cloudflare: bulk write failed: ['boom']"})
 
 
 class Runner(unittest.TestCase):

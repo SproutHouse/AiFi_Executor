@@ -112,8 +112,8 @@ other trades only.
 roster ids], agents: [rows in roster order]}`. A row keeps every v1 field with its v1 type (`halt` bool, `thr` str,
 `failed` bool, `alerts` int; `signals` is dropped) and adds `enabled kind bar_s n_names arena twin_of sb since wk_pct spark
 spark_t last24 beat act recent held deployed_pct`, `rec.win w l closed_R`, and `carry` (= `carry_sum`) for carry bots.
-`sb` is the status pseudo-bundle the page's `status()` runs on. A row is at most 2,048 B (`fit_row()` trims `recent`,
-then `spark`, then `sb.alerts`).
+`sb` is the status pseudo-bundle the page's `status()` runs on. A row is at most 3,072 B (`fit_row()` cuts a long
+description, then `spark`, then `sb.alerts`, and the latest events last, counting what it cut in `recent_more`).
 
 **Write path.** `run_agents.py` gives each push child `EXECUTOR_ROWS_DIR`; the child writes only `latest`, `ledger`,
 `stamp` (plus changed docs) and, after the write succeeded, saves its row there. Then, once per job and even after a
@@ -123,3 +123,33 @@ and writes `exec:agents` (plus `exec:factory` only when it changed) in one bulk 
 Paris server) it prints "no Cloudflare secrets: fleet not pushed". `run_agents.py --fleet-only` runs just that step;
 `dashboard-sync` calls it when a commit only changed `state/FLEET_HALT` or `FLEET_HALT.since`. A manual
 `dashboard_push.py` (no rows dir) still read-merges `exec:agents` inline; `--kv-json` writes the v2 envelope directly.
+
+## Dashboard truth and loud failures (2026-10-16)
+
+A review found the dashboard could stop updating without anyone noticing, blame the wrong thing, and show old or
+mismatched numbers. What changed (details and sources: [COMMAND_CENTER_SPEC.md](COMMAND_CENTER_SPEC.md) §12):
+
+- **A push that fails is loud, once.** The sync job now fails (red in Actions) when a bot's push or the fleet step fails,
+  and the phone gets ONE alert when a bot's page stops updating ("Executor: dashboard not updating"), not one per hour.
+  The reason is kept on the bot's row (`push_fail`) and in an error stamp, so the page can say it. Every child process has
+  a time limit, so one hung bot cannot hold up the others. `dashboard-sync` now passes `ALERT_WEBHOOK`; the fleet kill
+  switch's own alert, which never reached the phone, now does.
+- **"Page behind", not "the runner may be down".** When a bot ran but its page did not get the numbers, the page says
+  "Page behind · it checked at 10:06 pm, but this page still shows 1:05 am" and why, and dates its numbers ("as of
+  1:05 am"). A stale bot names who to suspect from the server's own heartbeat. An hourly bot is no longer "Stale" after a
+  single late hour.
+- **Missed updates catch up.** Each sync job also rebuilds every bot whose page is behind its committed state (a failed,
+  cancelled or dropped job used to leave it behind until the bot's next check).
+- **Names never block a payload.** A book called "funding" or a check called "gross" no longer stops a bot's page.
+- **Numbers that match.** Funding collectors show the funding they kept over every pair, closed ones too, and a separate
+  hedge result (what the coin and its short did not cancel), and the parts add up to the pot's change; closed pairs read
+  as a return on the capital they used. The Command Center's "Fleet (paper)" is the bots' own pots summed at each check
+  (its drawdown was overstated). Sales read in % of pot first, R in brackets. An arena bot's "Paper so far" is its own pot,
+  not the lab's day-old copy; anything only the lab measures says "lab, <time>". Daily bots' next check is no longer an
+  hour late; "since start" counts the first check's fees; drawdown, invested and "if every stop were hit" use the latest
+  prices; rebalancers no longer show "vs holding" (it compared a coin with itself).
+- **The lab's evidence.** The Shortlist and an arena bot's page show how sure the lab is now that the result is not luck,
+  the bot against Bitcoin (held, and at the same risk), whether execution was verified, and how strong the evidence of an
+  edge is; "Ready for you" appears only when the lab says ready (verified execution and strong evidence). Preview with
+  invented data: `node cloud/dev/preview.mjs <kv.json> 8790 --overlay cloud/dev/fx_factory_v3.json`.
+- **Sign-in.** The password check takes the same time whatever is typed, and a wrong password waits a second.

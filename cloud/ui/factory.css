@@ -22,3 +22,10 @@
 .fx-c1{background:var(--accent-soft)}
 .fx-c2{background:var(--warn-soft)}
 .fx-c3{background:var(--bad-soft)}
+/* the lab's evidence block (Shortlist cards and an arena bot's Strategy section): not luck now, vs Bitcoin, execution, edge */
+.fx-evs{display:grid;gap:var(--s2);margin-top:var(--s3);font-size:var(--fs-sm);line-height:1.5}
+.fx-ev{margin:0}
+.fx-ev .sub{color:var(--muted)}
+.fx-evl{margin:4px 0 0;padding-left:18px;color:var(--ink-2)}
+.fx-evl li{margin:2px 0;overflow-wrap:anywhere}
+.fx-em{max-width:320px;margin-top:6px}

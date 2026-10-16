@@ -93,19 +93,19 @@ export default {
     }
     if (p === "/lab") return shell(request, "lab");
     // The AiFi Lab's log (§11): exec:lab, and one night's full trial records, exec:lab:day:<YYYY-MM-DD>. The lab writes
-    // both straight to KV; nothing here parses them.
-    if (p === "/api/lab") return kvRaw(env, "exec:lab");
+    // both straight to KV; they pass through kvLab()'s money guard, and are otherwise not parsed.
+    if (p === "/api/lab") return kvLab(env, "exec:lab");
     if (p === "/api/lab/day") {
       const d = url.searchParams.get("d") || "";
       if (!LAB_DAY.test(d)) return json({ error: "bad date" }, 400);
-      return kvRaw(env, "exec:lab:day:" + d);
+      return kvLab(env, "exec:lab:day:" + d);
     }
     // Several agents share this dashboard: ?a=<agent id> picks whose payload; "core" (the default) keeps exec:<name>.
     const ag = url.searchParams.get("a") || "core";
     if (!AGENT_ID.test(ag)) return json({ error: "bad agent id" }, 400);
     const k = (name) => ag === "core" ? "exec:" + name : "exec:" + ag + ":" + name;
     if (p === "/api/agents") return kvRaw(env, "exec:agents", '{"v":1,"agents":[]}');
-    if (p === "/api/factory") return kvRaw(env, "exec:factory", '{"v":1}');
+    if (p === "/api/factory") return kvLab(env, "exec:factory", '{"v":1}');
     if (p === "/api/latest") return kvRaw(env, k("latest"));
     if (p === "/api/ledger") return ledger(env, k("ledger"));
     if (p === "/api/stamp") return kvRaw(env, k("stamp"), "{}");
@@ -129,23 +129,35 @@ function cookieVal(request) {
   const m = (request.headers.get("Cookie") || "").match(new RegExp("(?:^|;\\s*)" + COOKIE + "=([^;]+)"));
   return m ? m[1] : null;
 }
+// Constant-time comparison: both sides are hashed first (equal lengths, so a guess's length leaks nothing), then every
+// byte is compared whatever the first difference.
+async function sameSecret(a, b) {
+  const enc = new TextEncoder();
+  const [x, y] = await Promise.all([a, b].map(s => crypto.subtle.digest("SHA-256", enc.encode(String(s)))));
+  const u = new Uint8Array(x), v = new Uint8Array(y);
+  let d = 0;
+  for (let i = 0; i < u.length; i++) d |= u[i] ^ v[i];
+  return d === 0;
+}
+const LOGIN_FAIL_MS = 1000;            // a fixed pause before every "Wrong password." slows guessing
 async function authed(request, env) {
   const v = cookieVal(request);
   if (!v) return false;
   const [exp, sig] = v.split(".");
   if (!exp || !sig || Number(exp) < Date.now() / 1000) return false;
-  return sig === (await hmac(env.DASHBOARD_PASSWORD, "exec|" + exp));
+  return sameSecret(sig, await hmac(env.DASHBOARD_PASSWORD, "exec|" + exp));
 }
 async function login(request, env, url) {
   if (!env.DASHBOARD_PASSWORD) return html(setupPage(), 503);
   if (request.method === "POST") {
     const form = await request.formData();
     const pw = String(form.get("password") || "");
-    if (pw.length && pw === env.DASHBOARD_PASSWORD) {
+    if (pw.length && await sameSecret(pw, env.DASHBOARD_PASSWORD)) {
       const exp = Math.floor(Date.now() / 1000) + 30 * DAY;
       const sig = await hmac(env.DASHBOARD_PASSWORD, "exec|" + exp);
       return redirect(url.origin + "/", `${COOKIE}=${exp}.${sig}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * DAY}`);
     }
+    await new Promise(r => setTimeout(r, LOGIN_FAIL_MS));
     return html(loginPage("Wrong password."), 401);
   }
   return html(loginPage());
@@ -183,6 +195,26 @@ function redirect(to, setCookie) {
 // Raw text passthrough: the push already wrote exactly what the client reads, so nothing is parsed here.
 async function kvRaw(env, key, fallback) {
   const v = await env.EXEC.get(key);
+  if (v === null && fallback == null) return json({ error: "no data yet" }, 404);
+  return new Response(v === null ? fallback : v, { headers: { "content-type": "application/json", ...NOSTORE } });
+}
+// The lab's payloads (exec:factory, carried by the push; exec:lab and exec:lab:day:<date>, written by the lab itself) are
+// the only ones this dashboard did not build. They carry ratios only; as a guard, a key that can only be money is dropped
+// and any currency text blanked before they reach the page. Text with nothing suspicious passes untouched (no parse).
+const LAB_MONEY = "equity|cash|unrealized|notional|sz|risk_amt|entry_fee|funding_paid|fees|pnl|margin|min_notional_usd|pot_usd_paper|balance|target_n";
+const LAB_MONEY_KEY = new RegExp("^(" + LAB_MONEY + ")$"), MONEY_TEXT = /\b(USDC|USD)\b|\$\s?\d/;
+const LAB_SUSPECT = new RegExp('"(' + LAB_MONEY + ')"\\s*:|\\bUSDC?\\b|\\$\\s?\\d');
+function defang(o) {
+  if (Array.isArray(o)) return o.map(defang);
+  if (o && typeof o === "object") { const out = {}; for (const [k, v] of Object.entries(o)) if (!LAB_MONEY_KEY.test(k)) out[k] = defang(v); return out; }
+  return typeof o === "string" && MONEY_TEXT.test(o) ? "—" : o;
+}
+async function kvLab(env, key, fallback) {
+  const v = await env.EXEC.get(key);
+  if (v === null || !LAB_SUSPECT.test(v)) return kvRawText(v, fallback);
+  try { return json(defang(JSON.parse(v))); } catch (e) { return json({ error: "the lab's data could not be read" }, 502); }
+}
+function kvRawText(v, fallback) {
   if (v === null && fallback == null) return json({ error: "no data yet" }, 404);
   return new Response(v === null ? fallback : v, { headers: { "content-type": "application/json", ...NOSTORE } });
 }
