@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-16T16:06:36.048185Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-16T20:06:35.348373Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -34,6 +34,4 @@ _Rendered 2026-10-16T16:06:36.048185Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ZRO: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 2.01% after entry, cap 2.0%)
-- WLD: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%); book open-risk cap (book ai: 2.01% after entry, cap 1.5%)
-- evaluated 28 names · 2 triggers · 2 refused · 0 proposed · 0 entered · 3 open
+- evaluated 28 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 3 open
