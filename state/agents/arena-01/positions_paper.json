@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-15T02:07:12.712923Z",
+  "updated": "2026-10-16T00:08:18.852441Z",
   "mode": "paper",
   "positions": {
     "NEAR": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 6.42572916852508,
       "entry_fee": 0.028915781258362853,
-      "funding_paid": 0.4171697011757326,
+      "funding_paid": 0.4303827295708022,
       "opened": "2026-09-30T00:23:22Z",
       "opened_ts": 1790727802,
-      "last_bar_t": 1791936000,
-      "last_funding_ts": 1792030024,
+      "last_bar_t": 1792022400,
+      "last_funding_ts": 1792109290,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,55 +45,9 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 4.9127,
-      "mark": 4.76041,
-      "upnl_pct": -3.1483505097452236,
+      "mark": 5.2449,
+      "upnl_pct": 6.708711310882309,
       "realized": 3.340832195164524
-    },
-    "AVAX": {
-      "coin": "AVAX",
-      "side": "long",
-      "kind": "target",
-      "tier": "T",
-      "mode": "paper",
-      "entry": 10.989492,
-      "stop": 8.7915936,
-      "initial_stop": 8.7915936,
-      "notional": 88.00474754467865,
-      "sz": 8.008081496822479,
-      "risk_amt": 17.60094950893573,
-      "leverage": 3,
-      "notional_pct_equity": 8.773137519270257,
-      "entry_fee": 0.03960213639510539,
-      "funding_paid": 0.13593544999311427,
-      "opened": "2026-10-02T00:08:08Z",
-      "opened_ts": 1790899688,
-      "last_bar_t": 1791936000,
-      "last_funding_ts": 1792030024,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "No data",
-        "pair_daily": "No data",
-        "h4_range": null,
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "approval"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:arena-01",
-        "trigger:target",
-        "tier:T",
-        "stop:1d-line",
-        "long-only",
-        "book:arena",
-        "target:rs_rotation: weight 0.09 of equity · regime bull"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "arena",
-      "benchmark": "AVAX",
-      "bench_entry": 10.984,
-      "mark": 9.8475,
-      "upnl_pct": -10.391672335718527
     },
     "AAVE": {
       "coin": "AAVE",
@@ -110,11 +64,11 @@
       "leverage": 3,
       "notional_pct_equity": 11.623549286952386,
       "entry_fee": 0.0510241475619162,
-      "funding_paid": 0.1721550700240766,
+      "funding_paid": 0.2033624780537282,
       "opened": "2026-10-09T00:08:23Z",
       "opened_ts": 1791504503,
-      "last_bar_t": 1791936000,
-      "last_funding_ts": 1792030024,
+      "last_bar_t": 1792022400,
+      "last_funding_ts": 1792109290,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -138,8 +92,8 @@
       "book": "arena",
       "benchmark": "AAVE",
       "bench_entry": 166.6,
-      "mark": 153.26,
-      "upnl_pct": -8.053176293005947
+      "mark": 157.4,
+      "upnl_pct": -5.5694241714676735
     }
   }
 }

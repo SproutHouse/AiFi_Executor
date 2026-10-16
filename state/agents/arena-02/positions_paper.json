@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-15T02:07:36.328733Z",
+  "updated": "2026-10-16T00:08:41.066673Z",
   "mode": "paper",
   "positions": {
     "NEAR": {
@@ -17,11 +17,11 @@
       "leverage": 3,
       "notional_pct_equity": 6.191567205696403,
       "entry_fee": 0.02786205242563381,
-      "funding_paid": 0.3292902269128012,
+      "funding_paid": 0.34237966845768464,
       "opened": "2026-10-04T00:08:17Z",
       "opened_ts": 1791072497,
-      "last_bar_t": 1791936000,
-      "last_funding_ts": 1792030032,
+      "last_bar_t": 1792022400,
+      "last_funding_ts": 1792109298,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -45,8 +45,8 @@
       "book": "arena",
       "benchmark": "NEAR",
       "bench_entry": 4.8218,
-      "mark": 4.7618,
-      "upnl_pct": -1.2937017326501987,
+      "mark": 5.2441,
+      "upnl_pct": 8.703788219540742,
       "realized": 3.2765558284421004
     },
     "ZRO": {
@@ -64,11 +64,11 @@
       "leverage": 3,
       "notional_pct_equity": 8.517209694993893,
       "entry_fee": 0.038428548560219225,
-      "funding_paid": 0.25306482650996875,
+      "funding_paid": 0.2765685096131658,
       "opened": "2026-10-05T00:08:18Z",
       "opened_ts": 1791158898,
-      "last_bar_t": 1791936000,
-      "last_funding_ts": 1792030032,
+      "last_bar_t": 1792022400,
+      "last_funding_ts": 1792109298,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -92,29 +92,29 @@
       "book": "arena",
       "benchmark": "ZRO",
       "bench_entry": 1.971,
-      "mark": 1.8986,
-      "upnl_pct": -3.7214016025979846
+      "mark": 2.1018,
+      "upnl_pct": 6.582933799462509
     },
-    "AAVE": {
-      "coin": "AAVE",
+    "INJ": {
+      "coin": "INJ",
       "side": "long",
       "kind": "target",
       "tier": "T",
       "mode": "paper",
-      "entry": 166.673295,
-      "stop": 133.338636,
-      "initial_stop": 133.338636,
-      "notional": 114.4448671385406,
-      "sz": 0.6866418950830762,
-      "risk_amt": 22.888973427708123,
+      "entry": 8.583689699999999,
+      "stop": 6.866951759999999,
+      "initial_stop": 6.866951759999999,
+      "notional": 77.11103014738201,
+      "sz": 8.983436359236288,
+      "risk_amt": 15.422206029476403,
       "leverage": 3,
-      "notional_pct_equity": 11.623549286952386,
-      "entry_fee": 0.05150019021234327,
-      "funding_paid": 0.17505055956345522,
-      "opened": "2026-10-09T00:08:32Z",
-      "opened_ts": 1791504512,
-      "last_bar_t": 1791936000,
-      "last_funding_ts": 1792030032,
+      "notional_pct_equity": 7.746167314198321,
+      "entry_fee": 0.034699963566321906,
+      "funding_paid": 0.0,
+      "opened": "2026-10-16T00:08:18Z",
+      "opened_ts": 1792109298,
+      "last_bar_t": 1792022400,
+      "last_funding_ts": 1792109298,
       "context": {
         "btc_weekly": "Bullish",
         "pair_weekly": "No data",
@@ -131,15 +131,15 @@
         "stop:1d-line",
         "long-only",
         "book:arena",
-        "target:bull_momentum: weight 0.12 of equity"
+        "target:bull_momentum: weight 0.08 of equity"
       ],
       "stop_cloid": null,
       "entry_cloid": null,
       "book": "arena",
-      "benchmark": "AAVE",
-      "bench_entry": 166.59,
-      "mark": 153.33,
-      "upnl_pct": -8.005658614956879
+      "benchmark": "INJ",
+      "bench_entry": 8.5794,
+      "mark": 8.5794,
+      "upnl_pct": -0.04997501249374148
     }
   }
 }
