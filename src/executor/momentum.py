@@ -177,9 +177,11 @@ def _btc_raw(name, c, j, n, cloud):
     raise ValueError(name)
 
 
-def gate_series(panel, days, pos_of, p, regime=None):
+def gate_series(panel, days, pos_of, p, regime=None, eligible=None):
     """[True | False | None] per grid day. Hysteresis: the state flips only after `gate_hold` consecutive days of the
-    opposite raw reading (1 = flip at once). A day without a reading keeps the state but reports None."""
+    opposite raw reading (1 = flip at once). A day without a reading keeps the state but reports None.
+    eligible: {day_ts: coins} (families.targets): breadth and the index count only that day's coins; Bitcoin's own
+    readings are the market's and ignore it. None (default): every coin."""
     name, n, bmin, hold = p["gate"], p["gate_n"], p["breadth_min"], max(1, p["gate_hold"])
     raw = [None] * len(days)
     if name == "none":
@@ -191,9 +193,10 @@ def gate_series(panel, days, pos_of, p, regime=None):
         bc = [b["c"] for b in btc]
         bpos = [pos_of[b["t"] // DAY * DAY] for b in btc]
         cloud = I.supertrend(btc, 3.0, 10)[1] if name == "btc_cloud" and btc else None
-        breadth = _breadth(panel, days, pos_of, n if name == "breadth" else 50) if name in ("breadth", "combo", "vote") else None
+        breadth = (_breadth(panel, days, pos_of, n if name == "breadth" else 50, eligible)
+                   if name in ("breadth", "combo", "vote") else None)
         if name == "index_sma":
-            raw = _index_above(panel, days, pos_of, n)
+            raw = _index_above(panel, days, pos_of, n, eligible)
         elif name == "breadth":
             raw = [None if x is None else x >= bmin for x in breadth]
         else:
@@ -224,28 +227,34 @@ def gate_series(panel, days, pos_of, p, regime=None):
     return out
 
 
-def _breadth(panel, days, pos_of, n):
-    """Share of coins (with a reading that day) closing above their own n-day average; None with fewer than 3."""
+def _breadth(panel, days, pos_of, n, eligible=None):
+    """Share of coins (with a reading that day) closing above their own n-day average; None with fewer than 3.
+    eligible: {day_ts: coins} counted that day (None: every coin)."""
     up, cnt = [0] * len(days), [0] * len(days)
-    for bars in panel.values():
+    for coin, bars in panel.items():
         c = [b["c"] for b in bars]
         for j, b in enumerate(bars):
+            i = pos_of[b["t"] // DAY * DAY]
+            if eligible is not None and coin not in eligible.get(days[i], ()):
+                continue
             m = _sma_at(c, j, n)
             if m is None:
                 continue
-            i = pos_of[b["t"] // DAY * DAY]
             cnt[i] += 1
             up[i] += c[j] > m
     return [None if cnt[i] < 3 else up[i] / cnt[i] for i in range(len(days))]
 
 
-def _index_above(panel, days, pos_of, n):
+def _index_above(panel, days, pos_of, n, eligible=None):
     """Equal-weight index of the coins (mean daily return of those with bars on both days) vs its n-day average.
-    The index over any window depends only on that window's returns, so the reading does not depend on the start."""
+    The index over any window depends only on that window's returns, so the reading does not depend on the start.
+    eligible: {day_ts: coins} whose returns that day make the index (None: every coin)."""
     by_day = [[] for _ in days]
-    for bars in panel.values():
+    for coin, bars in panel.items():
         for j in range(1, len(bars)):
             i = pos_of[bars[j]["t"] // DAY * DAY]
+            if eligible is not None and coin not in eligible.get(days[i], ()):
+                continue
             if (bars[j]["t"] - bars[j - 1]["t"]) // DAY <= 4 and bars[j]["c"] > 0 and bars[j - 1]["c"] > 0:
                 by_day[i].append(bars[j]["c"] / bars[j - 1]["c"] - 1)   # weekday markets skip weekends; a bad print sits out
     r = [sum(v) / len(v) if len(v) >= 3 else None for v in by_day]

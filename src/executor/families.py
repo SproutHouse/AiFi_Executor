@@ -191,11 +191,16 @@ def _grid(panel):
     return days
 
 
-def targets(panel, family, params, regime=None, alloc=None):
+def targets(panel, family, params, regime=None, alloc=None, eligible=None):
     """Full series. panel: {coin: completed daily bars ascending}. regime: {day_ts: coarse label} or None (no gate).
     alloc: {coin: share} for per-coin families (default equal across the panel; callers pass the recipe's own split
     so a coin missing from the panel keeps its share in cash). Returns (days, {coin: [weight or None per day]}),
-    weight = signed fraction of equity. None means "no reading" (warm-up or a data gap): the engine keeps what it has."""
+    weight = signed fraction of equity. None means "no reading" (warm-up or a data gap): the engine keeps what it has.
+    eligible (rotation families only; the lab's point-in-time universe): {day_ts: the coins eligible that day}. Only
+    those are ranked on a rebalance day, and only those count in a breadth or index gate; a day missing from it has
+    none. A held coin that stops being eligible leaves at the next rebalance, like any coin no longer picked. It must
+    be known by each day's close (the lab passes the universe ranked the day before). None, the default and the
+    engine's: every coin of the panel, exactly as before."""
     p = params_with_defaults(family, params)
     days = _grid(panel)
     pos_of = {d: i for i, d in enumerate(days)}
@@ -218,9 +223,9 @@ def targets(panel, family, params, regime=None, alloc=None):
             size[i] = None if (v is None or v <= 0) else min(p["cap_x"], p["vol_target"] / v)
         raw[coin] = (dvals, size, bars)
     if family == "rs_rotation":
-        _rotation(panel, p, days, pos_of, raw)
+        _rotation(panel, p, days, pos_of, raw, eligible)
     elif family == "bull_momentum":
-        _bull_momentum(panel, p, days, pos_of, raw, regime)
+        _bull_momentum(panel, p, days, pos_of, raw, regime, eligible)
     shares = alloc or {c: 1.0 / len(coins) for c in coins}
     out = {c: [None] * len(days) for c in coins}
     for i, d in enumerate(days):
@@ -250,10 +255,10 @@ def targets(panel, family, params, regime=None, alloc=None):
 COARSE_ALL = ("bull", "bear", "chop", "crisis")
 
 
-def _rotation(panel, p, days, pos_of, raw):
+def _rotation(panel, p, days, pos_of, raw, eligible=None):
     """Every rebalance day (epoch day number divisible by R, so the engine and the lab agree), rank coins by their
     N-day return and hold the top K that are also above their own F-day average. Between rebalances the selection
-    holds, except that a coin leaving its uptrend is dropped at once."""
+    holds, except that a coin leaving its uptrend is dropped at once. eligible: see targets (None: every coin)."""
     n, k, R, fn = p["n"], p["k"], p["rebalance_days"], p["filter_n"]
     series = {}
     for coin, bars in panel.items():
@@ -269,7 +274,9 @@ def _rotation(panel, p, days, pos_of, raw):
     held = set()
     for i, d in enumerate(days):
         if (d // DAY) % R == 0:
-            ranked = sorted((series[c][0][i], c) for c in panel if series[c][0][i] is not None and series[c][1][i])
+            ok = None if eligible is None else eligible.get(d, ())
+            ranked = sorted((series[c][0][i], c) for c in panel if series[c][0][i] is not None and series[c][1][i]
+                            and (ok is None or c in ok))
             held = {c for _m, c in ranked[::-1][:k] if _m > 0}
         for coin in panel:
             dv = raw[coin][0]
@@ -282,15 +289,16 @@ def _rotation(panel, p, days, pos_of, raw):
             dv[i] = 1.0 if coin in held else 0.0
 
 
-def _bull_momentum(panel, p, days, pos_of, raw, regime):
+def _bull_momentum(panel, p, days, pos_of, raw, regime, eligible=None):
     """Gate closed: hold nothing. Gate open: on rebalance days (epoch day divisible by R, as in rs_rotation) and on the
     day the gate opens, rank the eligible coins by the score and hold the top K; a coin already held stays while it
     ranks inside the top K + buffer (fewer trades for the same idea). Eligible: a score, above its own F-day average
     when filter_n > 0, up over N days when abs_mom, and (near_high > 0) no more than near_high below its highest close
     of the last 365 days (a strong month in a coin still far below its yearly high is a bounce, not leadership). Between rebalances a held coin that falls below its F-day
-    average is dropped at once. A day without a gate reading is a data gap: no weights that day, selection kept."""
+    average is dropped at once. A day without a gate reading is a data gap: no weights that day, selection kept.
+    eligible: see targets (None: every coin; else only that day's coins are ranked and counted by the gate)."""
     n, k, R, fn, buf, rk = p["n"], p["k"], p["rebalance_days"], p["filter_n"], p["buffer"], p["rank"]
-    gate = MO.gate_series(panel, days, pos_of, p, regime)
+    gate = MO.gate_series(panel, days, pos_of, p, regime, eligible)
     btc = {b["t"] // DAY * DAY: b["c"] for b in panel.get("BTC", [])}
     info = {}
     for coin, bars in panel.items():
@@ -300,7 +308,7 @@ def _bull_momentum(panel, p, days, pos_of, raw, regime):
         info[coin] = (c, t, f, {pos_of[d]: j for j, d in enumerate(t)})
     names = MO.ENSEMBLE if rk == "ensemble" else (rk,)
 
-    def eligible(coin, i):
+    def scored(coin, i):
         c, t, f, at = info[coin]
         j = at.get(i)
         if j is None or j < n:
@@ -324,9 +332,12 @@ def _bull_momentum(panel, p, days, pos_of, raw, regime):
         if not g:
             held = []
         elif (d // DAY) % R == 0 or not prev:
+            ok = None if eligible is None else eligible.get(d, ())
             cand = {}
             for coin in sorted(panel):
-                v = eligible(coin, i)
+                if ok is not None and coin not in ok:
+                    continue
+                v = scored(coin, i)
                 if v is not None:
                     cand[coin] = v
             if len(names) == 1:
