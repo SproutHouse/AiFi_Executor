@@ -1,23 +1,22 @@
 # Ledger
 
-_Rendered 2026-10-17T00:06:32.999078Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-17T00:50:50.862261Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
-| Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
-|---|---|---|---|---|---|---|---|---|
-| eth-defi | CRV | flip | A | 0.361331 | 0.318748 | 8.3% | 3x | 2026-10-15T20:06 |
-| l1s | NEAR | flip | A | 5.38809 | 4.55351 | 5.6% | 2x | 2026-10-15T20:06 |
-| ai | TAO | flip | A | 288.494 | 264.482 | 10.9% | 3x | 2026-10-16T08:06 |
+None.
 
 ## Closed trades, summary
 
-- Trades 10 · win rate 10% · average -0.54 R · total -5.4 R · profit factor 0.03 · worst losing streak 7 · costs 0.02 R per trade · average -0.23 R against holding the benchmark
+- Trades 13 · win rate 8% · average -0.51 R · total -6.7 R · profit factor 0.03 · worst losing streak 7 · costs 0.02 R per trade · average -0.26 R against holding the benchmark
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-17T00:50 | ai | TAO | flip | A | 288.494 | 273.358 | -0.58 | -0.47 | manual flatten | 17 |
+| 2026-10-17T00:50 | l1s | NEAR | flip | A | 5.38809 | 4.9955 | -0.41 | -0.35 | manual flatten | 29 |
+| 2026-10-17T00:50 | eth-defi | CRV | flip | A | 0.361331 | 0.348066 | -0.32 | -0.19 | manual flatten | 29 |
 | 2026-10-12T20:00 | eth-defi | ARB | flip | A | 0.191316 | 0.181276 | -0.71 | -0.37 | stop | 40 |
 | 2026-10-12T20:00 | ai | WLD | flip | A | 0.555408 | 0.507336 | -0.66 | -0.56 | stop | 60 |
 | 2026-10-12T20:00 | l1s | DOT | flip | A | 1.15148 | 1.1754 | +0.18 | +0.26 | stop | 88 |
@@ -33,6 +32,7 @@ _Rendered 2026-10-17T00:06:32.999078Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- ARB: signal pullback tier B REFUSED: open-risk cap (4.03% of equity after entry, cap 4.0%); book open-risk cap (book eth-defi: 2.01% after entry, cap 2.0%)
-- evaluated 28 names · 1 triggers · 1 refused · 0 proposed · 0 entered · 3 open
+- BTC weekly Bullish · daily Bullish · data run started 51 min after the bar close, limit 45
+- CRV [eth-defi]: closed on manual flatten at 0.34807 → -0.32 R · -0.19 R vs ETH
+- NEAR [l1s]: closed on manual flatten at 4.9955 → -0.41 R · -0.35 R vs BTC
+- TAO [ai]: closed on manual flatten at 273.36 → -0.58 R · -0.47 R vs BTC
