@@ -273,8 +273,16 @@ class ControlIds(unittest.TestCase):
 
 # 7, 8 --------------------------------------------------------------------------------------------------------------
 class GoLiveGates(unittest.TestCase):
-    def home(self, ready=None):
+    def home(self, ready=None, enable=("wide-4h", "arena-01", "arena-02"), disable=()):
         home = sandbox()
+        idx = home / "agents" / "index.json"              # these tests are about Ready, not about which bots the
+        d = json.loads(idx.read_text())                   # owner has retired in the real roster (2026-10-17: core,
+        for a in d["agents"]:                             # wide-4h, fast-1h, arena-01)
+            if a["id"] in enable:
+                a["enabled"] = True
+            if a["id"] in disable:
+                a["enabled"] = False
+        idx.write_text(json.dumps(d))
         (home / "factory").mkdir()
         rows = [{"agent": a, "ready": ok, "not_ready": [] if ok else ["16 of 42 days in the arena"]} for a, ok in (ready or {}).items()]
         (home / "factory" / "factory.json").write_text(json.dumps({"v": 1, "shortlist": rows}))
@@ -282,6 +290,13 @@ class GoLiveGates(unittest.TestCase):
 
     def mode(self, home, aid):
         return json.loads((home / "agents" / aid / "settings.json").read_text())["mode"]
+
+    def test_a_retired_bot_is_refused(self):
+        home = self.home({"arena-02": True}, enable=(), disable=("wide-4h",))
+        r = run(home, "scripts/go_live.py", "wide-4h", "--pot", "250", "--override", "LIVE WITHOUT READY wide-4h")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("disabled (retired)", r.stderr)
+        self.assertEqual(self.mode(home, "wide-4h"), "paper")
 
     def test_ready_is_required_unless_the_owner_overrides(self):
         home = self.home({"arena-01": False, "arena-02": True})
