@@ -94,8 +94,8 @@
     {
       "id": "arena-04",
       "name": "A04 Bull",
-      "enabled": true,
-      "desc": "While Bitcoin is above a rising 50-day average, holds the 3 of 35 coins with the strongest trend across three time spans over 14 days, re-ranked every 7 days; all cash when the bull signal ends. Picked by the AiFi Lab (recipe bm-afb9df31); paper, and dropped if it stops matching its backtest.",
+      "enabled": false,
+      "desc": "RETIRED 2026-10-18 before its first trade: enrolled by mistake. It passed the lab under rulebook v1 (2026-10-02) and was enrolled automatically when A02 and A03 freed their places, but the current rules (v5 and later) re-test bull rotations on the real top coins of each day, where this family shows no edge. While Bitcoin is above a rising 50-day average, holds the 3 of 35 coins with the strongest trend across three time spans over 14 days, re-ranked every 7 days; all cash when the bull signal ends. Picked by the AiFi Lab (recipe bm-afb9df31); paper, and dropped if it stops matching its backtest.",
       "arena": {
         "recipe": "bm-afb9df31",
         "family": "bull_momentum",
