@@ -19,7 +19,8 @@
   const ACTED = new Set(['bought', 'sold', 'trail', 'resized', 'carry_in', 'carry_out', 'carry_closed']);
   const CONTROL = 'https://github.com/SproutHouse/AiFi_Executor/actions/workflows/control.yml';
   const SORTS = [['roster', 'Roster'], ['attention', 'Needs attention'], ['return', 'Return'], ['active', 'Most active']];
-  const FILTERS = [['all', 'All'], ['flip', 'Signal traders'], ['target', 'Rebalancers'], ['carry', 'Funding collectors'], ['live', 'Live'], ['arena', 'Arena']];
+  const FILTERS = [['all', 'All'], ['flip', 'Signal traders'], ['target', 'Rebalancers'], ['carry', 'Funding collectors'], ['live', 'Live'], ['arena', 'Arena'], ['shadow', 'Shadow']];
+  const SHADOWW = 'Shadow experiment: failed the lab’s crash check; paper only';
   const PHONE = matchMedia('(max-width:640px)');
   const F = { order: null, root: null, seen0: Number(lsGet('ex.fl.seen', 0)) || 0, seenT: 0, gens: {}, acts: {}, big: {}, live: {}, first: true, fx: null, fxDone: false };
 
@@ -194,7 +195,8 @@
     const rep = on.filter(A => isObj(A.last24)), sum = f => rep.reduce((a, A) => a + (num(A.last24[f]) || 0), 0);
     const behind = rep.filter(A => /^(late|stale)$/.test((sts[A.id].K || {}).phase)).map(lastT).filter(t => t != null);
     const c2 = rn ? kpi('Last 24 h', esc(fmt.int(ot) + ' of ' + fmt.int(sl)),
-      esc('checks on time' + (rep.length ? ' · ' + fmt.int(sum('signals')) + ' signals · ' + fmt.int(sum('bought')) + ' bought · ' + fmt.int(sum('sold')) + ' sold' : '')
+      esc('checks on time' + (rep.length ? ' · ' + fmt.int(sum('signals')) + ' signals · ' + fmt.int(sum('bought')) + ' bought · ' + fmt.int(sum('sold')) + ' sold'
+        + (sum('shorted') ? ' · ' + fmt.int(sum('shorted')) + ' shorted' : '') + (sum('covered') ? ' · ' + fmt.int(sum('covered')) + ' covered' : '') : '')
         + (behind.length ? ' · as of ' + fmt.when(Math.min(...behind)) : '') + (rn < on.length ? ' · ' + rn + ' of ' + on.length + ' bots reporting' : '')))
       : kpi('Last 24 h', '—', 'after the next check');
     // Open: positions and carry pairs side by side, never summed; a row with no kind is in neither (§3.9).
@@ -254,14 +256,18 @@
 
   // ================================================================================== the tiles ==
   const ACTW = { bought: 'bought', sold: 'sold', resized: 'resized', carry_in: 'started collecting on', carry_out: 'started closing', carry_closed: 'closed carry on' };
-  function actWords(a) {
+  function actWords(a, book) {
     if (!isObj(a)) return null;
+    // a long-short book (a shadow experiment) opens and closes both sides: "bought"/"sold" would misname its shorts
+    if (book && (a.ty === 'bought' || a.ty === 'sold')) a = Object.assign({}, a, { ty: a.ty === 'bought' ? 'opened' : 'closed' });
     const ls = (cs, n) => { cs = arr(cs).filter(Boolean); const more = (num(n) || cs.length) - cs.length; return cs.join(', ') + (more > 0 ? ' +' + more : ''); };
     const list = ls(a.cs, a.n), P = num(a.pot_pct), R = num(a.R);
     // a sale: % of pot first (1 R is a different share of pot per bot), R in brackets; the check's other actions follow
     const also = arr(a.also).filter(x => Array.isArray(x) && ACTW[x[0]]).map(x => ' · ' + ACTW[x[0]] + ' ' + ls(x[1], x[2])).join('');
     switch (a.ty) {
       case 'bought': return 'Bought ' + list + also;
+      case 'opened': return 'Opened ' + list + also;
+      case 'closed': return 'Closed ' + list + (P != null ? ' ' + fmt.pct(P) + ' of pot' + (R != null ? ' (' + fmt.R(R) + ')' : '') : R != null ? ' ' + fmt.R(R) : '') + also;
       case 'sold': return 'Sold ' + list + (P != null ? ' ' + fmt.pct(P) + ' of pot' + (R != null ? ' (' + fmt.R(R) + ')' : '') : R != null ? ' ' + fmt.R(R) : '') + also;
       case 'resized': return 'Resized ' + list + (num(a.pct) != null ? ' to ' + fmt.num(a.pct, 0) + '% of pot' : '') + also;
       case 'carry_in': return 'Started collecting on ' + list + also;
@@ -274,7 +280,7 @@
     const lt = '<span class="fl-lt"' + hint('last') + '>';
     if (A.act === undefined || (!A.sb && !A.act)) return { h: lt + '—</span>', a: 'last trade not in this data' };
     if (A.act === null) return { h: lt + '<i class="fl-ad"></i>No trades yet</span>', a: 'no trades yet' };
-    const w = actWords(A.act), t = num(A.act.t), hot = t != null && now - t < D;
+    const w = actWords(A.act, !!A.shadow), t = num(A.act.t), hot = t != null && now - t < D;
     return { h: lt + '<i class="fl-ad' + (hot ? ' on' : '') + '"></i>' + esc(w) + (t != null ? ' · ' + esc(fmt.when(t)) : '') + '</span>', a: 'last: ' + w };
   }
   const CELL = { Trades: 'trades', Won: 'won', Holding: 'holding', Invested: 'invested', 'Closed trades': 'closed', Pairs: 'pairs', 'Funding kept': 'kept', 'Capital in use': 'capuse', 'Hedge result': 'legs' };
@@ -298,11 +304,11 @@
                  + (lg != null ? ', hedge result ' + fmt.pct(lg) + ' of pot' : ', capital in use ' + fmt.int(c.cap_pct) + '% of pot') };
     }
     if (kind === 'target') {
-      const held = arr(A.held), ar = arenaOf(A), n = num(rec.n);
-      const tks = esc(held.slice(0, 3).join(', ') + (held.length > 3 ? ' +' + (held.length - 3) : ''));   // 3 tickers never fit a cell: "3 coins" + the list
-      const hv = A.held === undefined ? na(true) : held.length > 2 ? esc(word.plural(held.length, 'coin')) : held.length ? tks : 'Nothing';
-      const sub = A.arena ? (ar && ar.day != null ? 'day ' + ar.day + (ar.of ? ' of ' + ar.of : '') : 'in the arena') : 'judged yearly';
-      return { h: cell('Holding', hv, held.length > 2 ? tks : '') + cell('Invested', num(A.deployed_pct) == null ? na(true) : esc(fmt.int(A.deployed_pct) + '%'), num(A.deployed_pct) == null ? '' : 'of pot') + cell('Closed trades', n == null ? na(true) : esc(fmt.int(n)), esc(sub)),
+      const held = arr(A.held), ar = arenaOf(A), n = num(rec.n), hn = Math.max(held.length, num(A.n_open) || 0);   // the row lists at most 8
+      const tks = esc(held.slice(0, 3).join(', ') + (hn > 3 ? ' +' + (hn - 3) : ''));   // 3 tickers never fit a cell: "3 coins" + the list
+      const hv = A.held === undefined ? na(true) : hn > 2 ? esc(word.plural(hn, 'coin')) : held.length ? tks : 'Nothing';
+      const sub = A.arena ? (ar && ar.day != null ? 'day ' + ar.day + (ar.of ? ' of ' + ar.of : '') : 'in the arena') : A.shadow ? 'paper only' : 'judged yearly';
+      return { h: cell('Holding', hv, hn > 2 ? tks : '') + cell('Invested', num(A.deployed_pct) == null ? na(true) : esc(fmt.int(A.deployed_pct) + '%'), num(A.deployed_pct) == null ? '' : 'of pot') + cell('Closed trades', n == null ? na(true) : esc(fmt.int(n)), esc(sub)),
                a: 'holding ' + (held.length ? held.join(', ') : 'nothing') + ', ' + (num(A.deployed_pct) == null ? '' : fmt.int(A.deployed_pct) + '% of pot invested') };
     }
     const n = num(rec.n), w = num(rec.w), l = num(rec.l), open = num(A.n_open) || 0, op = num(A.open_pct), oR = num(rec.open_R);
@@ -322,6 +328,7 @@
   function typeChip(A) {
     let t = word.kindName(A.kind, barS(A));
     if (A.arena) { const ar = arenaOf(A); t += ' · Arena' + (ar && ar.day != null ? ' day ' + ar.day + (ar.of ? ' of ' + ar.of : '') : ''); }
+    if (A.shadow) t += ' · Shadow';
     return '<span class="fl-ty"' + hint('kind') + '>' + esc(t) + '</span>';
   }
   function statusHtml(A, st) {
@@ -356,8 +363,9 @@
     const s = stats(A, now), lt = lastTrade(A, now), K = st.K || {}, lim = limOf(A.sb);
     const strip = COMP.beatStrip(A.beat, { bar: barS(A), lim, nextT: K.next, fresh: o && o.fresh });
     const prob = (st.lvl === 'warn' || st.lvl === 'bad') && !st.v1 ? '<span class="fl-prob">' + esc(plain(tail(st.head ? st.head.sentence : st.sentence))) + '</span>' : '';
-    return { a: ariaOf(A, st, now, s, lt), h: '<span class="fl-r1"><b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b>' + typeChip(A) + modePill(A) + '</span>'
-      + statusHtml(A, st) + bigHtml(A, now, st) + '<span class="fl-stats">' + s.h + '</span>' + '<span class="fl-hbw">' + strip + '</span>' + lt.h + prob };
+    const sh = A.shadow ? '<span class="fl-shadow"' + hint('shadow') + '>' + esc(isObj(A.shadow) && A.shadow.label ? A.shadow.label : SHADOWW) + '</span>' : '';
+    return { a: ariaOf(A, st, now, s, lt) + (A.shadow ? ' ' + plain(isObj(A.shadow) && A.shadow.label ? A.shadow.label : SHADOWW) + '.' : ''), h: '<span class="fl-r1"><b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b>' + typeChip(A) + modePill(A) + '</span>'
+      + sh + statusHtml(A, st) + bigHtml(A, now, st) + '<span class="fl-stats">' + s.h + '</span>' + '<span class="fl-hbw">' + strip + '</span>' + lt.h + prob };
   }
   function compactInner(A, st, now) {
     const p = num(A.pot_chg_pct), lt = lastTrade(A, now), lim = limOf(A.sb);
@@ -383,7 +391,7 @@
     const v = lsGet('ex.fl.dense', null);
     return typeof v === 'boolean' ? v : PHONE.matches;
   }
-  const match = (A, f) => f === 'all' || (f === 'live' ? A.mode === 'live' : f === 'arena' ? !!A.arena : (A.kind || 'flip') === f);
+  const match = (A, f) => f === 'all' || (f === 'live' ? A.mode === 'live' : f === 'arena' ? !!A.arena : f === 'shadow' ? !!A.shadow : (A.kind || 'flip') === f);
   function computeOrder(sts) {
     const ord = orderIdx(), by = sortOf(), list = active().slice();
     const r = A => ord[A.id];

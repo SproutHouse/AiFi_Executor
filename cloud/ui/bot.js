@@ -181,7 +181,8 @@
     // a sale: % of pot first, R in brackets; the same check's other actions follow ("Bought INJ · sold AAVE")
     const AW = { bought: 'bought', sold: 'sold', resized: 'resized', carry_in: 'started collecting on', carry_out: 'started closing', carry_closed: 'closed carry on' };
     const also = arr(a.also).filter(x => Array.isArray(x) && AW[x[0]]).map(x => ' · ' + AW[x[0]] + ' ' + ls(x[1], x[2])).join('');
-    const w = { bought: 'Bought ' + cs, sold: 'Sold ' + cs + (pt != null ? ' ' + P(pt) + ' of pot' + (num(a.R) != null ? ' (' + RR(a.R) + ')' : '') : num(a.R) != null ? ' ' + RR(a.R) : ''),
+    const bk = c.A && c.A.shadow;       // a long-short book opens and closes both sides: "bought"/"sold" would misname its shorts
+    const w = { bought: (bk ? 'Opened ' : 'Bought ') + cs, sold: (bk ? 'Closed ' : 'Sold ') + cs + (pt != null ? ' ' + P(pt) + ' of pot' + (num(a.R) != null ? ' (' + RR(a.R) + ')' : '') : num(a.R) != null ? ' ' + RR(a.R) : ''),
       resized: 'Resized ' + cs + (rp != null ? ' to ' + pp(rp) + ' of pot' : ''),
       carry_in: 'Started collecting on ' + cs, carry_out: 'Started closing ' + cs, carry_closed: 'Closed ' + cs + ' carry' + (cap != null ? ' · ' + P(cap) + ' of capital' : '') }[a.ty] || esc(a.ty) + ' ' + cs;
     return '<i class="bt-dot' + (nowS() - a.t < DAY ? ' on' : '') + '"></i>' + w + also + ' · ' + fmt.when(a.t);
@@ -245,11 +246,13 @@
     const pos = arr(b.pos).filter(isObj), thr = arr(obj(b.cfg).thr), pot = obj(b.pot), s = arena(c), origin = num(obj(b.origin).t);
     const dd = num(pot.dd_pct) ?? num(obj(stateOf(b).thr).dd_pct);              // from the latest equity point (the engine's lags a check)
     const nr = String(arr(s && s.not_ready)[0] || ''), of = /(\d+) of (\d+) days/.exec(nr), day = arenaDay();
-    const pill = s ? (s.ready === true ? '<span class="pill ok"' + hint('fx', 'ready') + '>Ready for you</span>'
+    const sh = c.A && isObj(c.A.shadow) ? c.A.shadow : null;      // a shadow experiment: never Ready, never the arena, paper only
+    const pill = sh ? '<span class="pill warn"' + hint('shadow') + '>Shadow experiment · paper only</span>' : s ? (s.ready === true ? '<span class="pill ok"' + hint('fx', 'ready') + '>Ready for you</span>'
         : '<span class="pill"' + hint('fx', 'arena') + '>' + esc(of && day != null ? 'Day ' + day + ' of ' + of[2] + ' in the arena' : nr || 'Proving itself in the arena') + '</span>')
       : isArena(c) ? '<span class="pill"' + hint('fx', 'arena') + '>In the arena</span>' : '<span class="pill"' + hint('yearly') + '>Judged yearly' + (origin != null ? ' · day ' + ageDay(origin) + ' of 365' : '') + '</span>';
-    return '<div class="bt-vrow">' + pill + '</div>' + cells([
-      cell('Holding', '<b>' + word.plural(pos.length, 'coin') + '</b>', esc(pos.map(p => p.c).join(', '))),
+    const shl = pos.filter(p => p.side === 'short').length;
+    return '<div class="bt-vrow">' + pill + '</div>' + (sh ? '<p class="note bt-shadow">' + esc(sh.label || 'Shadow experiment: failed the lab’s crash check; paper only') + '. Lab recipe ' + esc(sh.recipe || '—') + ', lab verdict ' + esc(sh.lab_verdict || 'failed') + '; it can never go live.</p>' : '') + cells([
+      cell('Holding', '<b>' + word.plural(pos.length, 'coin') + '</b>' + (sh ? ' · ' + fmt.int(pos.length - shl) + ' long, ' + fmt.int(shl) + ' short' : ''), esc(pos.map(p => p.c + (p.side === 'short' ? ' (short)' : '')).join(', '))),
       cell('Invested', '<b>' + (pos.length ? pp(sum(pos, p => num(p.val_pct) ?? p.size_pct)) : '0%') + '</b> of pot', pos.length ? 'at the last prices' : ''),
       cell('Open result', (pos.length ? P(sum(pos, p => p.pnl_pct)) : '—') + ' of pot · ' + RR(obj(b.rec).open_R)),
       cell('Drawdown', '<b>' + (dd == null ? '—' : fmt.pctu(dd, 2)) + '</b>', thr[0] != null && thr[1] != null ? 'risk halves at ' + esc(thr[0]) + '%, stops at ' + esc(thr[1]) + '%' : '')]);
@@ -422,7 +425,9 @@
     const pos = arr(b.pos).filter(isObj);
     if (c.k === 'target') {
       const tw = arr(b.tw).filter(Array.isArray);
-      if (tw.length) h.push('<ul class="list bt-tw">' + tw.map(r => '<li>' + chip(r[0]) + '<span>target ' + p1(r[1]) + ' · holding ' + p1(r[2]) + ' · ' + esc(r[3]) + '</span></li>').join('') + '</ul>');
+      // a long-short book's short leg arrives signed (−6): its own word, never a bare negative
+      const sw = r => num(r[1]) < 0 || num(r[2]) < 0 ? 'short · ' : '', ab = v => num(v) != null && num(v) < 0 ? -num(v) : v;
+      if (tw.length) h.push('<ul class="list bt-tw">' + tw.map(r => '<li>' + chip(r[0]) + '<span>' + sw(r) + 'target ' + p1(ab(r[1])) + ' · holding ' + p1(ab(r[2])) + ' · ' + esc(r[3]) + '</span></li>').join('') + '</ul>');
       else if (pos.length) h.push('<ul class="list bt-tw">' + pos.map(p => '<li>' + chip(p.c) + '<span>holding ' + pp(num(p.val_pct) ?? p.size_pct) + ' of pot</span></li>').join('') + '</ul>');
     }
     if (c.k === 'flip' && num(rk.used_pct) != null) h.push('<p class="bt-line">' + fmt.pctu(rk.used_pct, 2) + ' of pot at risk (cap ' + trim(rk.cap_pct) + '%) · ' + fmt.int(rk.n_open) + ' of ' + fmt.int(rk.max) + ' slots</p>');

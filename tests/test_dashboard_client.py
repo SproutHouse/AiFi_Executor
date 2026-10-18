@@ -34,8 +34,9 @@ class JoinedClient(unittest.TestCase):
         # 420 KB until 2026-10-02; +20 KB for the hover-tip words (core TIP) and the Bot factory section; +15 KB on 2026-10-16
         # for the review's honesty fixes: the lab's evidence on the Shortlist and an arena bot's page (not luck now, vs Bitcoin,
         # execution, edge), "Page behind" and who to suspect when a bot is stale, lifetime carry with the hedge result, and
-        # % of pot first on every sale (449.9 KB measured)
-        self.assertLess(size, 455_000)
+        # % of pot first on every sale (449.9 KB measured); +6 KB on 2026-10-18 for the shadow experiment's words (its tile line
+        # and chip, the long-short book's Rules sentences, short legs on cards and in the event log; 455.6 KB measured)
+        self.assertLess(size, 461_000)
 
     def test_tips_have_words(self):
         # COMMAND_CENTER_SPEC §3.11: every TIP key and every status word has plain words (checked in the harness); a few

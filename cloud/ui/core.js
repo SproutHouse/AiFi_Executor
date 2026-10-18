@@ -347,7 +347,8 @@ function tip(k) { const g = gloss(k); return '<button class="tip" type="button" 
 
 // ========================================================================================== words ==
 const KIND = { flip: ['flip', '4-hour flip'], pullback: ['pullback', 'pullback into the band'] };
-const EXIT = { stop: 'stop hit', h1: 'hourly turn', h4: '4-hour turn', d: 'daily turn', w: 'weekly turn', flatten: 'manual flatten', nostop: 'no stop possible', exch: 'exchange stop', fund: 'funding fell below its exit rate', other: 'exit' };
+const EXIT = { stop: 'stop hit', h1: 'hourly turn', h4: '4-hour turn', d: 'daily turn', w: 'weekly turn', flatten: 'manual flatten', nostop: 'no stop possible', exch: 'exchange stop', fund: 'funding fell below its exit rate', other: 'exit',
+  brake: 'book brake', cat: 'catastrophic stop', side: 'switched sides', delist: 'delisted' };
 const OUTCOME = { blocked: 'Blocked by a check', recorded: 'Recorded, not traded', expired: 'Expired (old approval model)', notfilled: 'Order not filled', bought: 'Bought' };
 const EV_IC = { bought: 'up', sold: 'down', trail: 'raise', blocked: 'block', recorded: 'rec', proposed: 'rec', expired: 'clock', notfilled: 'x',
   late: 'clock', failed: 'bad', halt: 'pause', resume: 'play', thr_halt: 'pause', thr_half: 'warn', recon: 'bad', no_stop: 'bad', close_failed: 'bad',
@@ -447,12 +448,13 @@ const word = {
     }).join(', ');
     let s;
     switch (ty) {
-      case 'bought': { const sp = (String(det || '').match(/stop ([\d.]+)/) || [])[1]; s = 'Bought ' + C + (KIND[kind] ? ' on a ' + word.kind(kind, true) : kind === 'carry' ? ' (a carry pair)' : '') + (tier === 'A' || tier === 'B' ? ' (' + word.tier(tier).toLowerCase() + ')' : '') + (sp ? ', stop ' + fmt.pctu(sp, 1) + ' below' : ''); break; }
-      case 'sold': s = 'Sold ' + C + ' ' + RP(R, word.exit(det)) + (rel != null ? ' · ' + Rs(rel) + ' vs holding' : ''); break;
+      case 'bought': { if (kind === 'book') { s = (tier === 'S' ? 'Shorted ' : 'Bought ') + C + ' (' + (tier === 'S' ? 'short' : 'long') + ' leg of the book)'; break; }
+        const sp = (String(det || '').match(/stop ([\d.]+)/) || [])[1]; s = 'Bought ' + C + (KIND[kind] ? ' on a ' + word.kind(kind, true) : kind === 'carry' ? ' (a carry pair)' : '') + (tier === 'A' || tier === 'B' ? ' (' + word.tier(tier).toLowerCase() + ')' : '') + (sp ? ', stop ' + fmt.pctu(sp, 1) + ' below' : ''); break; }
+      case 'sold': s = (kind === 'book' && tier === 'S' ? 'Covered ' : 'Sold ') + C + ' ' + RP(R, word.exit(det)) + (rel != null ? ' · ' + Rs(rel) + ' vs holding' : ''); break;
       case 'trail': s = C + ' stop raised' + (R != null ? (rz(R, 2) < 0 ? ', still risks ' : ', locks ') + RP(R) : ''); break;
       case 'blocked': {
         const rs = esc(word.reasons(word.codes(det), true)) || 'a safety check';
-        s = tier === 'A' ? C + ' would have bought (auto grade), blocked: ' + rs : C + ' ' + k + (tier === 'B' ? ' (watch-only)' : '') + ' blocked: ' + rs; break;
+        s = kind === 'book' ? C + ' ' + (tier === 'S' ? 'short' : 'long') + ' leg blocked: ' + rs : tier === 'A' ? C + ' would have bought (auto grade), blocked: ' + rs : C + ' ' + k + (tier === 'B' ? ' (watch-only)' : '') + ' blocked: ' + rs; break;
       }
       case 'recorded': s = C + ' ' + k + ' recorded, ' + (tier === 'A' ? 'auto grade' : 'watch-only grade'); break;
       case 'proposed': s = C + ' ' + k + ' proposed (old approval model)'; break;
@@ -1094,6 +1096,7 @@ const TIP = {
   cap: capTip,
   verdict: l => VTIP[l],
   retired: ['Retired', 'Switched off; it no longer trades. Its record stays here.'],
+  shadow: ['Shadow experiment', 'A recipe the lab failed (it missed the crash check), paper-traded anyway on your decision as an unofficial test. Paper only: it can never go live, and it is not in the arena, the shortlist or the fleet.'],
   wait: ['Waiting for its first check', 'On the roster but not reported yet. Its tile fills in after its first check.'],
   name: (a, el) => { const A = tipRow(a, el); return A && [A.name || A.id, A.desc || 'No description yet.']; },
   kind: (a, el) => {

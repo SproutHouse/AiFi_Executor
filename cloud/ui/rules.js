@@ -149,6 +149,20 @@
   // and a bundle without them gets a plain sentence of the kind, never the signal trader's text.
   function kindRows(R, b, c, k, ckH) {
     const ar = typeof rowOf === 'function' && isObj(rowOf(AGENT)) && rowOf(AGENT).arena;
+    if (k === 'target' && isObj(c.target) && isObj(c.target.ls)) {      // the long-short book (a shadow experiment, paper only)
+      const t = c.target, L = t.ls, n = v => num(v) != null;
+      R.push(['Holds', 'Every ' + (n(t.rebalance_days) ? B(fmt.int(t.rebalance_days) + ' days') : 'week') + ' it ranks the ' + (n(L.top_n) ? B('top ' + fmt.int(L.top_n)) + ' ' : '') + 'Hyperliquid coins by trading volume on how much each beat Bitcoin'
+        + (n(L.days) ? ' over ' + B(fmt.int(L.days) + ' days') : '') + ' (its own move, Bitcoin’s share taken out), then buys the best ' + (n(L.q_pct) ? B(cf(L.q_pct) + '%') : 'third') + ' and shorts the worst '
+        + (n(L.q_pct) ? B(cf(L.q_pct) + '%') : 'third') + ', the same money on each side. A coin it could not enter on that side that day (funding, volume, a price check) is replaced by the next one.'
+        + (n(t.vol_target_pct) ? ' The whole book is sized for about ' + B(cf(t.vol_target_pct) + '%') + ' yearly volatility' + (n(L.gross_cap) ? ', at most ' + B(cf(L.gross_cap) + '×') + ' the pot in total' : '') + '.' : '')
+        + (num(t.band) != null ? ' At a rebalance it trades a coin only when it drifts more than ' + B(cf(t.band * 100) + '%') + ' from its target; between rebalances it trades nothing.' : '') + ckH('increase')]);
+      R.push(['Exits', 'A coin leaves when a rebalance drops it from its side. The whole book closes'
+        + (n(L.brake_dd_pct) ? ' after a ' + B(cf(L.brake_dd_pct) + '%') + ' fall from its peak' : ' after a large fall') + (n(L.brake_days) ? ' and stays out for ' + B(fmt.int(L.brake_days) + ' days') : '') + '.'
+        + (n(L.cat_stop_pct) ? ' A short is also closed if its price rises ' + B(cf(L.cat_stop_pct) + '%') + ' above its entry (the engine’s catastrophic stop).' : '')]);
+      R.push(['Judged', L.shadow ? 'A shadow experiment: the AiFi Lab failed this recipe (it missed the crash check), and it runs anyway on paper as an unofficial test. Paper only, never live, not in the arena or the fleet.'
+        : 'Paper only: the engine has no live short orders.']);
+      return;
+    }
     if (k === 'target') {
       const t = isObj(c.target) ? c.target : {}, tw = Array.isArray(b.tw) ? b.tw.filter(Array.isArray) : [], sma = num(t.sma), band = num(t.band), sp = cf(t.stop_pct);
       let h = t.family ? (t.gate ? cap1(esc(t.gate)) + ', holds the ' : 'Holds the ') + (num(t.top) ? B(fmt.int(t.top) + ' strongest') + ' of ' : 'strongest of ') + (num(t.n_coins) ? B(fmt.int(t.n_coins) + ' coins') : 'its coins')

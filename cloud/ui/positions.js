@@ -80,7 +80,7 @@
     let a;
     if (d == null) a = 'stop' + T('stop') + ' distance ' + na();
     else if (d < 0) a = '<span class="ps-thru">at or through the stop; checked next cycle</span>' + T('stop');
-    else a = 'stop ' + dist(d) + ' below' + T('stop');
+    else a = 'stop ' + dist(d) + (p.side === 'short' ? ' above' : ' below') + T('stop');
     const z = L == null ? '' : '<span class="ps-nw">' + (fmt.cls(L) === 'neg' ? 'risks ' : 'locks in ') + Rs(L) + T('lockedR') + '</span>';
     return a + (z ? ' · ' + z : '');
   }
@@ -181,11 +181,13 @@
 
   // ------------------------------------------------------------------------------------- the card ---
   function kindPill(p) {
+    if (p.kind === 'book') return '<span class="pill">' + (p.side === 'short' ? 'Short leg' : 'Long leg') + ' · long-short book</span>';
     return '<span class="pill' + (p.tier === 'A' ? ' auto' : '') + '">' + esc(cap1(word.kind(p.kind))) + ' · ' + esc(word.tier(p.tier)) + '</span>';
   }
   function exitsLine(p, first) {
     const d = num(p.to_stop_pct), e = isObj(p.exits) ? p.exits : {};
     // a rebalancer's position: a fixed protective stop (touched, not a close) or a rebalance to 0; never a daily or weekly turn
+    if (p.kind === 'book') return '<p class="ps-ex">Exits at a weekly rebalance that leaves it out of the book, on the book brake (a 15% fall of the whole pot from its peak), or at its catastrophic stop' + (d == null ? '' : d < 0 ? ' (at or through it now)' : ' (' + dist(d) + (p.side === 'short' ? ' above)' : ' below)')) + '. Paper only.</p>';
     if (p.kind === 'target') return '<p class="ps-ex">Exits if its protective stop' + (d == null ? '' : d < 0 ? ' (at or through it now)' : ' (' + dist(d) + ' below)') + ' is touched, or when a rebalance takes its target weight to 0.</p>';
     const h4 = d == null ? '' : d < 0 ? ' (at or through it now)' : ' (' + dist(d) + ' below)';
     let s = 'Exits if ' + aBw('a') + ' close falls below the stop' + h4 + ' or the daily or weekly turns.';
@@ -198,7 +200,7 @@
   function secLine(p) {
     const sz = num(p.size_pct), lev = num(p.lev), rk = num(p.risk_pct);
     return '<p class="ps-sec">Exposure ' + (sz == null ? '—' : fmt.pctu(sz, sz >= 10 ? 0 : 1)) + ' of pot · ' + (lev == null ? 'leverage —' : fmt.lev(lev) + ' isolated')
-      + (p.kind === 'target' ? '' : ' · only ' + (rk == null ? '—' : fmt.pctu(rk, 2)) + ' of pot at risk at entry') + tip('exposure') + '</p>';
+      + (p.kind === 'target' || p.kind === 'book' ? '' : ' · only ' + (rk == null ? '—' : fmt.pctu(rk, 2)) + ' of pot at risk at entry') + tip('exposure') + '</p>';
   }
   function body(p, o) {
     o = o || {};
@@ -239,8 +241,8 @@
       ['Held', tin != null && asof != null ? fmt.dur(Math.max(0, asof - tin)) + (bars != null ? ' · ' + word.plural(bars, 'bar') : '') : na()],
       ['Costs so far', num(p.cost_R) == null ? na() : fmt.R(p.cost_R) + ' <span class="sub">fees and funding</span>'],
       ['Exposure' + tip('exposure'), sz == null ? na() : fmt.pctu(sz, sz >= 10 ? 0 : 1) + ' of pot · ' + (num(p.lev) == null ? '—' : fmt.lev(p.lev) + ' isolated')],
-      p.kind === 'target' ? null : ['At risk at entry', rk == null ? na() : fmt.pctu(rk, 2) + ' of pot'],
-      ['Stop at entry', sp ? fmt.pctu(sp, 1) + ' below' : na()],
+      p.kind === 'target' || p.kind === 'book' ? null : ['At risk at entry', rk == null ? na() : fmt.pctu(rk, 2) + ' of pot'],
+      ['Stop at entry', sp ? fmt.pctu(sp, 1) + (p.side === 'short' ? ' above' : ' below') : na()],
       ['Bitcoin at entry', btc ? esc(btc) : na()],
     ]) + '</div>');
     const tr = trailOf(p, b);
