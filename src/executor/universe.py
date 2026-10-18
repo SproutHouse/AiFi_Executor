@@ -4,7 +4,9 @@ length of the pair's daily history, so a young or thin market is excluded by con
 from . import hl_data as H
 
 
-def check(coin, row, u, days_of_history=None):
+def check(coin, row, u, days_of_history=None, side="long"):
+    """side "short" (the long-short book, paper only): the funding filter is mirrored, a short is refused while funding
+    pays longs below minus the limit (the short would pay it). Every other filter is the same."""
     if row is None:
         return False, ["not listed on Hyperliquid perpetuals"]
     reasons = []
@@ -23,7 +25,10 @@ def check(coin, row, u, days_of_history=None):
     except (TypeError, ValueError):
         reasons.append("max leverage unreadable")
     fa = H.funding_annual_pct(row)
-    if fa is not None and fa > u["max_funding_annual_pct"]:
+    if side == "short":
+        if fa is not None and fa < -u["max_funding_annual_pct"]:
+            reasons.append(f"funding {fa:.0f}%/yr against shorts beyond -{u['max_funding_annual_pct']}%")
+    elif fa is not None and fa > u["max_funding_annual_pct"]:
         reasons.append(f"funding {fa:.0f}%/yr against longs above {u['max_funding_annual_pct']}%")
     if days_of_history is not None and days_of_history < u["min_daily_bars"]:
         reasons.append(f"{days_of_history} daily bars below {u['min_daily_bars']}")

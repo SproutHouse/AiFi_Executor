@@ -121,6 +121,21 @@ CASES = {
     "resized to": [({"coin": "BTC", "tgt": 480.0, "new_stop": 71642.35, "self": base_self()}, True, ("resized", "BTC", "target", None, "48", None, None), None)],
     "entry check failed": [({"coin": "HYPE", "e": ValueError("could not convert string to float: ''")}, True,
                             ("entry_failed", "HYPE", None, None, "ValueError", None, None), None)],
+    # the long-short book (2026-10-18, shadow agents, paper only): its own lines are SKIP; its trades are the usual
+    # ENTERED / closed on / resized to / REFUSED / target lines (a short's ENTERED carries "short" and tier S)
+    "runs in paper with target.shorts": [({}, True, SKIP, None)],
+    "no Bitcoin bars": [({}, True, SKIP, None)],
+    "funding history unavailable": [({"coin": "PUMP", "e": E_CONN}, True, SKIP, None)],
+    "BOOK BRAKE": [({"eq": 850.0, "book": {"peak": 1000.0}, "until": "2026-11-12", "p": {"brake_dd": 0.15, "brake_days": 28}}, True, SKIP, None)],
+    "book brake lifted": [({}, True, SKIP, None)],
+    "book brake on": [({"until": "2026-11-12"}, True, SKIP, None)],
+    "between rebalances (next on": [({"nxt": "2026-10-22", "self": base_self()}, True, SKIP, None)],
+    "universe unavailable": [({"e": E_CONN}, True, SKIP, None)],
+    "no reading today": [({"info": {"why": "no bars"}}, True, SKIP, None)],
+    "names ranked of": [({"day_s": "2026-10-15", "info": {"ranked": 25, "long": ["AAVE", "SOL"], "short": ["PUMP", "XPL"], "why": ""},
+                          "elig": ["AAVE"] * 28, "u": {"n": 30}, "w": {"AAVE": 0.1}}, True, SKIP, None),
+                         ({"day_s": "2026-10-15", "info": {"ranked": 9, "why": "only 9 names could be ranked, fewer than 12: no book this week"},
+                           "elig": ["AAVE"] * 9, "u": {"n": 30}, "w": {}}, True, SKIP, None)],
 }
 
 
@@ -152,7 +167,7 @@ def render(fn, call, overrides):
 class SayTemplates(unittest.TestCase):
     def test_every_say_parses_into_its_event(self):
         sites = say_sites()
-        self.assertEqual(len(sites), 47, "cycle.py gained or lost a say(): add or remove its template case here")
+        self.assertEqual(len(sites), 65, "cycle.py gained or lost a say(): add or remove its template case here")
         used = set()
         for fn, call, src in sites:
             keys = [k for k in CASES if k in src]
@@ -181,6 +196,20 @@ class SayTemplates(unittest.TestCase):
                         if isinstance(part, str):
                             self.assertIsNone(DP.FORBIDDEN_STR.search(part), part)
                             self.assertNotIn("843", part)
+
+
+class BookLines(unittest.TestCase):
+    """The long-short book's trade lines parse into the usual events, its short side marked by tier S."""
+    def test_short_entry_and_signed_target_lines(self):
+        cand = {"coin": "PUMP", "side": "short", "kind": "book", "tier": "S", "stop": 0.0061, "book": "longshort"}
+        sizing = {"dist_pct": 50.0, "notional_pct_equity": 6.4, "leverage": 3, "risk_pct": 3.2}
+        got = DP.parse_line("PUMP: ENTERED " + CY.describe(cand, sizing))
+        self.assertEqual(tuple(got), ("bought", "PUMP", "book", "S", "stop 50", None, None))
+        self.assertIs(DP.parse_line("PUMP: target -6% of pot, holding -7% → hold"), SKIP)
+        self.assertIs(DP.parse_line("PUMP: target -6% of pot, holding +0% → open"), SKIP)
+        got = DP.parse_line("PUMP [longshort]: closed on book brake at 0.0049 → +0.31 R")
+        self.assertEqual((got[0], got[4], got[5]), ("sold", "brake", 0.31))
+        self.assertEqual(DP.TW_RX.match("PUMP: target -6% of pot, holding -7% → hold").group(2), "-6")
 
 
 class EngineDetails(unittest.TestCase):

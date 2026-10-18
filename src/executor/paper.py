@@ -1,5 +1,9 @@
 """paper.py — the paper engine. Same position records as live, filled at Hyperliquid's mark with the
-configured slippage and taker fee, stopped on the 4-hour bars that closed since the last cycle."""
+configured slippage and taker fee, stopped on the 4-hour bars that closed since the last cycle.
+
+Shorts (2026-10-18, the long-short book of agents/shadow-01 only; paper only): a position with "side": "short" keeps
+a positive size, gains when the price falls, has its stop above the entry, and RECEIVES funding while the rate is
+positive (funding_paid goes negative). Every long position takes exactly the code path it always took."""
 from . import common as C
 
 POT = C.STATE / "paper.json"
@@ -35,6 +39,8 @@ def equity(p, positions, marks):
         m = marks.get(coin)
         if pos.get("kind") == "carry":
             unreal += carry_value(pos, m)
+        elif m and is_short(pos):
+            unreal += (pos["entry"] - m) / pos["entry"] * pos["notional"] - pos.get("funding_paid", 0.0)
         elif m:
             # open P&L less the funding already owed: funding is charged to cash at close (cycle._record_close), so
             # counting it here keeps equity (and the throttle's drawdown) honest while the position is open
@@ -42,11 +48,16 @@ def equity(p, positions, marks):
     return p["cash"] + unreal, unreal
 
 
+def is_short(pos):
+    return pos.get("side") == "short"
+
+
 def open_position(cand, sizing, mark, s, ts, mode="paper", context=None, rules=None):
     slip = s["paper_slippage_pct"] / 100
-    entry = mark * (1 + slip)
+    short = cand.get("side") == "short"
+    entry = mark * (1 - slip) if short else mark * (1 + slip)       # a short sells: filled below the mark
     fee = sizing["notional"] * s["fee_taker_pct"] / 100
-    return {"coin": cand["coin"], "side": "long", "kind": cand["kind"], "tier": cand["tier"], "mode": mode,
+    return {"coin": cand["coin"], "side": "short" if short else "long", "kind": cand["kind"], "tier": cand["tier"], "mode": mode,
             "entry": entry, "stop": cand["stop"], "initial_stop": cand["stop"], "notional": sizing["notional"],
             "sz": sizing["notional"] / entry, "risk_amt": sizing["risk_amt"], "leverage": sizing["leverage"],
             "notional_pct_equity": sizing["notional_pct_equity"], "entry_fee": fee, "funding_paid": 0.0,
@@ -56,16 +67,41 @@ def open_position(cand, sizing, mark, s, ts, mode="paper", context=None, rules=N
 
 
 def accrue_funding(pos, hourly_rate, ts):
+    """Longs pay a positive rate; a short receives it (its funding_paid falls), and pays a negative one."""
     hours = max(0.0, (ts - pos.get("last_funding_ts", ts)) / 3600)
-    pos["funding_paid"] = pos.get("funding_paid", 0.0) + hourly_rate * hours * pos["notional"]
+    if is_short(pos):
+        pos["funding_paid"] = pos.get("funding_paid", 0.0) - hourly_rate * hours * pos["notional"]
+    else:
+        pos["funding_paid"] = pos.get("funding_paid", 0.0) + hourly_rate * hours * pos["notional"]
     pos["last_funding_ts"] = ts
 
 
+def accrue_funding_history(pos, rows, mark, ts):
+    """Accrue Hyperliquid's ACTUAL funding (the long-short book's "funding": "history"): each hourly record of
+    funding_history ({time in ms, fundingRate}) after the position's last accrual and up to ts, on the position's value
+    at the mark; longs pay a positive rate, a short receives it. Returns the number of records used. The cursor moves to
+    the newest record used, so an hour is never counted twice and never skipped."""
+    last = pos.get("last_funding_ts", ts)
+    used = [(int(r["time"]), float(r["fundingRate"])) for r in rows if last * 1000 < int(r["time"]) <= ts * 1000]
+    if not used:
+        return 0
+    paid = sum(x for _t, x in used) * pos["sz"] * mark
+    pos["funding_paid"] = pos.get("funding_paid", 0.0) + (-paid if is_short(pos) else paid)
+    pos["last_funding_ts"] = max(t for t, _x in used) // 1000
+    return len(used)
+
+
 def check_stop(pos, bars, s):
-    """First completed 4-hour bar after the last checked one whose low breaches the stop fills the exit."""
+    """First completed 4-hour bar after the last checked one whose low breaches the stop fills the exit (a short: whose
+    high reaches its stop, filled at max(open, stop) plus slippage)."""
     slip = s["paper_slippage_pct"] / 100
     for b in bars:
         if b["t"] <= pos.get("last_bar_t", 0):
+            continue
+        if is_short(pos):
+            if b["h"] >= pos["stop"]:
+                return max(b["o"], pos["stop"]) * (1 + slip), b["t"]
+            pos["last_bar_t"] = b["t"]
             continue
         if b["l"] <= pos["stop"]:
             px = min(b["o"], pos["stop"]) * (1 - slip)

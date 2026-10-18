@@ -41,8 +41,12 @@ def decide(cur_notional, target_notional, band):
 
 def paper_resize(pos, new_notional, mark, s):
     """Resize a paper position toward new_notional at the mark (with slippage and taker fee).
-    Returns the cash change (negative fee on an increase; realised P&L net of fee on a decrease)."""
+    Returns the cash change (negative fee on an increase; realised P&L net of fee on a decrease).
+    new_notional is the size's absolute value: a short (the long-short book, paper only) grows by selling below the
+    mark and shrinks by buying back above it."""
     slip, fee_pct = s["paper_slippage_pct"] / 100, s["fee_taker_pct"] / 100
+    if pos.get("side") == "short":
+        return _paper_resize_short(pos, new_notional, mark, slip, fee_pct)
     cur = pos["sz"] * mark
     if new_notional > cur:
         px = mark * (1 + slip)
@@ -56,6 +60,27 @@ def paper_resize(pos, new_notional, mark, s):
         px = mark * (1 - slip)
         cut_sz = min(pos["sz"], (cur - new_notional) / px)
         realised = (px - pos["entry"]) * cut_sz - cut_sz * px * fee_pct
+        pos["sz"] -= cut_sz
+        pos["realized"] = pos.get("realized", 0.0) + realised
+        cash = realised
+    pos["notional"] = pos["sz"] * pos["entry"]
+    return cash
+
+
+def _paper_resize_short(pos, new_notional, mark, slip, fee_pct):
+    cur = pos["sz"] * mark
+    if new_notional > cur:
+        px = mark * (1 - slip)
+        add_sz = (new_notional - cur) / px
+        pos["entry"] = (pos["entry"] * pos["sz"] + px * add_sz) / (pos["sz"] + add_sz)
+        pos["sz"] += add_sz
+        fee = add_sz * px * fee_pct
+        pos["entry_fee"] = pos.get("entry_fee", 0.0) + fee
+        cash = -fee
+    else:
+        px = mark * (1 + slip)
+        cut_sz = min(pos["sz"], (cur - new_notional) / px)
+        realised = (pos["entry"] - px) * cut_sz - cut_sz * px * fee_pct
         pos["sz"] -= cut_sz
         pos["realized"] = pos.get("realized", 0.0) + realised
         cash = realised

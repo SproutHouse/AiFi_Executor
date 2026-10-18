@@ -29,7 +29,10 @@ def save_positions(pos, mode):
 
 def build_close(pos, exit_px, reason, ts, exit_fee, funding_paid, bench_exit=None):
     """The closed-trade record, computed without writing anything."""
-    gross = (exit_px - pos["entry"]) / pos["entry"] * pos["notional"]
+    if pos.get("side") == "short":                 # the long-short book (paper only): a short gains as the price falls
+        gross = (pos["entry"] - exit_px) / pos["entry"] * pos["notional"]
+    else:
+        gross = (exit_px - pos["entry"]) / pos["entry"] * pos["notional"]
     pnl = gross - pos.get("entry_fee", 0.0) - exit_fee - funding_paid + pos.get("realized", 0.0)   # realized: partial reductions (target mode)
     bench_ret = rel_R = None
     if bench_exit and pos.get("bench_entry"):

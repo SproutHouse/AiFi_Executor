@@ -14,9 +14,10 @@ refusal is written down with its reasons. The model is nowhere in this file.
 import time
 from . import common as C, hl_data as H, binance_data as B, regime as R, signals as S, universe as U
 from . import risk as K, hours as HR, proposals as P, ledger as L, paper as PA, live as LV, target as TG, carry as CA
-from . import families as F, market_regime as MR
+from . import families as F, market_regime as MR, longshort as XS
 
 HALT = C.STATE / "HALT"
+BOOK = C.STATE / "book.json"          # the long-short book's own state (peak, brake), shadow agents only
 
 
 def agent_coins(s):
@@ -24,8 +25,22 @@ def agent_coins(s):
     return list(t.get("coins") or t.get("weights") or []) + list(c.get("basket") or [])
 
 
+def paper_only(s):
+    """Why this agent can never trade live, or "" when it can: a shadow experiment (a recipe the lab FAILED, paper-traded
+    on the owner's decision as an unofficial experiment) or any agent whose target block holds shorts (the engine has
+    no live short order path). go_live.py and approve.py refuse the same agents."""
+    if s.get("shadow"):
+        return "a shadow experiment (its lab verdict is failed): paper only, never live"
+    if (s.get("target") or {}).get("shorts") or (s.get("target") or {}).get("family") == "ls_xs":
+        return "a long-short book: the engine has no live short order path, paper only"
+    return ""
+
+
 def resolve_mode(s):
     mode = s.get("mode", "paper")
+    why = paper_only(s)
+    if why:
+        return "paper", (f"live requested but this agent is {why}: running paper" if mode == "live" else "")
     if mode == "live" and any(H.is_builder(c) for c in agent_coins(s)) and not s.get("builder_live_validated"):
         return "paper", "live requested but builder-market (HIP-3) order handling is not validated yet (docs/specs/MARKETS.md): running paper"
     if mode == "live" and s.get("strategy") == "carry" and not s.get("carry_live_validated"):
@@ -88,7 +103,7 @@ class Bars:
 
 
 def describe(cand, sizing):
-    return (f"{cand['coin']} long [{cand.get('book', '?')}] · {cand['kind']} tier {cand['tier']} · stop {cand['stop']:.5g} "
+    return (f"{cand['coin']} {cand.get('side', 'long')} [{cand.get('book', '?')}] · {cand['kind']} tier {cand['tier']} · stop {cand['stop']:.5g} "
             f"({sizing.get('dist_pct', 0):.1f}% away) · size {sizing.get('notional_pct_equity', 0):.1f}% of pot at "
             f"{sizing.get('leverage', '?')}x · risk {sizing.get('risk_pct', 0):.2f}% of pot")
 
@@ -615,7 +630,10 @@ class Cycle:
             if self.s.get("strategy") == "target":
                 self.manage_target_stops()
                 self.reconcile()
-                self.manage_targets()
+                if (self.s["target"] or {}).get("family") == "ls_xs":
+                    self.manage_book()
+                else:
+                    self.manage_targets()
                 return self._run_tail()
             self.manage_exits()
             self.reconcile()
@@ -970,19 +988,21 @@ class Cycle:
             try:
                 d, h = self.bars.get(coin)
                 row = self.ctxs.get(coin, {})
-                try:
-                    PA.accrue_funding(pos, float(row.get("funding", 0) or 0), self.now)
-                except (TypeError, ValueError):
-                    pass
+                if not (pos.get("kind") == "book" and self.book_funding(coin, pos)):
+                    try:
+                        PA.accrue_funding(pos, float(row.get("funding", 0) or 0), self.now)
+                    except (TypeError, ValueError):
+                        pass
                 px, bt = PA.check_stop(pos, h, self.s)
                 if px is not None and not self.dry:
-                    self.close_position(coin, pos, px, "protective stop", bt or self.now)
+                    self.close_position(coin, pos, px, "catastrophic stop" if pos.get("kind") == "book" else "protective stop", bt or self.now)
             except Exception as e:  # noqa: BLE001
                 self.say(f"{coin}: exit management failed ({type(e).__name__}: {str(e)[:100]}); position kept")
         self.persist()
 
-    def target_checks(self, coin, add_notional, row, stop_pct):
-        """The pre-trade checks that apply to opening or increasing a target position (exits never wait)."""
+    def target_checks(self, coin, add_notional, row, stop_pct, side="long"):
+        """The pre-trade checks that apply to opening or increasing a target position (exits never wait). side "short"
+        (the long-short book, paper only) mirrors the funding filter."""
         checks = []
         add = lambda name, ok, detail="": checks.append({"check": name, "ok": bool(ok), "detail": detail})
         eq = self.equity or 0.0
@@ -999,7 +1019,7 @@ class Cycle:
         second = B.last_price(coin)
         dev = abs(mark - second) / second * 100 if (mark and second) else 0.0
         add("price sanity band", dev <= self.s["data"]["sanity_band_pct"], f"mark vs Binance {dev:.2f}%" if second else "no second source")
-        u_ok, u_reasons = U.check(coin, row, self.s["universe"], None)
+        u_ok, u_reasons = U.check(coin, row, self.s["universe"], None) if side == "long" else U.check(coin, row, self.s["universe"], None, side)
         add("universe filters", u_ok, "; ".join(u_reasons))
         return all(c["ok"] for c in checks), checks
 
@@ -1155,6 +1175,228 @@ class Cycle:
         self.persist()
         self.say(f"{coin}: resized to {tgt / (self.equity or 1) * 100:.0f}% of pot, stop {new_stop:.5g}")
 
+    # ------------------------------------------------ long-short book --
+    # The lab's ls_xs family (src/executor/longshort.py), PAPER ONLY: the shadow experiment agents/shadow-01. Order of
+    # work each daily run, as the lab's harness: the catastrophic stops (manage_target_stops, above), a held coin no
+    # longer listed closed at its last mark, the book drawdown brake on the agent's equity, then, on a rebalance day
+    # only, the universe, the book and the trades toward it (exits and trims first, then opens and growth, which pass
+    # the pre-trade checks). Between rebalances nothing is traded: the weights drift, as in the lab.
+    def manage_book(self):
+        cfg = self.s["target"]
+        if self.mode != "paper" or not cfg.get("shorts"):
+            self.say("long-short book: runs in paper with target.shorts on only; nothing traded")
+            return
+        p = XS.params(cfg.get("params"))
+        u = dict(XS.UNIVERSE, **(cfg.get("universe") or {}))
+        band = float(cfg.get("band", p["band"]))
+        cat = float(cfg.get("catastrophic_stop_pct", 100.0)) / 100
+        slip = self.s["paper_slippage_pct"] / 100
+        btc = self.bars.get("BTC")[0]
+        if not btc:
+            self.say("long-short book: no Bitcoin bars (data gap); positions kept as they are")
+            return
+        day = btc[-1]["t"] // XS.DAY * XS.DAY
+        for coin, pos in list(self.positions.items()):        # a held coin Hyperliquid no longer lists: closed at its last mark
+            if coin not in self.ctxs and not self.dry:
+                px = self.marks.get(coin) or pos.get("mark") or pos["entry"]
+                self.close_position(coin, pos, px, "delisted", self.now)
+        self.equity, self.unreal = PA.equity(self.pot, self.positions, self.marks)
+        eq = self.equity or 0.0
+        book = C.load_json(BOOK) or {}
+        rebalance = XS.is_rebalance(day, p)
+        braked, event = XS.brake_step(book, eq, day, rebalance, bool(self.positions), p)
+        book.update({"day": C.iso(day)[:10], "equity_seen": eq})
+        until = C.iso(book["braked_until"])[:10] if book.get("braked_until") else None
+        if event == "brake":
+            self.say(f"BOOK BRAKE: equity {eq / book['peak'] * 100 - 100:+.1f}% from its peak, beyond -{p['brake_dd'] * 100:.0f}%: "
+                     f"every position closes, flat until the first rebalance after {until}")
+            self.trade_alert("Executor: book brake", f"down {100 - eq / book['peak'] * 100:.1f}% from its peak: the book closes and stays flat for {p['brake_days']} days")
+        elif event == "lift":
+            self.say(f"book brake lifted: the book re-forms today, its peak reset to today's equity")
+        if braked:
+            if event != "brake":
+                self.say(f"book brake on: flat until the first rebalance after {until}")
+            # every braked day, as the lab: whatever is still held closes (a name without a mark the day the brake
+            # tripped closes on the first day it has one)
+            for coin, pos in list(self.positions.items()):
+                mark = self.marks.get(coin)
+                if mark and not self.dry:
+                    self.close_position(coin, pos, mark * (1 + slip) if PA.is_short(pos) else mark * (1 - slip), "book brake", self.now)
+            self._book_save(book)
+            return
+        if not rebalance:
+            nxt = C.iso(day + (p["rebalance_days"] - (day // XS.DAY) % p["rebalance_days"]) * XS.DAY)[:10]
+            self.say(f"long-short book: between rebalances (next on {nxt}); {len(self.positions)} names held as they drift")
+            for coin, pos in self.positions.items():
+                self._book_reading(coin, f"{pos.get('side')} leg, held between rebalances", None)
+            self._book_save(book)
+            return
+        try:
+            elig, excluded, top, bars = self.book_universe(day, u)
+        except Exception as e:  # noqa: BLE001 — a missing coin would change the ranking: no rebalance this run
+            self.say(f"long-short book: universe unavailable ({type(e).__name__}: {str(e)[:100]}); positions kept, retried next run")
+            self._book_save(book)
+            return
+        row = lambda c: self.ctxs.get(c) or {}                       # noqa: E731
+        # gates v7 (review R1): each leg is formed only from names the engine could enter on that side today, so a
+        # refusal never leaves a one-sided book. Per name and side: the universe filters (funding mirrored for a short,
+        # volume, open interest, max leverage) and the price sanity band. Portfolio checks stay per order.
+        why_not = {"long": {}, "short": {}}
+        for c in elig:
+            mark, second = self.marks.get(c), B.last_price(c)
+            dev = abs(mark - second) / second * 100 if (mark and second) else 0.0
+            for side in ("long", "short"):
+                ok, reasons = U.check(c, row(c), self.s["universe"], None, side)
+                if dev > self.s["data"]["sanity_band_pct"]:
+                    ok, reasons = False, reasons + [f"mark vs Binance {dev:.2f}%"]
+                if not ok:
+                    why_not[side][c] = "; ".join(reasons)
+        no_long, no_short = set(why_not["long"]), set(why_not["short"])
+        panel = {c: bars[c] for c in set(elig) | set(self.positions) | {"BTC"} if bars.get(c)}
+        w, info = XS.latest(panel, p, elig, no_long, no_short)
+        if w is None:
+            self.say(f"long-short book: no reading today ({info.get('why')}); positions kept")
+            self._book_save(book)
+            return
+        book["last_rebalance"] = {"day": C.iso(day)[:10], "ranked": info.get("ranked"), "k": info.get("k"),
+                                  "long": info.get("long"), "short": info.get("short"), "why": info.get("why") or None,
+                                  "refused_long": {c: why_not["long"][c] for c in sorted(info.get("skipped_long") or [])},
+                                  "refused_short": {c: why_not["short"][c] for c in sorted(info.get("skipped_short") or [])},
+                                  "universe": [c for c, _v in top], "excluded": excluded}
+        day_s = C.iso(day)[:10]
+        self.say(f"long-short book {day_s}: {info.get('ranked')} names ranked of {len(elig)} eligible (top {u['n']} by Hyperliquid volume); "
+                 + (f"long {', '.join(info['long'])} · short {', '.join(info['short'])}" if w else info.get("why", "no book")))
+        mult = (self.thr["multiplier"] if self.thr["multiplier"] > 0 else 1.0) * self.fleet_mult
+        want = {c: w.get(c, 0.0) * eq * mult for c in sorted(set(w) | set(self.positions))}
+        ups = []
+        for coin, tgt in want.items():                                # 1. exits, flips and trims: never wait
+            mark = self.marks.get(coin)
+            pos = self.positions.get(coin)
+            why = (f"{'long' if tgt > 0 else 'short'} leg, weight {w[coin] * 100:+.1f}% of equity" if coin in w
+                   else "not in this week's book")
+            self._book_reading(coin, why, mark)
+            if not mark:
+                self.say(f"{coin}: no reading on one timeframe (data gap); position and stop kept as they are")
+                continue
+            sg = -1.0 if (pos and PA.is_short(pos)) else 1.0
+            cur = sg * pos["sz"] * mark if pos else 0.0
+            if pos and (tgt == 0 or (tgt > 0) != (cur > 0)):
+                self.say(f"{coin}: target {tgt / eq * 100 if eq else 0:+.0f}% of pot, holding {cur / eq * 100 if eq else 0:+.0f}% → close")
+                if not self.dry:
+                    self.close_position(coin, pos, mark * (1 + slip) if sg < 0 else mark * (1 - slip), "target weight zero" if tgt == 0 else "side flips", self.now)
+                pos, cur = None, 0.0
+            if tgt == 0:
+                continue
+            action = TG.decide(abs(cur), abs(tgt), band)
+            if action == "decrease":
+                self.say(f"{coin}: target {tgt / eq * 100 if eq else 0:+.0f}% of pot, holding {cur / eq * 100 if eq else 0:+.0f}% → decrease")
+                if not self.dry:
+                    self._book_resize(coin, pos, abs(tgt), mark, cat)
+            elif action in ("open", "increase"):
+                ups.append((coin, tgt, action))
+            else:
+                self.say(f"{coin}: target {tgt / eq * 100 if eq else 0:+.0f}% of pot, holding {cur / eq * 100 if eq else 0:+.0f}% → {action}")
+        for coin, tgt, action in ups:                                # 2. opens and growth: the pre-trade checks
+            mark, pos = self.marks[coin], self.positions.get(coin)
+            side = "long" if tgt > 0 else "short"
+            cur = ((pos["sz"] * mark) if pos else 0.0) * (1 if tgt > 0 else -1)
+            self.say(f"{coin}: target {tgt / eq * 100 if eq else 0:+.0f}% of pot, holding {cur / eq * 100 if eq else 0:+.0f}% → {action}")
+            if self.dry:
+                continue
+            ok, checks = self.target_checks(coin, abs(tgt) - abs(cur), row(coin), cat, side)
+            if not ok:
+                failed = [c for c in checks if not c["ok"]]
+                self.counts["refused"] += 1
+                cand = {"coin": coin, "kind": "book", "tier": "S" if side == "short" else "L", "side": side, "action": action}
+                L.record_refusal(cand, failed, self.now, "pre-trade")
+                self.say(f"{coin}: signal {cand['kind']} tier {cand['tier']} REFUSED: " + "; ".join(f"{c['check']} ({c['detail']})" for c in failed))
+                continue
+            if pos:
+                self._book_resize(coin, pos, abs(tgt), mark, cat)
+            else:
+                self._book_open(coin, side, abs(tgt), mark, cat, book["last_rebalance"])
+        self._book_save(book)
+
+    def book_funding(self, coin, pos):
+        """The long-short book with target "funding": "history" (shadow-01): accrue Hyperliquid's actual hourly funding
+        since the last accrual (PA.accrue_funding_history) instead of the rate read now times the hours. True when done;
+        False (the caller falls back to the rate) when the history cannot be read or the setting is off."""
+        if (self.s.get("target") or {}).get("funding") != "history":
+            return False
+        mark = self.marks.get(coin) or pos.get("mark") or pos["entry"]
+        try:
+            rows = H.funding_history(coin, int(pos.get("last_funding_ts", self.now)) * 1000)
+        except Exception as e:  # noqa: BLE001 — no history this run: the read rate, as every other agent
+            self.say(f"long-short book: {coin} funding history unavailable ({type(e).__name__}); the rate read now is used")
+            return False
+        PA.accrue_funding_history(pos, rows or [], mark, self.now)
+        return True
+
+    def book_universe(self, day, u):
+        """(eligible coins, {coin: why not eligible}, ranked top [(coin, median volume)], {coin: daily bars}) for the
+        decision day: Hyperliquid's listed perps, the u["prefilter"] busiest by 24h volume (and every held coin) read
+        once, ranked by trailing median notional volume up to the day before (longshort.rank_by_volume), the top
+        u["n"] kept, those listed with at least u["min_usd_vol"] traded on the day eligible. Raises when a coin's candles
+        cannot be read: a ranking without it could differ, so the book waits for the next run."""
+        listed = {c for c in self.ctxs if not H.is_builder(c)}
+
+        def vol24(c):
+            try:
+                return float(self.ctxs[c].get("dayNtlVlm") or 0)
+            except (TypeError, ValueError):
+                return 0.0
+        cand = sorted(listed, key=lambda c: (-vol24(c), c))[:int(u["prefilter"])]
+        cand = sorted(set(cand) | set(self.positions) | {"BTC"})
+        bars = {c: self.bars.get(c)[0] for c in cand}
+        top = XS.rank_by_volume(bars, day - XS.DAY, int(u["n"]), int(u["window"]), int(u["min_history"]))
+        elig, excluded = XS.eligible_today(bars, day, top, listed, float(u["min_usd_vol"]))
+        return elig, excluded, top, bars
+
+    def _book_open(self, coin, side, notional, mark, cat, last):
+        """Paper only: a new name of the book, at the mark with slippage and the taker fee, its catastrophic stop set."""
+        eq = self.equity or 0.0
+        short = side == "short"
+        cand = {"coin": coin, "kind": "book", "tier": "S" if short else "L", "side": side, "stop": mark * (1 + cat) if short else mark * (1 - cat),
+                "bar_t": self.bars.get(coin)[0][-1]["t"], "book": self.s["target"].get("book", "longshort"), "benchmark": None, "bench_mark": None}
+        sizing = {"notional": notional, "risk_amt": notional * cat, "leverage": int(self.s["leverage_cap_x"]),
+                  "risk_pct": cat * notional / eq * 100 if eq else 0, "notional_pct_equity": notional / eq * 100 if eq else 0, "dist_pct": cat * 100}
+        rules = [f"LOGIC v{self.s.get('version', '?')}", f"agent:{C.AGENT}", "book:ls_xs", f"side:{side}", "paper-only",
+                 f"rebalance:{last.get('day')}"]
+        pos = PA.open_position(cand, sizing, mark, self.s, self.now, "paper", {"funding_annual_pct": H.funding_annual_pct(self.ctxs.get(coin, {}))}, rules)
+        pos["stop"] = pos["initial_stop"] = pos["entry"] * (1 + cat) if short else pos["entry"] * (1 - cat)
+        self.pot["cash"] -= pos["entry_fee"]
+        self.positions[coin] = pos
+        self.persist()
+        self.counts["entered"] += 1
+        cand["stop"] = pos["stop"]
+        self.say(f"{coin}: ENTERED {describe(cand, sizing)}")
+        self.trade_alert("Executor: entered", f"{coin} {side} (long-short book, paper)")
+        return pos
+
+    def _book_resize(self, coin, pos, tgt, mark, cat):
+        """Paper only: grow or trim a name of the book to the notional tgt; its catastrophic stop follows the entry."""
+        self.pot["cash"] += TG.paper_resize(pos, tgt, mark, self.s)
+        pos["risk_amt"] = max(pos.get("risk_amt", 0.0), pos["notional"] * cat)
+        new_stop = pos["entry"] * (1 + cat) if PA.is_short(pos) else pos["entry"] * (1 - cat)
+        pos["stop"] = new_stop
+        self.persist()
+        self.say(f"{coin}: resized to {tgt / (self.equity or 1) * 100:.0f}% of pot, stop {new_stop:.5g}")
+
+    def _book_reading(self, coin, why, mark):
+        self.counts["evaluated"] += 1
+        row = self.ctxs.get(coin) or {}
+        try:
+            d = self.bars.get(coin)[0]
+        except Exception:  # noqa: BLE001
+            d = []
+        self.readings.append({"coin": coin, "book": self.s["target"].get("book", "longshort"), "weekly": None, "daily": None, "h4": None,
+                              "range": None, "line": None, "close": d[-1]["c"] if d else None, "trigger": None, "why": why,
+                              "vol_m": None, "funding_pct": H.funding_annual_pct(row), "days": len(d), "mark": mark or self.marks.get(coin)})
+
+    def _book_save(self, book):
+        if not self.dry:
+            C.write_json(BOOK, book)
+
     def finish(self):
         """Always runs: marks, write-through, the run record, the ledger page, the daily line."""
         c = self.counts
@@ -1164,7 +1406,7 @@ class Cycle:
         for coin, pos in self.positions.items():
             m = self.marks.get(coin)
             if m and pos.get("entry"):
-                pos["mark"], pos["upnl_pct"] = m, (m / pos["entry"] - 1) * 100
+                pos["mark"], pos["upnl_pct"] = m, ((pos["entry"] / m - 1) if PA.is_short(pos) else (m / pos["entry"] - 1)) * 100
         if not self.dry and (self.pot is not None or self.mode == "live"):
             self.persist()
             if self.equity is not None:

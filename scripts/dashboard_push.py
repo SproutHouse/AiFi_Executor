@@ -67,7 +67,9 @@ OUTCOME = {"pre-trade": "blocked", "policy": "recorded", "proposal": "expired", 
 # Exit reasons: a flip names its timeframe (cycle.py writes f"{tf} flip"): on an hourly bot "4h flip" is its 4-hour
 # gate turning and "1h flip" its own bar, so each keeps its own code (h1 reads "hourly turn", h4 always "4-hour turn").
 RSN = {"stop": "stop", "4h flip": "h4", "1h flip": "h1", "1d flip": "d", "daily flip": "d", "weekly flip": "w", "manual flatten": "flatten",
-       "no stop possible": "nostop", "stop (exchange)": "exch", "funding below exit": "fund"}
+       "no stop possible": "nostop", "stop (exchange)": "exch", "funding below exit": "fund",
+       # the long-short book (shadow agents, paper only)
+       "book brake": "brake", "catastrophic stop": "cat", "side flips": "side", "delisted": "delist"}
 # the fixed why strings in signals.py (lines 13, 15, 18, 28, 30)
 WHY = {"weekly Momentum Cloud not bullish": "w", "daily Momentum Cloud not bullish": "d", "4-hour reading not ready": "n",
        "no trigger on the last 4-hour bar": "atu", "close not above the 4-hour line": "g"}
@@ -78,7 +80,7 @@ LEVEL = {"failed": 3, "halt": 3, "thr_halt": 3, "recon": 3, "no_stop": 3, "close
          "recorded": 1, "proposed": 1, "expired": 1, "notfilled": 1, "resume": 1, "sweep": 1, "review": 1, "late": 1,
          "entry_failed": 1, "not_on_exchange": 1, "board": 0}
 STANDING = ("halt", "fallback", "thr_half", "thr_halt")
-TW_RX = re.compile(r"^(\S+): target (\d+)% of pot, holding (\d+)% → (\w+)$")   # standing states: one event on the transition, not one per run
+TW_RX = re.compile(r"^(\S+): target ([+-]?\d+)% of pot, holding ([+-]?\d+)% → (\w+)$")   # signed: a long-short book   # standing states: one event on the transition, not one per run
 
 FORBIDDEN_KEY = re.compile(r"^(equity|cash|unrealized|start|peak|notional|sz|risk_amt|entry_fee|funding_paid|fees|funding|gross|pnl|margin|"
                            r"min_notional_usd|pot_usd_paper|stop_cloid|entry_cloid|last_bar_t|last_funding_ts|rules|context_at_entry|"
@@ -307,7 +309,8 @@ _P = {k: re.compile(v) for k, v in {
     "gap": r"^(\S+): no reading on one timeframe",
     "nomark": r"^(\S+): (?:weekly|daily|4h|1h|1d) flip but no mark price",
     "trail": r"^(\S+): stop trailed to ([\d.e+-]+)$",
-    "target": r"^(\S+): target \d+% of pot, holding \d+% → \w+$",
+    "target": r"^(\S+): target [+-]?\d+% of pot, holding [+-]?\d+% → \w+$",
+    "book": r"^(?:long-short book\b|BOOK BRAKE: |book brake )",
     "resized": r"^(\S+): resized to (\d+)% of pot, stop \S+$",
     "carry_in": r"^(\S+): carry ENTERING · funding ([-\d.]+)%/yr",
     "carry_out": r"^(\S+): carry EXITING · funding ([-\d.]+)%/yr",
@@ -317,7 +320,7 @@ _P = {k: re.compile(v) for k, v in {
     "recon": r"^RECONCILIATION MISMATCH",
     "no_stop": r"^(\S+): could not place the resident stop",
     "notfilled": r"^(\S+): entry not filled",
-    "bought": r"^(\S+): ENTERED \S+ long \[(.*?)\] · (\w+) tier (\w+) · stop (\S+) \(([\d.]+)% away\)",
+    "bought": r"^(\S+): ENTERED \S+ (?:long|short) \[(.*?)\] · (\w+) tier (\w+) · stop (\S+) \(([\d.]+)% away\)",
     "entry_failed": r"^(\S+): entry check failed \((\w+)",
     "candles": r"^(\S+): candles unavailable",
     "not_listed": r"^(\S+) \[(.*?)\]: not listed on Hyperliquid perpetuals$",
@@ -404,7 +407,7 @@ def parse_line(line, fresh=True):
             return SKIP
         mins = re.search(r"(\d+) min after the bar close", m.group(3))
         return Ev("late", detail=mins.group(1) if mins else None, aux={"min": int(mins.group(1)) if mins else None})
-    for k in ("counts", "stop_cancel", "reading", "would_propose", "target", "carry_dust"):
+    for k in ("counts", "stop_cancel", "reading", "would_propose", "target", "carry_dust", "book"):
         if _P[k].match(s):
             return SKIP
     m = _P["resized"].match(s)
@@ -768,6 +771,15 @@ class Bundle:
             pm = t.get("params") if isinstance(t.get("params"), dict) else {}
             g = lambda k: t.get(k, pm.get(k))
             coins = t.get("weights") or t.get("coins") or []
+            if t.get("family") == "ls_xs":           # the long-short book (shadow agents, paper only): its own words
+                u = t.get("universe") if isinstance(t.get("universe"), dict) else {}
+                pc = lambda v: num(v * 100) if isinstance(v, (int, float)) else None   # noqa: E731
+                return {"target": {"family": "ls_xs", "band": num(g("band")), "rebalance_days": pm.get("rebalance_days"),
+                                   "vol_target_pct": pc(pm.get("vol_target")),
+                                   "ls": {"top_n": u.get("n"), "q_pct": pc(pm.get("q")), "days": pm.get("n"), "score": pm.get("score"),
+                                          "gross_cap": num(pm.get("gross_cap")), "brake_dd_pct": pc(pm.get("brake_dd")),
+                                          "brake_days": pm.get("brake_days"), "cat_stop_pct": num(t.get("catastrophic_stop_pct")),
+                                          "shadow": bool(s.get("shadow"))}}}
             return {"target": {"sma": g("sma") or pm.get("filter_n"), "band": num(g("band")), "stop_pct": num(g("stop_pct")), "family": t.get("family"),
                                "rebalance_days": pm.get("rebalance_days"), "top": pm.get("k"), "n_coins": len(coins), "vol_target_pct": num((g("vol_target") or 0) * 100) or None,
                                **bull_words(t.get("family"), pm)}}
@@ -939,11 +951,17 @@ class Bundle:
             mark = float(p["mark"]) if isinstance(p.get("mark"), (int, float)) and p["mark"] > 0 else None
             fee_in, fund = float(p.get("entry_fee") or 0), float(p.get("funding_paid") or 0)
 
+            sg = -1.0 if p.get("side") == "short" else 1.0       # a short (the long-short book, paper only) gains as the price falls
+
             def net(px):          # net if closed at px now: price move − entry fee − estimated exit fee − funding
+                if sg < 0:
+                    return (entry - px) / entry * notional - fee_in - notional * (px / entry) * self.fee - fund
                 return (px - entry) / entry * notional - fee_in - notional * (px / entry) * self.fee - fund
-            risk = entry - stop0
+            risk = entry - stop0 if sg > 0 else stop0 - entry
 
             def rm(px):
+                if sg < 0:
+                    return int(round((entry - float(px)) / risk * 1000)) if risk > 0 else None
                 return int(round((float(px) - entry) / risk * 1000)) if risk > 0 else None
             hist = p.get("stops")
             if isinstance(hist, list) and hist:          # E4
@@ -954,8 +972,8 @@ class Bundle:
             else:
                 stops = [[t_in, rm(stop0)]] + ([[as_of, rm(stop)]] if abs(stop - stop0) > 1e-12 else [])
             h = e1.get(coin, {})
-            to_stop = num((mark - stop) / mark * 100) if mark else None
-            out.append({"id": f"{coin}-{t_in}", "c": coin, "b": p.get("book") or self.X.book_of.get(coin), "kind": p.get("kind"), "tier": p.get("tier"),
+            to_stop = num(((mark - stop) if sg > 0 else (stop - mark)) / mark * 100) if mark else None
+            row = {"id": f"{coin}-{t_in}", "c": coin, "b": p.get("book") or self.X.book_of.get(coin), "kind": p.get("kind"), "tier": p.get("tier"),
                         "t_in": t_in, "bars": (as_of - t_in) // BAR if t_in else None, "as_of": as_of,
                         "r_now": num(net(mark) / risk_amt) if (mark and risk_amt) else None,
                         "r_lock": num(net(stop) / risk_amt) if risk_amt else None,
@@ -967,7 +985,10 @@ class Bundle:
                         "stops": stops,
                         "exits": {"h4_pct": to_stop, "d_pct": num((mark - h["dline"]) / mark * 100) if (mark and h.get("dline")) else None,
                                   "w_pct": num((mark - h["wline"]) / mark * 100) if (mark and h.get("wline")) else None},
-                        "px": {"entry": sig5(entry), "stop0": sig5(stop0), "stop": sig5(stop), "mark": sig5(mark)}})
+                        "px": {"entry": sig5(entry), "stop0": sig5(stop0), "stop": sig5(stop), "mark": sig5(mark)}}
+            if sg < 0:
+                row["side"] = "short"           # only a short carries it: every long row keeps its old shape
+            out.append(row)
         out.sort(key=lambda x: (x["to_stop_pct"] is None, x["to_stop_pct"] or 0))
         return out
 
@@ -981,10 +1002,11 @@ class Bundle:
                 e, st, no = float(p["entry"]), float(p["stop"]), float(p["notional"])
             except (KeyError, TypeError, ValueError):
                 continue
-            hit += (st - e) / e * no - float(p.get("entry_fee") or 0) - no * (st / e) * self.fee - float(p.get("funding_paid") or 0)
+            sg = -1.0 if p.get("side") == "short" else 1.0
+            hit += sg * (st - e) / e * no - float(p.get("entry_fee") or 0) - no * (st / e) * self.fee - float(p.get("funding_paid") or 0)
             mk = p.get("mark")
             if isinstance(mk, (int, float)) and not isinstance(mk, bool) and mk > 0:   # from the last mark down to the stop, plus the exit fee
-                drop += (st - mk) / e * no - no * (st / e) * self.fee
+                drop += sg * (st - mk) / e * no - no * (st / e) * self.fee
                 drop_n += 1
         by = {}
         for bn, b in self.X.books.items():
@@ -1351,6 +1373,14 @@ class Bundle:
                 out["signals"] += int(cn.get("triggers", 0) or 0)
                 out["bought"] += int(cn.get("entered", 0) or 0)
                 out["sold"] += sum(1 for e in R.events if e[1] == "sold")
+                # a long-short book's short leg (kind "book", tier "S"): shorted and covered, never "bought" or "sold"
+                sh = sum(1 for e in R.events if e[1] == "bought" and e[3] == "book" and e[4] == "S")
+                cv = sum(1 for e in R.events if e[1] == "sold" and e[3] == "book" and e[4] == "S")
+                if sh or cv:
+                    out["bought"] -= sh
+                    out["sold"] -= cv
+                    out["shorted"] = out.get("shorted", 0) + sh
+                    out["covered"] = out.get("covered", 0) + cv
         return out
 
     def pinned(self):
@@ -1508,7 +1538,7 @@ class Bundle:
         out = []
         for line in (L.doc.get("summary") or [] if L else []):
             m = TW_RX.match(str(line))
-            if m and (int(m.group(2)) > 0 or int(m.group(3)) > 0 or m.group(4) != "none"):
+            if m and (int(m.group(2)) != 0 or int(m.group(3)) != 0 or m.group(4) != "none"):
                 out.append([m.group(1), int(m.group(2)), int(m.group(3)), m.group(4)])
         return out[:12]
 
@@ -1912,6 +1942,7 @@ def agent_summary(b, agent=None):
     pnl = [p.get("pnl_pct") for p in pos]
     loud = [e for e in (L.get("events") or []) if e[5] >= 2 and e[1] not in ("blocked", "board", "review")]
     arena = me.get("arena") if isinstance(me.get("arena"), dict) else None
+    shadow = me.get("shadow") if isinstance(me.get("shadow"), dict) else None
     row = {"id": aid, "name": me.get("name", aid), "desc": me.get("desc", ""), "tf": tf, "ran_t": b.get("ran_t"),
            "mode": _get(L, "mode", "eff"), "gen": L.get("gen"), "last_t": clock.get("last_t"),
            "rec": dict({k: _get(L, "rec", k) for k in ("n", "tot_R", "avg_R", "rel_R_avg", "open_R")},
@@ -1932,6 +1963,8 @@ def agent_summary(b, agent=None):
            "held": ([p.get("c") for p in pos] + [c.get("c") for c in carry])[:8],
            "deployed_pct": num(sum(sizes), 1) if all(isinstance(x, (int, float)) for x in sizes) else None,
            "open_pct": num(sum(pnl)) if pnl and all(isinstance(x, (int, float)) for x in pnl) else None}
+    if shadow:      # a shadow experiment (agents/index.json "shadow"): a recipe the lab failed, paper only, never live
+        row["shadow"] = {k: shadow.get(k) for k in ("recipe", "family", "lab_verdict", "enrolled", "label")}
     row.update(spark_of(pot, ROW_SPARK_N))
     if "carry_sum" in L:                     # the waterfall parts stay on the bot page (row budget)
         row["carry"] = {k: v for k, v in L["carry_sum"].items() if k not in ROW_CARRY_DROP}
@@ -2021,13 +2054,13 @@ def ran_t_of(agent, state=None):
 
 
 def fleet_paper(roster):
-    """The paper fleet as ONE pot, from every enabled paper bot's own equity.jsonl (D7 2026-10-16; the lab's figure was a
+    """The paper fleet as ONE pot, from every enabled paper bot's own equity.jsonl (shadow experiments left out) (D7 2026-10-16; the lab's figure was a
     day old and divided by the sum of each bot's own peak, which overstates the drawdown): the summed series on the union
     of check times (each bot's last point carried forward, its start pot before its first point), ratios only. ret_pct =
     sum now / sum of starts − 1; dd_pct = how far the summed series sits below its own peak now; dd_max_pct = its worst."""
     series = []
     for a in roster:
-        if not a.get("enabled", True):
+        if not a.get("enabled", True) or a.get("shadow"):         # a shadow experiment is never part of the fleet
             continue
         good = [p for p in C.read_jsonl(state_dir(a["id"]) / "ledger" / "equity.jsonl")
                 if isinstance(p, dict) and isinstance(p.get("equity"), (int, float)) and not isinstance(p.get("equity"), bool) and p["equity"] > 0]
