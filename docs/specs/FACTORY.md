@@ -114,7 +114,9 @@ as perps. The lab backtests them on 2017+ history of the underlying, and the eng
 ## Why the engine is long-or-flat
 
 The lab can research short recipes. Phase 1 found shorts did not pay in any trend family, so the engine's short side
-will be built only if lab recipes that short pass every gate. Until then, a short signal is held at zero.
+will be built only if lab recipes that short pass every gate. Until then, a short signal is held at zero. The single
+exception (2026-10-18, the owner's decision) is the paper-only long-short book of the shadow experiment `shadow-01`
+(docs/specs/SHADOW.md): no live short order path exists, and a shadow is never an arena bot, a fleet member or Ready.
 
 ## Phases
 

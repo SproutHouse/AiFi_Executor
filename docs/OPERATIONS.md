@@ -85,7 +85,8 @@ Only arena bots the lab marks **Ready** qualify: execution verified on paper AND
 market on data the search never saw (docs/specs/FACTORY.md). The **go-live** workflow refuses any other bot (the
 legacy Core, Wide and Fast have no lab evidence) unless you type the explicit override phrase it asks for. Steps 1–5
 above still apply to that agent's own wallet; put its keys where the cycles run (step 6), then run go-live with the
-confirmation `LIVE <agent>`. A paper twin starts beside it. To return a live bot to paper, **flatten it first**
+confirmation `LIVE <agent>`. A paper twin starts beside it. A shadow experiment (`shadow-01`) is refused by go-live in every case, override phrase
+included: it is paper only (docs/specs/SHADOW.md). To return a live bot to paper, **flatten it first**
 (`control → flatten <agent>`), then run `BACK <agent>`; BACK refuses while the bot still holds live positions. The fleet
 kill switch (`control → fleet-halt` / `fleet-resume`) stops new entries on every agent at once.
 

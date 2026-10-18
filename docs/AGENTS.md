@@ -19,6 +19,12 @@ that survived the lab's frozen gates and a locked holdout. It runs in paper with
 automatically if its paper stops matching its backtest (specs/FACTORY.md). Their `desc` says in plain words what the
 recipe holds and carries the recipe id; the backtest numbers live in the Lab's record (the bot page's Strategy section).
 
+**Shadow experiments** (`shadow-NN`, from 2026-10-18) are added by hand on the owner's decision: a recipe the lab
+FAILED, paper-traded anyway as an unofficial experiment. `shadow-01` ("S01 Shadow") runs lab recipe ls-759fac45, a
+market-neutral long-short book on the top 30 Hyperliquid perps (docs/specs/SHADOW.md). A shadow is paper only and can
+never go live (the engine keeps it in paper; go-live and approve refuse it, override or not); it is never an arena bot,
+a fleet member or Ready, and the dashboard labels it "Shadow experiment: failed the lab's crash check; paper only".
+
 **Twins** (`<agent>-twin`) are started by the go-live workflow. When an agent goes live, its twin keeps running the same rules
 in paper with the same pot; the gap between the two is the real cost of execution. A twin never goes live itself.
 **The fleet** (`agents/fleet.json`, `state/FLEET_HALT`) is one kill switch and one optional size dial over every

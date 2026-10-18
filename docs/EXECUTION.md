@@ -106,7 +106,10 @@ Lab for arena agents) computes each coin's target with `src/executor/families.py
 functions the lab backtested, run over the agent's recent daily history, last value traded. Families: `sma_trend`,
 `tsmom`, `dual_ma`, `donchian`, `cloud_trend`, `rs_rotation`, `meanrev`. Every family is causal (tests prove the value on
 a day never changes when later data is removed) and can be gated by the market regime (`long_regimes`). The engine is
-long-or-flat: a family's short signal is held at zero. A Trend block without `"family"` keeps `target.weight` exactly
+long-or-flat: a family's short signal is held at zero. The one exception is the **long-short book** of the shadow
+experiment `shadow-01` (`"family": "ls_xs"`, `"shorts": true`; docs/specs/SHADOW.md): paper only by construction
+(`cycle.paper_only`; go-live and approve refuse it), it holds signed weights, its shorts carry `"side": "short"` in the
+paper ledger (they receive positive funding), and it accrues Hyperliquid's actual hourly funding. A Trend block without `"family"` keeps `target.weight` exactly
 as before (`tests/test_families.py` proves the two agree to 9 decimals on every day).
 
 ## Carry mode (`"strategy": "carry"`, the Carry agent)
