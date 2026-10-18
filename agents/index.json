@@ -90,6 +90,21 @@
         "enrolled": "2026-10-18",
         "label": "Shadow experiment: failed the lab's crash check; paper only"
       }
+    },
+    {
+      "id": "arena-04",
+      "name": "A04 Bull",
+      "enabled": true,
+      "desc": "While Bitcoin is above a rising 50-day average, holds the 3 of 35 coins with the strongest trend across three time spans over 14 days, re-ranked every 7 days; all cash when the bull signal ends. Picked by the AiFi Lab (recipe bm-afb9df31); paper, and dropped if it stops matching its backtest.",
+      "arena": {
+        "recipe": "bm-afb9df31",
+        "family": "bull_momentum",
+        "enrolled": "2026-10-18",
+        "tag": "all-weather",
+        "dev_sharpe": 1.574,
+        "dev_max_dd": 21.88,
+        "challenger_of": null
+      }
     }
   ]
 }
