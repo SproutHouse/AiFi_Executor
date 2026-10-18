@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """Execute an approved proposal: python3 scripts/approve.py --id <proposal id> --confirm yes
-Re-checks that the proposal is open, not expired, that price has not run more than the allowed drift above
+Refuses a shadow experiment or a long-short book outright (cycle.paper_only). Re-checks that the proposal is open, not expired, that price has not run more than the allowed drift above
 the signal mark, and that every pre-trade check still passes with the current book."""
 import argparse, _path  # noqa: F401
 from executor import common as C, hl_data as H, binance_data as B, regime as R, risk as K, proposals as P, ledger as L, universe as U
-from executor.cycle import Cycle
+from executor.cycle import Cycle, paper_only
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--id", required=True)
     ap.add_argument("--confirm", default="no")
-    a = ap.parse_args()
+    a = ap.parse_args(argv)
+    row = next((r for r in C.agents() if r.get("id") == C.AGENT), {})
+    why = "a shadow experiment (its lab verdict is failed): paper only" if row.get("shadow") else paper_only(C.settings())
+    if why:
+        raise SystemExit(f"refused: {C.AGENT} is {why}; it never executes an approval")
     if a.confirm.lower() != "yes":
         raise SystemExit("refused: --confirm yes is required")
     doc = P.load(a.id)

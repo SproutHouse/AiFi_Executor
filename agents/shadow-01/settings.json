@@ -1,0 +1,108 @@
+{
+  "version": "1.3",
+  "mode": "paper",
+  "timezone": "America/Toronto",
+  "online_hours": {
+    "start": 10,
+    "end": 22
+  },
+  "offline_auto_tiers": [
+    "A"
+  ],
+  "daily_summary_local_hour": 8,
+  "pot_usd_paper": 1000,
+  "risk_per_trade_pct": 1.0,
+  "open_risk_cap_pct": 4.0,
+  "shadow": {
+    "recipe": "ls-759fac45",
+    "lab_verdict": "failed",
+    "failed_gate": "worst regime",
+    "decided": "2026-10-18",
+    "why": "The owner's decision of 2026-10-18: paper-trade the lab's best near miss as an unofficial experiment. Its lab verdict stays failed; it is never eligible for Ready, the arena, the fleet or live money."
+  },
+  "gross_exposure_cap_x": 2.3,
+  "leverage_cap_x": 3,
+  "max_positions": 40,
+  "min_notional_usd": 10,
+  "min_stop_distance_pct": 0.2,
+  "entry_slippage_cap_pct": 0.3,
+  "approval_max_drift_pct": 1.0,
+  "paper_slippage_pct": 0.05,
+  "fee_taker_pct": 0.045,
+  "throttle": {
+    "halve_at_drawdown_pct": 99,
+    "halt_at_drawdown_pct": 99,
+    "_doc": "off: the book's own drawdown brake (target.params brake_dd 15%, brake_days 28) is its drawdown control, as in the lab"
+  },
+  "universe": {
+    "min_day_volume_usd": 1000000,
+    "min_open_interest_usd": 1000000,
+    "min_daily_bars": 60,
+    "max_funding_annual_pct": 30,
+    "min_max_leverage": 3
+  },
+  "indicators": {
+    "supertrend_factor": 3.0,
+    "supertrend_atr": 10,
+    "band_ema": 36,
+    "trend_ema": 200
+  },
+  "data": {
+    "late_run_minutes": 180,
+    "sanity_band_pct": 2.0,
+    "candle_days_daily": 200,
+    "candle_days_4h": 120
+  },
+  "approval": {
+    "mode": "never",
+    "auto_tiers": [
+      "A"
+    ],
+    "_doc": "mode never: no human approval anywhere; tiers in auto_tiers execute on their own at any hour, other tiers are recorded as refused and not traded. mode online_hours: the earlier model (proposals 10-22 local, offline_auto_tiers overnight)."
+  },
+  "strategy": "target",
+  "trigger_tf": "1d",
+  "btc_gate": false,
+  "target": {
+    "family": "ls_xs",
+    "shorts": true,
+    "params": {
+      "vol_target": 0.2,
+      "cap_x": 2.0,
+      "vol_days": 30,
+      "band": 0.25,
+      "stop_pct": 30.0,
+      "gross_cap": 2.0,
+      "short": false,
+      "score": "resid",
+      "n": 21,
+      "q": 0.3,
+      "rebalance_days": 7,
+      "cov_days": 90,
+      "min_names": 12,
+      "weighting": "equal",
+      "neutral": "dollar",
+      "book": "xs",
+      "vol_n": 180,
+      "stops": "book",
+      "brake_dd": 0.15,
+      "brake_days": 28
+    },
+    "coins": [],
+    "universe": {
+      "n": 30,
+      "window": 30,
+      "min_history": 60,
+      "min_usd_vol": 1000000,
+      "prefilter": 90
+    },
+    "band": 0.25,
+    "stop_pct": 100.0,
+    "catastrophic_stop_pct": 100.0,
+    "book": "longshort",
+    "funding": "history",
+    "_funding_doc": "history: the paper ledger accrues Hyperliquid's actual hourly funding of each name (funding_history) on its value at the mark, longs paying and shorts receiving; the rate read once a day times 24 hours drifted by more than a point of return in the lab's replay",
+    "_stop_doc": "No per-name risk stop (the lab's book mode). The engine never holds a position without a resident stop, so each name carries a catastrophic one 100% beyond its average entry: a short closes if its price doubles; a long's sits at zero. In the lab's replay since 2024-01 it fired once (a short); a 50% stop fired 22 times. Paper only: it protects no exchange position (docs/specs/SHADOW.md)."
+  },
+  "_agent_note": "SHADOW EXPERIMENT, paper only, never live: lab recipe ls-759fac45 (ls_xs: residual momentum against Bitcoin, 21 days, market-neutral long-short on the top 30 Hyperliquid perps by volume, 20%/yr portfolio volatility target, 15%/28-day book drawdown brake). Its lab verdict is failed (the worst-regime floor). docs/specs/SHADOW.md."
+}

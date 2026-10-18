@@ -26,6 +26,8 @@ def run(doc):
     if action == "flatten":
         args = [os.path.join(HERE, "control.py"), "--flatten"]
     elif action == "approve":
+        if any(a.get("id") == agent and a.get("shadow") for a in C.agents()):
+            return 2, f"{agent} is a shadow experiment (paper only): approvals are refused"
         pid = str(doc.get("proposal_id") or "")
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", pid):
             return 2, "invalid proposal id"

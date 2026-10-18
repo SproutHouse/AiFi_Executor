@@ -8,6 +8,10 @@ Run only through the go-live workflow (workflow_dispatch), which asks the owner 
 GitHub's US-hosted runners unless the owner explicitly allows them. The twin runs the same recipe in paper with the
 same pot, so the difference between the two is the cost of real execution (fills, slippage, funding timing).
 
+A shadow experiment (an agent whose index row or settings carry "shadow", e.g. shadow-01: a recipe the lab FAILED,
+paper-traded on the owner's decision) and any long-short book never go live: refused before anything else, and the
+override phrase does not apply to them (cycle.paper_only would keep them in paper anyway).
+
 Going live needs the AiFi Lab's verdict: the agent's shortlist entry in factory/factory.json must say "ready": true.
 Only an explicit owner override, --override "LIVE WITHOUT READY <agent>", skips that (legacy agents are never on the
 shortlist). Going back refuses while the agent still holds live positions: the paper engine never sees them, so they
@@ -55,6 +59,14 @@ def ready(aid):
     return True, ""
 
 
+def shadow_block(row, s):
+    """Why this agent can never go live ("" when it can): a shadow experiment, or a long-short book."""
+    from executor import cycle as CY
+    if isinstance(row.get("shadow"), dict) or row.get("shadow"):
+        return "a shadow experiment (its lab verdict is failed): paper only"
+    return CY.paper_only(s)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("agent")
@@ -71,6 +83,10 @@ def main(argv=None):
         sys.exit("a twin is the paper reference for a live agent; it never goes live itself")
     sp = cfg_dir(a.agent) / "settings.json"
     s = json.loads(sp.read_text())
+    if not a.back:
+        why = shadow_block(row, s)
+        if why:
+            sys.exit(f"{a.agent} is {why}. It never goes live; no override applies.")
     twin = f"{a.agent}-twin"
     if a.back:
         held = live_positions(a.agent)

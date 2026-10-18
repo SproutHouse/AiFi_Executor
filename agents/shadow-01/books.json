@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "note": "Shadow experiment (paper only): a long-short book whose names change every week (the top 30 Hyperliquid perps by volume). This book exists for the dashboard.",
+  "books": [
+    {
+      "book": "longshort",
+      "enabled": true,
+      "benchmark": "BTC",
+      "pot_share_pct": 100,
+      "open_risk_cap_pct": 100,
+      "sweep_gains_to_benchmark": false,
+      "names": [
+        {
+          "coin": "BTC",
+          "note": "read for the residual score; the book's names change weekly"
+        }
+      ]
+    }
+  ]
+}

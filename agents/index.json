@@ -76,6 +76,20 @@
           "arena-02"
         ]
       }
+    },
+    {
+      "id": "shadow-01",
+      "name": "S01 Shadow",
+      "enabled": true,
+      "desc": "SHADOW EXPERIMENT, paper only, never live. Lab recipe ls-759fac45, lab verdict failed: it missed the worst-regime floor (crisis years). The owner chose to paper-trade it anyway as an unofficial test; paper is the real exam. Every week it buys the 30% of the top 30 Hyperliquid coins that beat Bitcoin most over 21 days and shorts the 30% that lagged most, equal money on each side, sized to a 20% yearly swing; it goes flat for four weeks after a 15% fall. Not eligible for Ready, the arena or live money.",
+      "shadow": {
+        "recipe": "ls-759fac45",
+        "family": "ls_xs",
+        "lab_verdict": "failed",
+        "failed_gate": "worst regime",
+        "enrolled": "2026-10-18",
+        "label": "Shadow experiment: failed the lab's crash check; paper only"
+      }
     }
   ]
 }
