@@ -1,24 +1,24 @@
 {
  "v": 1,
- "gen": "2026-10-17T09:15:11Z",
+ "gen": "2026-10-18T18:06:12Z",
  "lab": {
-  "tried": 9739,
+  "tried": 10028,
   "survivors": 117,
   "by_family": {
    "rs_rotation": {
-    "tried": 96,
+    "tried": 115,
     "survived": 1
    },
    "tsmom": {
-    "tried": 91,
+    "tried": 114,
     "survived": 0
    },
    "donchian": {
-    "tried": 88,
+    "tried": 124,
     "survived": 0
    },
    "meanrev": {
-    "tried": 212,
+    "tried": 279,
     "survived": 0
    },
    "carry": {
@@ -26,37 +26,49 @@
     "survived": 110
    },
    "cloud_trend": {
-    "tried": 132,
+    "tried": 169,
     "survived": 0
    },
    "sma_trend": {
-    "tried": 74,
+    "tried": 99,
     "survived": 0
    },
    "bull_momentum": {
-    "tried": 124,
+    "tried": 128,
     "survived": 6
    },
    "dual_ma": {
-    "tried": 120,
+    "tried": 148,
+    "survived": 0
+   },
+   "ls_xs": {
+    "tried": 36,
+    "survived": 0
+   },
+   "trend_ens": {
+    "tried": 6,
+    "survived": 0
+   },
+   "hold_vol": {
+    "tried": 8,
     "survived": 0
    }
   },
-  "last_batch": "2026-10-17",
-  "gates_version": 4,
+  "last_batch": "2026-10-18",
+  "gates_version": 7,
   "vetoed": 112,
-  "retired": 1,
+  "retired": 3,
   "funnel": {
-   "tested": 9739,
-   "passed_cheap": 9403,
+   "tested": 10028,
+   "passed_cheap": 9551,
    "passed_audit": 140,
    "waiting_holdout": 14,
    "passed_holdout": 117,
    "vetoed": 112
   },
   "last": {
-   "date": "2026-10-17",
-   "tried": 670,
+   "date": "2026-10-18",
+   "tried": 289,
    "passed": 0
   },
   "studies": [
@@ -72,7 +84,7 @@
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-10-16"
+  "as_of": "2026-10-17"
  },
  "shortlist": [
   {
@@ -86,7 +98,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 18.4,
+   "days": 19.8,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -110,42 +122,42 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9971,
-   "deflated_now": 0.5147,
-   "trials_now": 96,
-   "deflated_alpha_now": 0.1265,
-   "search_k": 898,
-   "rw_p": 0.9576,
+   "deflated_now": 0.2663,
+   "trials_now": 115,
+   "deflated_alpha_now": 0.0066,
+   "search_k": 1058,
+   "rw_p": 1.0,
    "verdict_now": "unproven",
-   "verdict_now_why": "deflated alpha 0.13 is below 0.95",
+   "verdict_now_why": "does not beat Bitcoin at the same risk over development (-4.0%/yr)",
    "bench": {
     "dev": {
      "days": 2830,
-     "bot_pct": 245.0,
+     "bot_pct": 175.71,
      "btc_pct": 731.48,
-     "btc_same_risk_pct": 178.41,
-     "excess_pct_yr": 2.76,
-     "excess_t": 0.44,
-     "sharpe_bot": 1.13,
+     "btc_same_risk_pct": 102.77,
+     "excess_pct_yr": 3.96,
+     "excess_t": 0.7,
+     "sharpe_bot": 1.04,
      "sharpe_btc": 0.75,
-     "sharpe_diff_z": 0.98
+     "sharpe_diff_z": 0.75
     },
     "holdout": {
      "days": 364,
-     "bot_pct": 9.15,
+     "bot_pct": 14.58,
      "btc_pct": -26.64,
-     "btc_same_risk_pct": -4.03,
-     "excess_pct_yr": 12.91,
-     "excess_t": 0.77,
-     "sharpe_bot": 0.74,
+     "btc_same_risk_pct": -5.61,
+     "excess_pct_yr": 19.44,
+     "excess_t": 1.31,
+     "sharpe_bot": 1.28,
      "sharpe_btc": -0.47,
-     "sharpe_diff_z": 0.99
+     "sharpe_diff_z": 1.44
     },
     "paper": {
      "days": 17,
      "bot_pct": -2.36,
      "btc_pct": -2.45,
-     "btc_same_risk_pct": -1.92,
-     "excess_pct_yr": -9.67,
+     "btc_same_risk_pct": -1.95,
+     "excess_pct_yr": -8.91,
      "excess_t": null,
      "sharpe_bot": null,
      "sharpe_btc": null,
@@ -168,7 +180,7 @@
      {
       "check": "return matches the backtest",
       "ok": true,
-      "detail": "paper -2.36% vs backtest replay -2.36% over the same 17 days: 0.00 points apart (max 1.0)"
+      "detail": "paper -2.36% vs backtest replay -2.34% over the same 17 days: 0.02 points apart (max 1.0)"
      },
      {
       "check": "tracks the backtest day to day",
@@ -194,22 +206,22 @@
     "orders": 9,
     "invested_days": 18,
     "healthy_run_frac": 1.0,
-    "return_gap_pct": 0.0
+    "return_gap_pct": 0.02
    },
    "evidence": {
-    "level": "weak",
-    "alpha_t_own": 0.75,
-    "alpha_t_btc": 0.64,
+    "level": "moderate",
+    "alpha_t_own": 1.14,
+    "alpha_t_btc": 1.02,
     "needed_t": 2.0,
     "unseen_days": 381,
-    "months_more": 109.8
+    "months_more": 35.6
    },
    "ready": false,
    "not_ready": [
     "retired: 2026-10-17: the owner retired it after the 2026-10-16 review: no skill once tested honestly (edge evidence weak, deflated Sharpe 0.52 at today's trial count; its market filter ranked 31st of 32)",
     "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "orders placed: 9 orders filled since enrolment (needs 10)",
-    "edge not proven yet (weak): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 0.75 and holding Bitcoin with t 0.64, Ready needs 2 on both; about 110 more months at this pace"
+    "edge not proven yet (moderate): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 1.14 and holding Bitcoin with t 1.02, Ready needs 2 on both; about 36 more months at this pace"
    ]
   },
   {
@@ -220,10 +232,10 @@
    "tag": "all-weather",
    "hypothesis": "Inside bullish swings, coins with the strongest momentum keep outperforming for about a week (study IC 0.05-0.09 on both halves of the development period); a fast market gate avoids holding them through the turn.",
    "enrolled": "2026-10-03",
-   "enabled": true,
+   "enabled": false,
    "live": false,
-   "status": "incubating",
-   "days": 14.4,
+   "status": "retired",
+   "days": 15.8,
    "backtest": {
     "sharpe": 1.609,
     "cagr_pct": 31.29,
@@ -240,49 +252,49 @@
     }
    },
    "paper": {
-    "ret_pct": -0.79,
-    "dd_pct": 3.72,
-    "weight_match_pct": 100,
-    "weight_checks": 42,
+    "ret_pct": null,
+    "dd_pct": null,
+    "weight_match_pct": null,
+    "weight_checks": null,
     "p5_pct": null
    },
    "deflated_at_trial": 0.9932,
-   "deflated_now": 0.8897,
-   "trials_now": 208,
-   "deflated_alpha_now": 0.7904,
-   "search_k": 898,
-   "rw_p": 0.1212,
+   "deflated_now": 0.4728,
+   "trials_now": 212,
+   "deflated_alpha_now": 0.232,
+   "search_k": 1058,
+   "rw_p": 0.8396,
    "verdict_now": "unproven",
-   "verdict_now_why": "deflated alpha 0.79 is below 0.95",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.840 is above 0.1",
    "bench": {
     "dev": {
      "days": 2830,
-     "bot_pct": 725.51,
+     "bot_pct": 278.71,
      "btc_pct": 731.48,
-     "btc_same_risk_pct": 211.87,
-     "excess_pct_yr": 12.54,
-     "excess_t": 1.73,
-     "sharpe_bot": 1.61,
+     "btc_same_risk_pct": 118.44,
+     "excess_pct_yr": 7.09,
+     "excess_t": 1.18,
+     "sharpe_bot": 1.22,
      "sharpe_btc": 0.75,
-     "sharpe_diff_z": 2.22
+     "sharpe_diff_z": 1.21
     },
     "holdout": {
      "days": 368,
-     "bot_pct": 18.48,
+     "bot_pct": 9.04,
      "btc_pct": -25.69,
-     "btc_same_risk_pct": -6.02,
-     "excess_pct_yr": 22.96,
-     "excess_t": 1.17,
-     "sharpe_bot": 1.09,
+     "btc_same_risk_pct": -7.7,
+     "excess_pct_yr": 16.53,
+     "excess_t": 0.99,
+     "sharpe_bot": 0.63,
      "sharpe_btc": -0.43,
-     "sharpe_diff_z": 1.32
+     "sharpe_diff_z": 0.92
     },
     "paper": {
      "days": 13,
      "bot_pct": -0.67,
      "btc_pct": -3.7,
-     "btc_same_risk_pct": -3.13,
-     "excess_pct_yr": 70.53,
+     "btc_same_risk_pct": -3.15,
+     "excess_pct_yr": 71.1,
      "excess_t": null,
      "sharpe_bot": null,
      "sharpe_btc": null,
@@ -294,23 +306,23 @@
     "checks": [
      {
       "check": "same targets as the backtest",
-      "ok": true,
-      "detail": "engine targets matched the backtest's on 42 of 42 coin-days where either holds something, and named the same coins on 14 of 14 days (needs 80% of each, at least 10 coin-days)"
+      "ok": false,
+      "detail": "engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)"
      },
      {
       "check": "same coins as the backtest",
       "ok": true,
-      "detail": "held the same coins as the backtest replay on 13 of 14 days (needs 80%)"
+      "detail": "held the same coins as the backtest replay on 14 of 14 days (needs 80%)"
      },
      {
       "check": "return matches the backtest",
       "ok": true,
-      "detail": "paper -0.67% vs backtest replay -1.47% over the same 13 days: 0.81 points apart (max 1.0)"
+      "detail": "paper -0.67% vs backtest replay -0.74% over the same 13 days: 0.08 points apart (max 1.0)"
      },
      {
       "check": "tracks the backtest day to day",
       "ok": true,
-      "detail": "typical daily gap 0.27 points against the replay's typical daily move of 1.15 (max 35% of it)"
+      "detail": "typical daily gap 0.06 points against the replay's typical daily move of 1.24 (max 35% of it)"
      },
      {
       "check": "runs healthy",
@@ -331,22 +343,23 @@
     "orders": 9,
     "invested_days": 14,
     "healthy_run_frac": 1.0,
-    "return_gap_pct": 0.81
+    "return_gap_pct": 0.08
    },
    "evidence": {
-    "level": "moderate",
-    "alpha_t_own": 1.13,
-    "alpha_t_btc": 1.15,
+    "level": "weak",
+    "alpha_t_own": 0.77,
+    "alpha_t_btc": 0.79,
     "needed_t": 2.0,
     "unseen_days": 381,
-    "months_more": 26.7
+    "months_more": 72.0
    },
    "ready": false,
    "not_ready": [
-    "14 of 42 days in the arena",
+    "retired: 2026-10-17: the owner retired it under lab rulebook v5",
+    "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "orders placed: 9 orders filled since enrolment (needs 10)",
     "days invested: held positions on 14 days (needs 15)",
-    "edge not proven yet (moderate): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 1.13 and holding Bitcoin with t 1.15, Ready needs 2 on both; about 27 more months at this pace"
+    "edge not proven yet (weak): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 0.77 and holding Bitcoin with t 0.79, Ready needs 2 on both; about 72 more months at this pace"
    ]
   },
   {
@@ -357,10 +370,10 @@
    "tag": "all-weather",
    "hypothesis": "Inside bullish swings, coins with the strongest momentum keep outperforming for about a week (study IC 0.05-0.09 on both halves of the development period); a fast market gate avoids holding them through the turn.",
    "enrolled": "2026-10-05",
-   "enabled": true,
+   "enabled": false,
    "live": false,
-   "status": "incubating",
-   "days": 12.4,
+   "status": "retired",
+   "days": 13.8,
    "backtest": {
     "sharpe": 1.751,
     "cagr_pct": 32.29,
@@ -377,49 +390,49 @@
     }
    },
    "paper": {
-    "ret_pct": -1.94,
-    "dd_pct": 3.65,
-    "weight_match_pct": 100,
-    "weight_checks": 36,
+    "ret_pct": null,
+    "dd_pct": null,
+    "weight_match_pct": null,
+    "weight_checks": null,
     "p5_pct": null
    },
    "deflated_at_trial": 0.9979,
-   "deflated_now": 0.9511,
-   "trials_now": 208,
-   "deflated_alpha_now": 0.9074,
-   "search_k": 898,
-   "rw_p": 0.0708,
+   "deflated_now": 0.4991,
+   "trials_now": 212,
+   "deflated_alpha_now": 0.4363,
+   "search_k": 1058,
+   "rw_p": 0.6714,
    "verdict_now": "unproven",
-   "verdict_now_why": "deflated alpha 0.91 is below 0.95",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.671 is above 0.1",
    "bench": {
     "dev": {
      "days": 2830,
-     "bot_pct": 775.31,
+     "bot_pct": 239.51,
      "btc_pct": 731.48,
-     "btc_same_risk_pct": 198.01,
-     "excess_pct_yr": 13.89,
-     "excess_t": 1.98,
-     "sharpe_bot": 1.75,
+     "btc_same_risk_pct": 102.71,
+     "excess_pct_yr": 6.65,
+     "excess_t": 1.19,
+     "sharpe_bot": 1.25,
      "sharpe_btc": 0.75,
-     "sharpe_diff_z": 2.57
+     "sharpe_diff_z": 1.25
     },
     "holdout": {
      "days": 370,
-     "bot_pct": 25.11,
+     "bot_pct": 5.83,
      "btc_pct": -24.8,
-     "btc_same_risk_pct": -5.51,
-     "excess_pct_yr": 27.67,
-     "excess_t": 1.46,
-     "sharpe_bot": 1.42,
+     "btc_same_risk_pct": -7.59,
+     "excess_pct_yr": 13.37,
+     "excess_t": 0.8,
+     "sharpe_bot": 0.43,
      "sharpe_btc": -0.4,
-     "sharpe_diff_z": 1.62
+     "sharpe_diff_z": 0.74
     },
     "paper": {
      "days": 11,
      "bot_pct": -1.78,
      "btc_pct": -4.84,
-     "btc_same_risk_pct": -4.4,
-     "excess_pct_yr": 89.66,
+     "btc_same_risk_pct": -4.41,
+     "excess_pct_yr": 90.01,
      "excess_t": null,
      "sharpe_bot": null,
      "sharpe_btc": null,
@@ -431,23 +444,23 @@
     "checks": [
      {
       "check": "same targets as the backtest",
-      "ok": true,
-      "detail": "engine targets matched the backtest's on 36 of 36 coin-days where either holds something, and named the same coins on 12 of 12 days (needs 80% of each, at least 10 coin-days)"
+      "ok": false,
+      "detail": "engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)"
      },
      {
       "check": "same coins as the backtest",
       "ok": true,
-      "detail": "held the same coins as the backtest replay on 11 of 12 days (needs 80%)"
+      "detail": "held the same coins as the backtest replay on 12 of 12 days (needs 80%)"
      },
      {
       "check": "return matches the backtest",
       "ok": true,
-      "detail": "paper -1.78% vs backtest replay -2.58% over the same 11 days: 0.80 points apart (max 1.0)"
+      "detail": "paper -1.78% vs backtest replay -2.08% over the same 11 days: 0.30 points apart (max 1.0)"
      },
      {
       "check": "tracks the backtest day to day",
       "ok": true,
-      "detail": "typical daily gap 0.26 points against the replay's typical daily move of 1.23 (max 35% of it)"
+      "detail": "typical daily gap 0.21 points against the replay's typical daily move of 1.23 (max 35% of it)"
      },
      {
       "check": "runs healthy",
@@ -468,102 +481,206 @@
     "orders": 8,
     "invested_days": 12,
     "healthy_run_frac": 1.0,
-    "return_gap_pct": 0.8
+    "return_gap_pct": 0.3
    },
    "evidence": {
-    "level": "moderate",
-    "alpha_t_own": 1.38,
-    "alpha_t_btc": 1.41,
+    "level": "weak",
+    "alpha_t_own": 0.47,
+    "alpha_t_btc": 0.57,
     "needed_t": 2.0,
     "unseen_days": 381,
-    "months_more": 13.8
+    "months_more": 214.3
    },
    "ready": false,
    "not_ready": [
-    "12 of 42 days in the arena",
+    "retired: 2026-10-17: the owner retired it under lab rulebook v5",
+    "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "orders placed: 8 orders filled since enrolment (needs 10)",
     "days invested: held positions on 12 days (needs 15)",
-    "edge not proven yet (moderate): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 1.38 and holding Bitcoin with t 1.41, Ready needs 2 on both; about 14 more months at this pace"
+    "edge not proven yet (weak): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 0.47 and holding Bitcoin with t 0.57, Ready needs 2 on both; about 214 more months at this pace"
+   ]
+  },
+  {
+   "agent": "arena-04",
+   "name": "A04 Bull",
+   "recipe": "bm-afb9df31",
+   "family": "bull_momentum",
+   "tag": "all-weather",
+   "hypothesis": "Inside bullish swings, coins with the strongest momentum keep outperforming for about a week (study IC 0.05-0.09 on both halves of the development period); a fast market gate avoids holding them through the turn.",
+   "enrolled": "2026-10-18",
+   "enabled": true,
+   "live": false,
+   "status": "incubating",
+   "days": 0.8,
+   "backtest": {
+    "sharpe": 1.574,
+    "cagr_pct": 29.81,
+    "max_dd_pct": 21.88,
+    "years": 7.75,
+    "deflated": 0.9913,
+    "alpha_t": 3.71,
+    "holdout_sharpe": 1.206,
+    "holdout_ret_pct": 21.52,
+    "regimes": {
+     "bull": 44.75,
+     "bear": 8.71,
+     "crisis": -12.26
+    }
+   },
+   "paper": {
+    "ret_pct": null,
+    "dd_pct": null,
+    "weight_match_pct": null,
+    "weight_checks": 0,
+    "p5_pct": null
+   },
+   "deflated_at_trial": 0.9913,
+   "deflated_now": 0.2044,
+   "trials_now": 212,
+   "deflated_alpha_now": 0.1865,
+   "search_k": 1058,
+   "rw_p": 0.9758,
+   "verdict_now": "unproven",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.976 is above 0.1",
+   "bench": {
+    "dev": {
+     "days": 2830,
+     "bot_pct": 170.51,
+     "btc_pct": 731.48,
+     "btc_same_risk_pct": 113.54,
+     "excess_pct_yr": 3.04,
+     "excess_t": 0.49,
+     "sharpe_bot": 0.96,
+     "sharpe_btc": 0.75,
+     "sharpe_diff_z": 0.52
+    },
+    "holdout": {
+     "days": 382,
+     "bot_pct": 10.15,
+     "btc_pct": -28.55,
+     "btc_same_risk_pct": -8.85,
+     "excess_pct_yr": 18.09,
+     "excess_t": 1.2,
+     "sharpe_bot": 0.68,
+     "sharpe_btc": -0.5,
+     "sharpe_diff_z": 1.07
+    },
+    "paper": null
+   },
+   "execution": {
+    "ok": false,
+    "checks": [
+     {
+      "check": "same targets as the backtest",
+      "ok": false,
+      "detail": "engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)"
+     },
+     {
+      "check": "same coins as the backtest",
+      "ok": false,
+      "detail": "held the same coins as the backtest replay on 0 of 0 days (needs 80%)"
+     },
+     {
+      "check": "return matches the backtest",
+      "ok": false,
+      "detail": "only 0 paper days to compare with the backtest replay (needs 5)"
+     },
+     {
+      "check": "runs healthy",
+      "ok": false,
+      "detail": "fresh, successful runs on 0 of 0 days a run was due (0%, needs 95%)"
+     },
+     {
+      "check": "orders placed",
+      "ok": false,
+      "detail": "0 orders filled since enrolment (needs 10)"
+     },
+     {
+      "check": "days invested",
+      "ok": false,
+      "detail": "held positions on 0 days (needs 15)"
+     }
+    ],
+    "orders": 0,
+    "invested_days": 0,
+    "healthy_run_frac": 0.0,
+    "return_gap_pct": null
+   },
+   "evidence": {
+    "level": "weak",
+    "alpha_t_own": 0.98,
+    "alpha_t_btc": 0.97,
+    "needed_t": 2.0,
+    "unseen_days": 382,
+    "months_more": 40.8
+   },
+   "ready": false,
+   "not_ready": [
+    "1 of 42 days in the arena",
+    "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
+    "same coins as the backtest: held the same coins as the backtest replay on 0 of 0 days (needs 80%)",
+    "return matches the backtest: only 0 paper days to compare with the backtest replay (needs 5)",
+    "runs healthy: fresh, successful runs on 0 of 0 days a run was due (0%, needs 95%)",
+    "orders placed: 0 orders filled since enrolment (needs 10)",
+    "days invested: held positions on 0 days (needs 15)",
+    "edge not proven yet (weak): on 382 unseen days (12.6 months: the holdout, then paper) it beats holding its own coins with t 0.98 and holding Bitcoin with t 0.97, Ready needs 2 on both; about 41 more months at this pace"
    ]
   }
  ],
  "honesty": {
-  "as_of": "2026-10-17",
-  "k": 898,
-  "luck_t": 3.224,
-  "need_t": 4.869,
-  "spa_p": 0.0644,
-  "rc_p": 0.0654,
-  "best": "bm-3ed60e95",
-  "strategies": 875,
-  "report": "reports/honesty/2026-10-17.md"
+  "as_of": "2026-10-18",
+  "k": 1058,
+  "luck_t": 3.271,
+  "need_t": 4.916,
+  "spa_p": 0.0788,
+  "rc_p": 0.0802,
+  "best": "ls-759fac45",
+  "strategies": 767,
+  "report": "reports/honesty/2026-10-18.md"
  },
  "fleet": {
   "regime": "bull",
-  "window": "2023-06-01 → 2026-10-16",
+  "window": "2023-06-01 → 2026-10-17",
   "members": [
    {
     "agent": "trend-1d",
     "name": "Trend",
     "kind": "directional",
     "mode": "paper",
-    "vol_pct": 21.6,
-    "erc_pct": 46.1,
+    "vol_pct": 20.2,
+    "erc_pct": 42.7,
     "regime_w": 1.0,
-    "share_pct": 46.1,
+    "share_pct": 42.7,
     "bet": [
      "trend-1d"
     ]
    },
    {
-    "agent": "arena-02",
-    "name": "A02 Bull",
+    "agent": "arena-04",
+    "name": "A04 Bull",
     "kind": "directional",
     "mode": "paper",
-    "vol_pct": 18.7,
-    "erc_pct": 27.0,
+    "vol_pct": 15.0,
+    "erc_pct": 57.3,
     "regime_w": 1.0,
-    "share_pct": 27.0,
+    "share_pct": 57.3,
     "bet": [
-     "arena-02",
-     "arena-03"
-    ]
-   },
-   {
-    "agent": "arena-03",
-    "name": "A03 Bull",
-    "kind": "directional",
-    "mode": "paper",
-    "vol_pct": 18.7,
-    "erc_pct": 27.0,
-    "regime_w": 1.0,
-    "share_pct": 27.0,
-    "bet": [
-     "arena-02",
-     "arena-03"
+     "arena-04"
     ]
    }
   ],
   "corr": {
    "agents": [
     "trend-1d",
-    "arena-02",
-    "arena-03"
+    "arena-04"
    ],
    "m": [
     [
      1.0,
-     0.54,
-     0.55
+     0.58
     ],
     [
-     0.54,
-     1.0,
-     0.96
-    ],
-    [
-     0.55,
-     0.96,
+     0.58,
      1.0
     ]
    ]
@@ -572,13 +689,17 @@
    {
     "agent": "carry-1h",
     "why": "carry live orders need the testnet validation first"
+   },
+   {
+    "agent": "shadow-01",
+    "why": "shadow experiment: a recipe the lab failed, paper only, never in the fleet"
    }
   ],
   "totals": {
    "paper": {
-    "agents": 4,
-    "ret_pct": -2.18,
-    "dd_pct": 3.12
+    "agents": 2,
+    "ret_pct": -2.98,
+    "dd_pct": 3.67
    }
   },
   "kill": {
