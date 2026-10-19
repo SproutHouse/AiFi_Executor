@@ -1,6 +1,6 @@
 """indicators.py — Momentum Cloud and Noodle Range, ported from the AiFi desk.
 
-Pine semantics reproduced exactly (same code as the desk's fred_indicators.py):
+Pine semantics reproduced exactly (same code as the desk's analyst_indicators.py):
   ta.atr(n)      RMA (Wilder) of true range, seeded with the SMA of the first n
   ta.ema(n)      alpha 2/(n+1), seeded with the SMA of the first n bars
   ta.supertrend  hl2 ± factor*atr with band locking; direction -1 = bullish

@@ -110,7 +110,7 @@ _Synthesized 2026-09-25 from five audits, three proposals and a three-judge pane
 
 The tabbar shows a 6px accent-tint dot on Activity while events exist that are newer than `localStorage ex.seenEv`.
 
-**Routing.** Port these from `~/aifi/cloud/client.js`:
+**Routing.** Port these from `~/SproutHouse/trading/aifi-desk/cloud/client.js`:
 
 | Function | Line |
 |---|---|
@@ -292,7 +292,7 @@ Children, in order:
 - **Empty (no run yet):** 6 hollow beads at the schedule; the centre reads "FIRST CHECK" with a countdown.
 
 **(e) Machine brief**
-- Port AiFi `.brief` from `~/aifi/cloud/design.js:240-249` verbatim. Four items, 2×2 below a 620px container width. Each links to its detail.
+- Port AiFi `.brief` from `~/SproutHouse/trading/aifi-desk/cloud/design.js:240-249` verbatim. Four items, 2×2 below a 620px container width. Each links to its detail.
 
 | Item | Value (dot + word) | Sub |
 |---|---|---|
@@ -615,7 +615,7 @@ Counts are per signal, so the side rows add up to the signals total.
 - **Slots:** 6 pips, "2 of 6".
 - **Gross:** a meter, "0.9× of 3×".
 - **Drawdown:**
-  - A `.bmeter`-style gauge (port `.bmeter` from `~/aifi/cloud/design.js`), domain 0–25%.
+  - A `.bmeter`-style gauge (port `.bmeter` from `~/SproutHouse/trading/aifi-desk/cloud/design.js`), domain 0–25%.
   - Ticks at 10% ("risk halves") and 20% ("stops buying"); the fill is good below 10, warn from 10 to 20, bad from 20.
   - The value always carries a word: "0.8% · normal", "11.2% · risk halved".
   - If `dd ≥ threshold` but `mult == 1`: "risk halves from the next check".
@@ -1512,7 +1512,7 @@ The copies of the real `state/runs/*.jsonl` and `refused.jsonl` sit in `tests/fi
 4. 4. Tests (tests/test_dashboard_bundle.py, tests/test_dashboard_events.py): forbidden keys, values and strings; live baseline; halt; used_pct equal to pre_trade; the real rd strings and funnel; the check-order assertion; one fixture per say() template; diag.unparsed == 0. These must pass before any client work ships.
 5. 5. Worker (cloud/worker.js): /api/latest passthrough, /api/ledger with md rendered to html and md dropped, /api/stamp, /api/dates and /api/day removed; NAV with 5 tabs and new icons; rail brand demoted from h1; tablet labels use .vh; two theme-color metas; import MISSION_CSS; md() indented-continuation fix; remove the topbar 'pushed' element.
 6. 6. CSS module (cloud/mission.js; one comment fix in cloud/design.js): motion tokens, contrast tokens, brand gradient, .bar .fill / td.empty / th / tip / ul.list / .vh / paused .bg fixes, the ported .brief and .bmeter, and every new component class plus the .st-<code> vocabulary classes.
-7. 7. Client core (cloud/client.js, sections core/data/shell): fmt with Intl and the number rules, val()/safe(), STAGE and GLOSS maps, ports from ~/aifi/cloud/client.js (reduced 21, setSeg 311, initSegs 318, countUp 368, stagger 376, movePill 379, route 391, keydown 401) with redirects, boot with error branches and version note, the status engine and clock model, capsule plus rail mirror, alert rail on every tab, stamp polling with backoff, 1 s and 30 s timers cleared when hidden, delegated sheet and tip wiring with 44px hit areas.
+7. 7. Client core (cloud/client.js, sections core/data/shell): fmt with Intl and the number rules, val()/safe(), STAGE and GLOSS maps, ports from ~/SproutHouse/trading/aifi-desk/cloud/client.js (reduced 21, setSeg 311, initSegs 318, countUp 368, stagger 376, movePill 379, route 391, keydown 401) with redirects, boot with error branches and version note, the status engine and clock model, capsule plus rail mirror, alert rail on every tab, stamp polling with backoff, 1 s and 30 s timers cleared when hidden, delegated sheet and tip wiring with 44px hit areas.
 8. 8. Now tab, trust content (cloud/client.js): mission card with verdict, moment, since-you-last-looked (with the sold row) and brief (Result, Buying, Exposure, Last 24 h); Holding; the Pot/Shakedown card with the flat dot-line; On deck groups and tiles; Latest with folding and levels. Use a static dial placeholder (countdown text only) until step 13.
 9. 9. Positions, Activity (timeline and Signals), Results and Rules tabs (cloud/client.js): position cards with R-ladder and trail sparkline; risk budget; books; proposals; timeline with filters and the new marker; Signals funnel, pinned list, outcome list and reason bars; Results verdict/gates, loadLWC() curve, record strip, R per trade, trades cards/table, review; Rules in-force sentences, glossary, .seg.quiet docs, Log out.
 10. 10. DEPLOY 1, trust release (deploy-dashboard.yml plus the next cycle push). Verify acceptance items for privacy, the first screen, status, clock phases, tabs, robustness, contrast and no horizontal scroll against the real bundle and the demo bundle. Update docs/DASHBOARD.md (tabs, capsule states, KV keys, routes, what 'Late/Stale/Exits unchecked' mean).

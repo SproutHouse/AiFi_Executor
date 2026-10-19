@@ -1,6 +1,6 @@
 # Two-setting regime system — backtest summary (2026-09-22)
 
-Prices: Binance daily and 4-hour candles fetched through the desk's own `fred_indicators.py`
+Prices: Binance daily and 4-hour candles fetched through the desk's own `analyst_indicators.py`
 (Momentum Cloud = Supertrend 3/10; Noodle Range = EMA36 of high/close/low). Hyperliquid prices
 track Binance closely for these names, so Binance history stands in for it.
 

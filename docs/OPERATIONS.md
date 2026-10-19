@@ -2,7 +2,7 @@
 
 ## First-time setup
 
-1. The private repository `SproutHouse/AiFi_Executor` exists (created 2026-09-23) and this checkout's
+1. The repository `SproutHouse/aifi-executor` exists (created 2026-09-23) and this checkout's
    `origin` points at it. Pushing needs a GitHub token with the **`workflow` scope**, because the repository
    contains `.github/workflows`; the token the Mac keychain holds for AiFi lacks it and GitHub refuses the
    push. Either add `workflow` to that classic token at github.com/settings/tokens, or create a fine-grained
@@ -134,9 +134,9 @@ many runs since 2026-10-12, so it is a weak standby.
 **Setup, once:**
 1. Create a free alwaysdata account.
 2. Turn on SSH in its admin panel.
-3. On GitHub, create a fine-grained token `aifi-server`: owner SproutHouse, only AiFi_Executor, Contents read and write.
+3. On GitHub, create a fine-grained token `aifi-server`: owner SproutHouse, only aifi-executor, Contents read and write.
 4. SSH in and run
-   `curl -fsSL https://raw.githubusercontent.com/SproutHouse/AiFi_Executor/main/ops/alwaysdata/install.sh -o install.sh && bash install.sh`.
+   `curl -fsSL https://raw.githubusercontent.com/SproutHouse/aifi-executor/main/ops/alwaysdata/install.sh -o install.sh && bash install.sh`.
    The first run creates `~/.aifi-host/env` (chmod 600).
 5. Fill `GH_TOKEN` and `ALERT_WEBHOOK` in that file, then run `bash install.sh` again. It checks Python, runs a dry cycle from Paris and a push test, and prints the two scheduled tasks.
 6. Add both tasks in the admin panel: Advanced → Scheduled tasks.
@@ -164,7 +164,7 @@ free within the same limits.
 1. Create the VM; add your SSH public key; note its public IP.
 2. On GitHub: Settings → Actions → Runners → New self-hosted runner → Linux → copy the registration token.
 3. SSH in and run the setup script with that token:
-   `curl -fsSL https://raw.githubusercontent.com/SproutHouse/AiFi_Executor/main/ops/runner/setup.sh -o setup.sh && bash setup.sh <token>`
+   `curl -fsSL https://raw.githubusercontent.com/SproutHouse/aifi-executor/main/ops/runner/setup.sh -o setup.sh && bash setup.sh <token>`
    It installs Python and the runner, opens only SSH in the firewall, turns on unattended security
    updates, and registers the runner as a service that survives reboots.
 4. GitHub → Settings → Actions → Runners should show `executor-eu` as Idle.

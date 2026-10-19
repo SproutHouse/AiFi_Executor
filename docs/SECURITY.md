@@ -26,7 +26,7 @@ carry percentages of the pot, never dollar amounts, because the ntfy topic is on
 
 ## Repository
 
-- **Public** (SproutHouse/AiFi_Executor), a separate repository from the desk: secrets are repository-scoped, so the
+- **Public** (SproutHouse/aifi-executor), a separate repository from the desk: secrets are repository-scoped, so the
   agent key never sits beside the desk's tokens. Being public means every bot's exact rules (`agents/*/settings.json`),
   the lab's shortlist (`factory/factory.json`) and the docs are readable by anyone; once a bot is live its ledger would
   be too. Making the repository private is planned before the first live bot (it needs the dashboard push moved off
@@ -108,7 +108,7 @@ API keys sit in `~/.aifi-host/env` there (chmod 600, never in the repo, never pr
 
 **What that means:**
 - **The host could, in principle, read that file.** That is accepted because an API (agent) wallet can trade but can never withdraw, move funds or change the account; each live agent has its own wallet holding only its own pot; and the master keys never leave the owner.
-- **The server's GitHub token is narrow:** Contents on AiFi_Executor only, so it cannot touch the lab or any other repo.
+- **The server's GitHub token is narrow:** Contents on aifi-executor only, so it cannot touch the lab or any other repo.
 - **The Cloudflare token stays on GitHub.**
 
 **If the host is ever suspected compromised:**

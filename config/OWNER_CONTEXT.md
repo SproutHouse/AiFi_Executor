@@ -9,11 +9,11 @@ _Edited by the owner. The executor does not read this file; people do, before ch
 | Autonomy | no human approval at any hour; tier A executes on its own, tier B recorded but not traded, exits always automatic. (Superseded the 2026-09-23 online-hours model.) | 2026-09-24 |
 | How long a proposal waits | until the next 4-hour close | 2026-09-23 |
 | Quiet hours for alerts | none during the first weeks | 2026-09-23 |
-| Where it runs | GitHub Actions, private repository AiFi_Executor, same account as AiFi | 2026-09-23 |
+| Where it runs | GitHub Actions, repository SproutHouse/aifi-executor (public), same account as the desk | 2026-09-23 |
 | Venue rule | non-KYC only: Hyperliquid; never a KYC exchange | 2026-09-22 |
 | Paper period | skipped by decision; paper mode remains the default until the key secrets exist | 2026-09-23 |
 | Books | one engine, five books (bitcoin, eth-defi, solana, hype, bnb), each scored against its blue chip; a book that does not beat holding its blue chip over 30 trades is proposed for retirement | 2026-09-23 |
 | Paper shakedown | several days of paper cycles before wallet work, even though the long paper period is skipped | 2026-09-23 |
-| GitHub | repository SproutHouse/AiFi_Executor created; push needs a token with the workflow scope | 2026-09-23 |
+| GitHub | repository SproutHouse/aifi-executor created; push needs a token with the workflow scope | 2026-09-23 |
 | Hyperliquid Terms clause 1.5 | to be read and confirmed by the owner before going live | pending |
 | Where it runs (update, by Claude from the 2026-10-16 review) | cycles and orders on the alwaysdata server in Paris since 2026-09-30 (`config/host.json`); GitHub stands by. The repository is **public**, not private as the "Where it runs" row above says | 2026-10-16 |

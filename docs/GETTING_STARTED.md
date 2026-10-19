@@ -18,9 +18,9 @@ How: open Terminal and run the two lines below. The second line will ask for a u
 name) and a password: paste the token as the password.
 ```bash
 git credential-osxkeychain erase <<< $'protocol=https\nhost=github.com\n'
-cd ~/AiFi_Executor && git push -u origin main
+cd ~/SproutHouse/trading/aifi-executor && git push -u origin main
 ```
-Done when: github.com/SproutHouse/AiFi_Executor shows the files and an "Actions" tab with four workflows:
+Done when: github.com/SproutHouse/aifi-executor shows the files and an "Actions" tab with four workflows:
 cycle, approve, control, review.
 
 **Step 3. Give the robot a way to talk to you.**
@@ -71,7 +71,7 @@ on the signing screen is the agent's.
 Done when: you hold the agent private key and the main wallet address.
 
 **Step 10. Prove the key is the right kind.**
-How: in Terminal, in `~/AiFi_Executor`, export the two values for that window only, then run
+How: in Terminal, in `~/SproutHouse/trading/aifi-executor`, export the two values for that window only, then run
 `pip install -r requirements-live.txt` and `python3 scripts/verify_keys.py --probe-order`.
 Done when: it prints the agent address, confirms it differs from your main address, reads the balance, places
 an order far below the market that cannot fill, cancels it, and ends with OK. If it says the key is the

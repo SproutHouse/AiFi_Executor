@@ -20,10 +20,10 @@ class Indicators(unittest.TestCase):
         from datetime import datetime, timezone
         self.assertEqual(datetime.fromtimestamp(wk[0]["t"], tz=timezone.utc).weekday(), 0)
 
-    @unittest.skipUnless((DESK / "fred_indicators.py").exists(), "desk module not present")
+    @unittest.skipUnless((DESK / "analyst_indicators.py").exists(), "desk module not present")
     def test_parity_with_desk(self):
         sys.path.insert(0, str(DESK)); os.environ.setdefault("AIFI_HOME", str(DESK.parent))
-        import fred_indicators as F
+        import analyst_indicators as F
         with open(Path(__file__).resolve().parent / "fixtures" / "btc_daily.json") as f:
             bars = json.load(f)
         st1, d1 = I.supertrend(bars); st2, d2 = F.supertrend(bars)
