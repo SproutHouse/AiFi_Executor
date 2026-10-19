@@ -11,7 +11,7 @@ if [ "$(uname -s)" != "Linux" ]; then
 fi
 BASE="$HOME/aifi-host"; REPO="$BASE/AiFi_Executor"; ENVF="$HOME/.aifi-host/env"
 mkdir -p "$BASE/logs" "$HOME/.aifi-host"; chmod 700 "$HOME/.aifi-host"
-[ -d "$REPO/.git" ] || git clone -q https://github.com/SproutHouse/AiFi_Executor "$REPO"
+[ -d "$REPO/.git" ] || git clone -q https://github.com/SproutHouse/aifi-executor "$REPO"
 cd "$REPO"; git pull -q --rebase --autostash || true
 git config user.name "aifi-host"; git config user.email "desk@aifi.invalid"
 git config credential.helper '!f() { echo username=x-access-token; echo "password=${GH_TOKEN}"; }; f'

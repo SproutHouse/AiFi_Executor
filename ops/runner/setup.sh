@@ -6,7 +6,7 @@
 # The token is valid for one hour and is only used to register; it is not stored.
 set -euo pipefail
 TOKEN="${1:-}"; [ -n "$TOKEN" ] || { echo "usage: bash setup.sh <registration token>"; exit 1; }
-REPO_URL="https://github.com/SproutHouse/AiFi_Executor"
+REPO_URL="https://github.com/SproutHouse/aifi-executor"
 sudo apt-get update -qq && sudo apt-get install -y -qq git python3 python3-venv python3-pip curl jq unattended-upgrades ufw >/dev/null
 sudo timedatectl set-timezone UTC
 sudo ufw --force enable >/dev/null; sudo ufw allow OpenSSH >/dev/null            # nothing inbound but SSH
