@@ -20,16 +20,36 @@ jobs:
           python3 - <<'PY'
           import json, os, time, urllib.request
           from datetime import datetime, timezone
+          # The newest sign of life: the server's heartbeat (state/host_beat.json, written every tick by
+          # scripts/host_beat.py) or any enabled agent's last run. Until 2026-10-19 this read only state/runs/last_run.json,
+          # the Core bot's file, so it said "stale" from the day Core was retired (2026-10-17) while the server ran hourly.
+          def age(t):
+              return (time.time() - datetime.fromisoformat(t.replace("Z", "+00:00")).timestamp()) / 3600
+          seen, fails = [], 0
           try:
-              t = json.load(open("state/runs/last_run.json"))["t"]
-              age_h = (time.time() - datetime.fromisoformat(t.replace("Z", "+00:00")).timestamp()) / 3600
+              beat = json.load(open("state/host_beat.json"))
+              seen.append((age(beat["t"]), beat["t"], "server heartbeat"))
+              fails = int(beat.get("fails_in_a_row") or 0)
           except Exception as e:
-              age_h, t = 999, f"unreadable ({e})"
-          print(f"last cycle {t}, {age_h:.1f} h ago")
-          if age_h > 5:
+              print(f"heartbeat unreadable ({e})")
+          try:
+              agents = [a["id"] for a in json.load(open("agents/index.json"))["agents"] if a.get("enabled")]
+          except Exception:
+              agents = []
+          for aid in agents:
+              f = "state/runs/last_run.json" if aid == "core" else f"state/agents/{aid}/runs/last_run.json"
+              try:
+                  t = json.load(open(f))["t"]
+                  seen.append((age(t), t, aid))
+              except Exception:
+                  pass
+          age_h, t, who = min(seen) if seen else (999, "none", "nothing readable")
+          print(f"last sign of life {t} ({who}), {age_h:.1f} h ago; failed ticks in a row: {fails}")
+          if age_h > 5 or fails >= 3:
               url = os.environ.get("ALERT_WEBHOOK", "")
               if url.startswith("https://"):
-                  body = f"No cycle for {age_h:.0f} hours (last {t}). Is the runner down? Positions are protected by exchange-resident stops.".encode()
+                  why = f"No cycle for {age_h:.0f} hours (last {t})" if age_h > 5 else f"{fails} failed ticks in a row"
+                  body = f"{why}. Is the runner down? Positions are protected by exchange-resident stops.".encode()
                   urllib.request.urlopen(urllib.request.Request(url, data=body, headers={"Title": "Executor: not running", "User-Agent": "aifi-executor/1.0"}, method="POST"), timeout=20).read()
               raise SystemExit("executor stale")
           PY
