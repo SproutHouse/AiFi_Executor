@@ -3,7 +3,7 @@ from pathlib import Path
 import _path  # noqa: F401
 from executor import indicators as I
 
-DESK = Path.home() / "aifi" / "scripts"
+DESK = Path.home() / "SproutHouse" / "trading" / "aifi-desk" / "scripts"
 
 
 class Indicators(unittest.TestCase):

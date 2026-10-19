@@ -1,6 +1,6 @@
 import sys, os, json, bisect
 from datetime import datetime, timezone, timedelta
-sys.path.insert(0, os.path.expanduser("~/aifi/scripts"))  # the desk's indicator port; os.environ.setdefault("AIFI_HOME", "/Users/marlin/aifi")
+sys.path.insert(0, os.path.expanduser("~/SproutHouse/trading/aifi-desk/scripts"))  # the desk's indicator port; os.environ.setdefault("AIFI_HOME", os.path.expanduser("~/SproutHouse/trading/aifi-desk"))
 import fred_indicators as I
 SCR = os.path.dirname(os.path.abspath(__file__))
 cache = json.load(open(f"{SCR}/candles_cache.json"))
