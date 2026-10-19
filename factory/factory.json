@@ -1,24 +1,24 @@
 {
  "v": 1,
- "gen": "2026-10-18T18:06:12Z",
+ "gen": "2026-10-19T10:59:39Z",
  "lab": {
-  "tried": 10028,
+  "tried": 10709,
   "survivors": 117,
   "by_family": {
    "rs_rotation": {
-    "tried": 115,
+    "tried": 142,
     "survived": 1
    },
    "tsmom": {
-    "tried": 114,
+    "tried": 141,
     "survived": 0
    },
    "donchian": {
-    "tried": 124,
+    "tried": 157,
     "survived": 0
    },
    "meanrev": {
-    "tried": 279,
+    "tried": 336,
     "survived": 0
    },
    "carry": {
@@ -26,19 +26,19 @@
     "survived": 110
    },
    "cloud_trend": {
-    "tried": 169,
+    "tried": 219,
     "survived": 0
    },
    "sma_trend": {
-    "tried": 99,
+    "tried": 132,
     "survived": 0
    },
    "bull_momentum": {
-    "tried": 128,
+    "tried": 132,
     "survived": 6
    },
    "dual_ma": {
-    "tried": 148,
+    "tried": 172,
     "survived": 0
    },
    "ls_xs": {
@@ -52,23 +52,31 @@
    "hold_vol": {
     "tried": 8,
     "survived": 0
+   },
+   "sim_grammar": {
+    "tried": 425,
+    "survived": 0
+   },
+   "sim_event": {
+    "tried": 1,
+    "survived": 0
    }
   },
-  "last_batch": "2026-10-18",
+  "last_batch": "2026-10-19",
   "gates_version": 7,
   "vetoed": 112,
-  "retired": 3,
+  "retired": 4,
   "funnel": {
-   "tested": 10028,
-   "passed_cheap": 9551,
+   "tested": 10709,
+   "passed_cheap": 9926,
    "passed_audit": 140,
    "waiting_holdout": 14,
    "passed_holdout": 117,
    "vetoed": 112
   },
   "last": {
-   "date": "2026-10-18",
-   "tried": 289,
+   "date": "2026-10-19",
+   "tried": 587,
    "passed": 0
   },
   "studies": [
@@ -84,7 +92,7 @@
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-10-17"
+  "as_of": "2026-10-18"
  },
  "shortlist": [
   {
@@ -98,7 +106,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 19.8,
+   "days": 20.5,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -122,10 +130,10 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9971,
-   "deflated_now": 0.2663,
-   "trials_now": 115,
-   "deflated_alpha_now": 0.0066,
-   "search_k": 1058,
+   "deflated_now": 0.2445,
+   "trials_now": 142,
+   "deflated_alpha_now": 0.005,
+   "search_k": 1484,
    "rw_p": 1.0,
    "verdict_now": "unproven",
    "verdict_now_why": "does not beat Bitcoin at the same risk over development (-4.0%/yr)",
@@ -235,7 +243,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 15.8,
+   "days": 16.5,
    "backtest": {
     "sharpe": 1.609,
     "cagr_pct": 31.29,
@@ -259,13 +267,13 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9932,
-   "deflated_now": 0.4728,
-   "trials_now": 212,
-   "deflated_alpha_now": 0.232,
-   "search_k": 1058,
-   "rw_p": 0.8396,
+   "deflated_now": 0.4608,
+   "trials_now": 216,
+   "deflated_alpha_now": 0.2042,
+   "search_k": 1484,
+   "rw_p": 0.9418,
    "verdict_now": "unproven",
-   "verdict_now_why": "Romano-Wolf adjusted p 0.840 is above 0.1",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.942 is above 0.1",
    "bench": {
     "dev": {
      "days": 2830,
@@ -373,7 +381,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 13.8,
+   "days": 14.5,
    "backtest": {
     "sharpe": 1.751,
     "cagr_pct": 32.29,
@@ -397,13 +405,13 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9979,
-   "deflated_now": 0.4991,
-   "trials_now": 212,
-   "deflated_alpha_now": 0.4363,
-   "search_k": 1058,
-   "rw_p": 0.6714,
+   "deflated_now": 0.4872,
+   "trials_now": 216,
+   "deflated_alpha_now": 0.3994,
+   "search_k": 1484,
+   "rw_p": 0.8204,
    "verdict_now": "unproven",
-   "verdict_now_why": "Romano-Wolf adjusted p 0.671 is above 0.1",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.820 is above 0.1",
    "bench": {
     "dev": {
      "days": 2830,
@@ -508,10 +516,10 @@
    "tag": "all-weather",
    "hypothesis": "Inside bullish swings, coins with the strongest momentum keep outperforming for about a week (study IC 0.05-0.09 on both halves of the development period); a fast market gate avoids holding them through the turn.",
    "enrolled": "2026-10-18",
-   "enabled": true,
+   "enabled": false,
    "live": false,
-   "status": "incubating",
-   "days": 0.8,
+   "status": "retired",
+   "days": 1.5,
    "backtest": {
     "sharpe": 1.574,
     "cagr_pct": 29.81,
@@ -531,17 +539,17 @@
     "ret_pct": null,
     "dd_pct": null,
     "weight_match_pct": null,
-    "weight_checks": 0,
+    "weight_checks": null,
     "p5_pct": null
    },
    "deflated_at_trial": 0.9913,
-   "deflated_now": 0.2044,
-   "trials_now": 212,
-   "deflated_alpha_now": 0.1865,
-   "search_k": 1058,
-   "rw_p": 0.9758,
+   "deflated_now": 0.1959,
+   "trials_now": 216,
+   "deflated_alpha_now": 0.1622,
+   "search_k": 1484,
+   "rw_p": 0.9973,
    "verdict_now": "unproven",
-   "verdict_now_why": "Romano-Wolf adjusted p 0.976 is above 0.1",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.997 is above 0.1",
    "bench": {
     "dev": {
      "days": 2830,
@@ -555,15 +563,15 @@
      "sharpe_diff_z": 0.52
     },
     "holdout": {
-     "days": 382,
-     "bot_pct": 10.15,
-     "btc_pct": -28.55,
-     "btc_same_risk_pct": -8.85,
-     "excess_pct_yr": 18.09,
-     "excess_t": 1.2,
+     "days": 383,
+     "bot_pct": 10.14,
+     "btc_pct": -28.0,
+     "btc_same_risk_pct": -8.61,
+     "excess_pct_yr": 17.77,
+     "excess_t": 1.18,
      "sharpe_bot": 0.68,
-     "sharpe_btc": -0.5,
-     "sharpe_diff_z": 1.07
+     "sharpe_btc": -0.49,
+     "sharpe_diff_z": 1.05
     },
     "paper": null
    },
@@ -588,7 +596,7 @@
      {
       "check": "runs healthy",
       "ok": false,
-      "detail": "fresh, successful runs on 0 of 0 days a run was due (0%, needs 95%)"
+      "detail": "fresh, successful runs on 0 of 1 days a run was due (0%, needs 95%)"
      },
      {
       "check": "orders placed",
@@ -611,32 +619,32 @@
     "alpha_t_own": 0.98,
     "alpha_t_btc": 0.97,
     "needed_t": 2.0,
-    "unseen_days": 382,
-    "months_more": 40.8
+    "unseen_days": 383,
+    "months_more": 40.9
    },
    "ready": false,
    "not_ready": [
-    "1 of 42 days in the arena",
+    "retired: 2026-10-18 before its first trade: enrolled by mistake",
     "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "same coins as the backtest: held the same coins as the backtest replay on 0 of 0 days (needs 80%)",
     "return matches the backtest: only 0 paper days to compare with the backtest replay (needs 5)",
-    "runs healthy: fresh, successful runs on 0 of 0 days a run was due (0%, needs 95%)",
+    "runs healthy: fresh, successful runs on 0 of 1 days a run was due (0%, needs 95%)",
     "orders placed: 0 orders filled since enrolment (needs 10)",
     "days invested: held positions on 0 days (needs 15)",
-    "edge not proven yet (weak): on 382 unseen days (12.6 months: the holdout, then paper) it beats holding its own coins with t 0.98 and holding Bitcoin with t 0.97, Ready needs 2 on both; about 41 more months at this pace"
+    "edge not proven yet (weak): on 383 unseen days (12.6 months: the holdout, then paper) it beats holding its own coins with t 0.98 and holding Bitcoin with t 0.97, Ready needs 2 on both; about 41 more months at this pace"
    ]
   }
  ],
  "honesty": {
-  "as_of": "2026-10-18",
-  "k": 1058,
-  "luck_t": 3.271,
-  "need_t": 4.916,
-  "spa_p": 0.0788,
-  "rc_p": 0.0802,
+  "as_of": "2026-10-19",
+  "k": 1484,
+  "luck_t": 3.366,
+  "need_t": 5.011,
+  "spa_p": 0.13578117299162148,
+  "rc_p": 0.137752587481518,
   "best": "ls-759fac45",
-  "strategies": 767,
-  "report": "reports/honesty/2026-10-18.md"
+  "strategies": 1136,
+  "report": "reports/honesty/2026-10-19.md"
  },
  "fleet": {
   "regime": "bull",
@@ -648,39 +656,20 @@
     "kind": "directional",
     "mode": "paper",
     "vol_pct": 20.2,
-    "erc_pct": 42.7,
+    "erc_pct": 100.0,
     "regime_w": 1.0,
-    "share_pct": 42.7,
+    "share_pct": 100.0,
     "bet": [
      "trend-1d"
-    ]
-   },
-   {
-    "agent": "arena-04",
-    "name": "A04 Bull",
-    "kind": "directional",
-    "mode": "paper",
-    "vol_pct": 15.0,
-    "erc_pct": 57.3,
-    "regime_w": 1.0,
-    "share_pct": 57.3,
-    "bet": [
-     "arena-04"
     ]
    }
   ],
   "corr": {
    "agents": [
-    "trend-1d",
-    "arena-04"
+    "trend-1d"
    ],
    "m": [
     [
-     1.0,
-     0.58
-    ],
-    [
-     0.58,
      1.0
     ]
    ]
@@ -698,8 +687,8 @@
   "totals": {
    "paper": {
     "agents": 2,
-    "ret_pct": -2.98,
-    "dd_pct": 3.67
+    "ret_pct": -2.8,
+    "dd_pct": 3.48
    }
   },
   "kill": {
