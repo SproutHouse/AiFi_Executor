@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-21T01:05:48.337552Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-21T02:05:47.497347Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -22,7 +22,7 @@ _Rendered 2026-10-21T01:05:48.337552Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 66 min after the bar close
-- BTC: target 46% of pot, holding 35% → hold
+- BTC weekly Bullish · daily Bullish · data 126 min after the bar close
+- BTC: target 46% of pot, holding 36% → hold
 - ETH: target 0% of pot, holding 0% → none
 - evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
