@@ -1,24 +1,24 @@
 {
  "v": 1,
- "gen": "2026-10-20T10:14:48Z",
+ "gen": "2026-10-21T10:18:38Z",
  "lab": {
-  "tried": 11063,
+  "tried": 11339,
   "survivors": 117,
   "by_family": {
    "rs_rotation": {
-    "tried": 151,
+    "tried": 161,
     "survived": 1
    },
    "tsmom": {
-    "tried": 154,
+    "tried": 171,
     "survived": 0
    },
    "donchian": {
-    "tried": 174,
+    "tried": 193,
     "survived": 0
    },
    "meanrev": {
-    "tried": 393,
+    "tried": 466,
     "survived": 0
    },
    "carry": {
@@ -26,23 +26,23 @@
     "survived": 110
    },
    "cloud_trend": {
-    "tried": 244,
+    "tried": 275,
     "survived": 0
    },
    "sma_trend": {
-    "tried": 147,
+    "tried": 160,
     "survived": 0
    },
    "bull_momentum": {
-    "tried": 136,
+    "tried": 139,
     "survived": 6
    },
    "dual_ma": {
-    "tried": 189,
+    "tried": 206,
     "survived": 0
    },
    "ls_xs": {
-    "tried": 37,
+    "tried": 38,
     "survived": 0
    },
    "trend_ens": {
@@ -54,11 +54,11 @@
     "survived": 0
    },
    "sim_grammar": {
-    "tried": 536,
+    "tried": 609,
     "survived": 0
    },
    "sim_event": {
-    "tried": 2,
+    "tried": 3,
     "survived": 0
    },
    "sim_setup": {
@@ -72,23 +72,27 @@
    "pf_blend": {
     "tried": 2,
     "survived": 0
+   },
+   "ls_listing": {
+    "tried": 18,
+    "survived": 0
    }
   },
-  "last_batch": "2026-10-20",
-  "gates_version": 10,
+  "last_batch": "2026-10-21",
+  "gates_version": 11,
   "vetoed": 113,
   "retired": 4,
   "funnel": {
-   "tested": 11063,
-   "passed_cheap": 10080,
+   "tested": 11339,
+   "passed_cheap": 10224,
    "passed_audit": 140,
    "waiting_holdout": 14,
    "passed_holdout": 117,
    "vetoed": 113
   },
   "last": {
-   "date": "2026-10-20",
-   "tried": 233,
+   "date": "2026-10-21",
+   "tried": 276,
    "passed": 0
   },
   "studies": [
@@ -104,7 +108,7 @@
   "now": "bull",
   "fine": "bull",
   "since": "2026-08-24",
-  "as_of": "2026-10-19"
+  "as_of": "2026-10-20"
  },
  "shortlist": [
   {
@@ -118,7 +122,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 21.4,
+   "days": 22.4,
    "backtest": {
     "sharpe": 1.132,
     "cagr_pct": 17.32,
@@ -142,10 +146,10 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9971,
-   "deflated_now": 0.7342,
-   "trials_now": 151,
-   "deflated_alpha_now": 0.0149,
-   "search_k": 1675,
+   "deflated_now": 0.6894,
+   "trials_now": 161,
+   "deflated_alpha_now": 0.014,
+   "search_k": 1824,
    "rw_p": 1.0,
    "verdict_now": "unproven",
    "verdict_now_why": "does not beat Bitcoin at the same risk over development (-3.4%/yr)",
@@ -236,12 +240,34 @@
     "unseen_days": 381,
     "months_more": 35.6
    },
+   "sequential": {
+    "agent": "arena-01",
+    "recipe": "rot-e335df0b",
+    "role": "ready",
+    "start": "2026-09-29",
+    "burn_in": 20,
+    "min_days": 30,
+    "alpha": 0.05,
+    "futility": 0.1,
+    "min_edge_apr": 0.1,
+    "rho": 54.539,
+    "plan_days": 365,
+    "uses_backtest": false,
+    "paper_days": 17,
+    "evidence_days": 0,
+    "breaches": 0,
+    "verdict": "waiting",
+    "decided": null,
+    "yardsticks": {},
+    "days_to_edge_at_pace": null,
+    "why": "17 paper days: the first 20 only set the hedge ratios; evidence starts after them"
+   },
    "ready": false,
    "not_ready": [
     "retired: 2026-10-17: the owner retired it after the 2026-10-16 review: no skill once tested honestly (edge evidence weak, deflated Sharpe 0.52 at today's trial count; its market filter ranked 31st of 32)",
     "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "orders placed: 9 orders filled since enrolment (needs 10)",
-    "edge not proven yet (moderate): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 1.14 and holding Bitcoin with t 1.02, Ready needs 2 on both; about 36 more months at this pace"
+    "edge not confirmed on paper (sequential test: waiting; 17 paper days: the first 20 only set the hedge ratios; evidence starts after them)"
    ]
   },
   {
@@ -255,7 +281,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 17.4,
+   "days": 18.4,
    "backtest": {
     "sharpe": 1.609,
     "cagr_pct": 31.29,
@@ -279,13 +305,13 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9932,
-   "deflated_now": 0.844,
-   "trials_now": 220,
-   "deflated_alpha_now": 0.1949,
-   "search_k": 1675,
-   "rw_p": 0.9673,
+   "deflated_now": 0.849,
+   "trials_now": 223,
+   "deflated_alpha_now": 0.1885,
+   "search_k": 1824,
+   "rw_p": 0.977,
    "verdict_now": "unproven",
-   "verdict_now_why": "Romano-Wolf adjusted p 0.967 is above 0.1",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.977 is above 0.1",
    "bench": {
     "dev": {
      "days": 3346,
@@ -373,13 +399,35 @@
     "unseen_days": 381,
     "months_more": 72.0
    },
+   "sequential": {
+    "agent": "arena-02",
+    "recipe": "bm-c3067ed4",
+    "role": "ready",
+    "start": "2026-10-03",
+    "burn_in": 20,
+    "min_days": 30,
+    "alpha": 0.05,
+    "futility": 0.1,
+    "min_edge_apr": 0.1,
+    "rho": 54.539,
+    "plan_days": 365,
+    "uses_backtest": false,
+    "paper_days": 13,
+    "evidence_days": 0,
+    "breaches": 0,
+    "verdict": "waiting",
+    "decided": null,
+    "yardsticks": {},
+    "days_to_edge_at_pace": null,
+    "why": "13 paper days: the first 20 only set the hedge ratios; evidence starts after them"
+   },
    "ready": false,
    "not_ready": [
     "retired: 2026-10-17: the owner retired it under lab rulebook v5",
     "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "orders placed: 9 orders filled since enrolment (needs 10)",
     "days invested: held positions on 14 days (needs 15)",
-    "edge not proven yet (weak): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 0.77 and holding Bitcoin with t 0.79, Ready needs 2 on both; about 72 more months at this pace"
+    "edge not confirmed on paper (sequential test: waiting; 13 paper days: the first 20 only set the hedge ratios; evidence starts after them)"
    ]
   },
   {
@@ -393,7 +441,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 15.4,
+   "days": 16.4,
    "backtest": {
     "sharpe": 1.751,
     "cagr_pct": 32.29,
@@ -417,13 +465,13 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9979,
-   "deflated_now": 0.8769,
-   "trials_now": 220,
-   "deflated_alpha_now": 0.3866,
-   "search_k": 1675,
-   "rw_p": 0.8736,
+   "deflated_now": 0.8812,
+   "trials_now": 223,
+   "deflated_alpha_now": 0.3777,
+   "search_k": 1824,
+   "rw_p": 0.8898,
    "verdict_now": "unproven",
-   "verdict_now_why": "Romano-Wolf adjusted p 0.874 is above 0.1",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.890 is above 0.1",
    "bench": {
     "dev": {
      "days": 3346,
@@ -511,13 +559,35 @@
     "unseen_days": 381,
     "months_more": 214.3
    },
+   "sequential": {
+    "agent": "arena-03",
+    "recipe": "bm-ef0a1cde",
+    "role": "ready",
+    "start": "2026-10-05",
+    "burn_in": 20,
+    "min_days": 30,
+    "alpha": 0.05,
+    "futility": 0.1,
+    "min_edge_apr": 0.1,
+    "rho": 54.539,
+    "plan_days": 365,
+    "uses_backtest": false,
+    "paper_days": 11,
+    "evidence_days": 0,
+    "breaches": 0,
+    "verdict": "waiting",
+    "decided": null,
+    "yardsticks": {},
+    "days_to_edge_at_pace": null,
+    "why": "11 paper days: the first 20 only set the hedge ratios; evidence starts after them"
+   },
    "ready": false,
    "not_ready": [
     "retired: 2026-10-17: the owner retired it under lab rulebook v5",
     "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "orders placed: 8 orders filled since enrolment (needs 10)",
     "days invested: held positions on 12 days (needs 15)",
-    "edge not proven yet (weak): on 381 unseen days (12.5 months: the holdout, then paper) it beats holding its own coins with t 0.47 and holding Bitcoin with t 0.57, Ready needs 2 on both; about 214 more months at this pace"
+    "edge not confirmed on paper (sequential test: waiting; 11 paper days: the first 20 only set the hedge ratios; evidence starts after them)"
    ]
   },
   {
@@ -531,7 +601,7 @@
    "enabled": false,
    "live": false,
    "status": "retired",
-   "days": 2.4,
+   "days": 3.4,
    "backtest": {
     "sharpe": 1.574,
     "cagr_pct": 29.81,
@@ -555,13 +625,13 @@
     "p5_pct": null
    },
    "deflated_at_trial": 0.9913,
-   "deflated_now": 0.428,
-   "trials_now": 220,
-   "deflated_alpha_now": 0.2969,
-   "search_k": 1675,
-   "rw_p": 0.9766,
+   "deflated_now": 0.4366,
+   "trials_now": 223,
+   "deflated_alpha_now": 0.2889,
+   "search_k": 1824,
+   "rw_p": 0.9826,
    "verdict_now": "unproven",
-   "verdict_now_why": "Romano-Wolf adjusted p 0.977 is above 0.1",
+   "verdict_now_why": "Romano-Wolf adjusted p 0.983 is above 0.1",
    "bench": {
     "dev": {
      "days": 3561,
@@ -608,7 +678,7 @@
      {
       "check": "runs healthy",
       "ok": false,
-      "detail": "fresh, successful runs on 0 of 2 days a run was due (0%, needs 95%)"
+      "detail": "fresh, successful runs on 0 of 3 days a run was due (0%, needs 95%)"
      },
      {
       "check": "orders placed",
@@ -634,29 +704,51 @@
     "unseen_days": 383,
     "months_more": 48.2
    },
+   "sequential": {
+    "agent": "arena-04",
+    "recipe": "bm-afb9df31",
+    "role": "ready",
+    "start": "2026-10-18",
+    "burn_in": 20,
+    "min_days": 30,
+    "alpha": 0.05,
+    "futility": 0.1,
+    "min_edge_apr": 0.1,
+    "rho": 54.539,
+    "plan_days": 365,
+    "uses_backtest": false,
+    "paper_days": 0,
+    "evidence_days": 0,
+    "breaches": 0,
+    "verdict": "waiting",
+    "decided": null,
+    "yardsticks": {},
+    "days_to_edge_at_pace": null,
+    "why": "0 paper days: the first 20 only set the hedge ratios; evidence starts after them"
+   },
    "ready": false,
    "not_ready": [
     "retired: 2026-10-18 before its first trade: enrolled by mistake",
     "same targets as the backtest: engine targets matched the backtest's on 0 of 0 coin-days where either holds something, and named the same coins on 0 of 0 days (needs 80% of each, at least 10 coin-days)",
     "same coins as the backtest: held the same coins as the backtest replay on 0 of 0 days (needs 80%)",
     "return matches the backtest: only 0 paper days to compare with the backtest replay (needs 5)",
-    "runs healthy: fresh, successful runs on 0 of 2 days a run was due (0%, needs 95%)",
+    "runs healthy: fresh, successful runs on 0 of 3 days a run was due (0%, needs 95%)",
     "orders placed: 0 orders filled since enrolment (needs 10)",
     "days invested: held positions on 0 days (needs 15)",
-    "edge not proven yet (weak): on 383 unseen days (12.6 months: the holdout, then paper) it beats holding its own coins with t 0.91 and holding Bitcoin with t 0.91, Ready needs 2 on both; about 48 more months at this pace"
+    "edge not confirmed on paper (sequential test: waiting; 0 paper days: the first 20 only set the hedge ratios; evidence starts after them)"
    ]
   }
  ],
  "honesty": {
-  "as_of": "2026-10-20",
-  "k": 1675,
-  "luck_t": 3.399,
-  "need_t": 5.044,
-  "spa_p": 0.1638974936637567,
-  "rc_p": 0.1672768234300197,
+  "as_of": "2026-10-21",
+  "k": 1824,
+  "luck_t": 3.422,
+  "need_t": 5.067,
+  "spa_p": 0.17533478667081906,
+  "rc_p": 0.17907194020554346,
   "best": "ls-759fac45",
-  "strategies": 1302,
-  "report": "reports/honesty/2026-10-20.md"
+  "strategies": 1424,
+  "report": "reports/honesty/2026-10-21.md"
  },
  "fleet": {
   "regime": "bull",
@@ -699,8 +791,8 @@
   "totals": {
    "paper": {
     "agents": 2,
-    "ret_pct": -2.98,
-    "dd_pct": 3.66
+    "ret_pct": -2.69,
+    "dd_pct": 3.37
    }
   },
   "kill": {
@@ -711,5 +803,116 @@
   },
   "size_mult_live": {},
   "method": "equal risk contribution on daily backtest returns since 2023-06, over the bots that can go live (carry and builder-market bots wait for their live orders to be validated); bots whose returns correlate above 0.9 count as one bet and split its share equally (volatility floor 10% a year; at most 40% per bet), then the regime weights of docs/specs/REGIME.md (bull 1, bear 0.5, crisis 0)"
- }
+ },
+ "sequential": [
+  {
+   "agent": "carry-1h",
+   "recipe": "car-3a21eb1f",
+   "role": "info (carry: cash yardstick)",
+   "start": "2026-09-26",
+   "burn_in": 20,
+   "min_days": 30,
+   "alpha": 0.05,
+   "futility": 0.1,
+   "min_edge_apr": 0.06,
+   "rho": 54.539,
+   "plan_days": 365,
+   "uses_backtest": false,
+   "paper_days": 24,
+   "evidence_days": 4,
+   "breaches": 0,
+   "verdict": "continue",
+   "decided": null,
+   "why": "4 evidence days of the 30 before any decision",
+   "yardsticks": {
+    "cash": {
+     "n": 4,
+     "mean_apr": 6.82,
+     "sd_apr": 0.32,
+     "lower_apr": -18.9,
+     "upper_apr": 28.55,
+     "z": 4.401,
+     "edge_boundary": 16.598,
+     "z_futility": 0.529,
+     "futility_boundary": 14.02,
+     "hedge": 0.0
+    }
+   },
+   "days_to_edge_at_pace": 14,
+   "last_day": "2026-10-20",
+   "enabled": true
+  },
+  {
+   "agent": "shadow-01",
+   "recipe": "ls-759fac45",
+   "role": "shadow (a recipe the lab failed; never Ready)",
+   "start": "2026-10-18",
+   "burn_in": 20,
+   "min_days": 30,
+   "alpha": 0.05,
+   "futility": 0.1,
+   "min_edge_apr": 0.1,
+   "rho": 54.539,
+   "plan_days": 365,
+   "uses_backtest": false,
+   "paper_days": 2,
+   "evidence_days": 0,
+   "breaches": 0,
+   "verdict": "waiting",
+   "decided": null,
+   "yardsticks": {},
+   "days_to_edge_at_pace": null,
+   "why": "2 paper days: the first 20 only set the hedge ratios; evidence starts after them",
+   "enabled": true
+  },
+  {
+   "agent": "trend-1d",
+   "recipe": "sma-21bb7ebd",
+   "role": "paper exam (the Doctrine's Trend bot; not an arena bot)",
+   "start": "2026-09-26",
+   "burn_in": 20,
+   "min_days": 30,
+   "alpha": 0.05,
+   "futility": 0.1,
+   "min_edge_apr": 0.1,
+   "rho": 54.539,
+   "plan_days": 365,
+   "uses_backtest": false,
+   "paper_days": 24,
+   "evidence_days": 4,
+   "breaches": 0,
+   "verdict": "continue",
+   "decided": null,
+   "why": "4 evidence days of the 30 before any decision",
+   "yardsticks": {
+    "own": {
+     "n": 4,
+     "mean_apr": -14.34,
+     "sd_apr": 3.76,
+     "lower_apr": -312.17,
+     "upper_apr": 283.49,
+     "z": -0.799,
+     "edge_boundary": 16.598,
+     "z_futility": -1.356,
+     "futility_boundary": 16.598,
+     "hedge": 0.517
+    },
+    "btc": {
+     "n": 4,
+     "mean_apr": -51.35,
+     "sd_apr": 3.86,
+     "lower_apr": -357.13,
+     "upper_apr": 254.43,
+     "z": -2.787,
+     "edge_boundary": 16.598,
+     "z_futility": -3.33,
+     "futility_boundary": 16.598,
+     "hedge": 0.653
+    }
+   },
+   "days_to_edge_at_pace": null,
+   "last_day": "2026-10-20",
+   "enabled": true
+  }
+ ]
 }
