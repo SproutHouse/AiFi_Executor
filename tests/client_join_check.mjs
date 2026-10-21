@@ -21,7 +21,7 @@ const facts = {};
 const bad = (m) => problems.push(m);
 
 // ------------------------------------------------------------------ module contract (source files) --
-const ORDER = ["core", "gaterun", "now", "activity", "positions", "results", "rules", "arrival", "factory", "fleet", "bot", "boot"];
+const ORDER = ["core", "gaterun", "now", "activity", "positions", "results", "rules", "arrival", "factory", "ident", "fleet", "bot", "boot"];
 // The AiFi Lab page ("/lab", COMMAND_CENTER_SPEC §11) joins its own bundle: core + lab + boot.
 const LAB_ORDER = ["core", "lab", "boot"];
 const code = (src) => src.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n").replace(/\/\*[\s\S]*?\*\//g, "").trim();
@@ -419,7 +419,7 @@ try {
   for (const [k, v] of Object.entries(facts.review)) if (/runner may be down|undefined|NaN/.test(JSON.stringify(v))) bad("review (" + k + "): " + JSON.stringify(v).slice(0, 200));
   // 2. the master: E.paper, a bare row whose push failed, % of pot first, a rotation, the log's "more", lifetime carry, the factory
   const M = RV("");
-  load(M, ["factory", "fleet"]);
+  load(M, ["factory", "ident", "fleet"]);
   M.__exNow = NOW;
   const d4 = { last_t: T("2026-10-16T08:05:46Z"), last_slot: T("2026-10-16T08:00:00Z"), late_min: 6, lag_med_min: 6, lag_rng: [6, 6], lag_n: 42, limit_min: 45, sched_min: 5, bar_s: 14400 };
   const d1 = { last_t: T("2026-10-16T00:07:31Z"), last_slot: T("2026-10-16T00:00:00Z"), late_min: 7, lag_med_min: 8, lag_rng: [7, 9], lag_n: 12, limit_min: 180, sched_min: 5, bar_s: 86400 };
@@ -448,7 +448,7 @@ try {
   for (const k of ["master", "shortlist"]) if (/undefined|NaN|\bnull\b|\$\d/.test(facts.review[k])) bad("review " + k + " has broken words: " + facts.review[k].slice(0, 300));
   // 3. an arena bot's Overview (bot.js): its own paper numbers, the lab's labelled, the evidence block
   const B = RV("?a=arena-02");
-  load(B, ["factory", "fleet", "bot"]);
+  load(B, ["factory", "ident", "fleet", "bot"]);
   B.__exNow = NOW;
   B.__E = { v: 2, gen: "2026-10-16T09:07:30Z", fleet: { halt: false }, host, order: ["arena-02"], agents: [{ id: "arena-02", name: "A02 Bull", kind: "target", bar_s: 86400, mode: "paper",
     gen: "2026-10-16T02:09:00Z", sb: sbOf(d1), ran_t: d1.last_t, arena: { recipe: "fx-b0000002", family: "bull_momentum", tag: "invented", enrolled: "2026-10-03" }, desc: "An invented arena bot." }] };
@@ -465,7 +465,7 @@ try {
   facts.review.bot = text(vm.runInContext("VIEWS.overview.render(__root, 'redraw')", B));
   // 4. a carry bot's Wins & losses with the lifetime view, and an older bundle without it
   const K = RV("?a=carry-1h");
-  load(K, ["factory", "fleet", "bot"]);
+  load(K, ["factory", "ident", "fleet", "bot"]);
   K.__exNow = NOW;
   K.__E = { v: 2, gen: "x", fleet: { halt: false }, host, order: ["carry-1h"], agents: [{ id: "carry-1h", name: "Carry", kind: "carry", bar_s: 3600, sb: sbOf(h1), ran_t: h1.last_t }] };
   K.__L = Object.assign({}, B.__L, { cfg: { kind: "carry", tf: "1h", thr: [10, 20], late_min: 50 }, clock: h1, origin: { t: T("2026-09-27T02:14:13Z"), mode: "paper" }, pos: [], carry: [],
@@ -479,5 +479,56 @@ try {
   for (const k of ["bot", "carry", "carry_old"]) if (/undefined|NaN|\bnull\b|\$\d/.test(facts.review[k])) bad("review " + k + " has broken words: " + facts.review[k].slice(0, 300));
 } catch (e) {
   bad("the review harness threw: " + (e && e.stack || e));
+}
+// ------------------------------------------------------------------ identity: sigil + constellation (core + ident in a vm) --
+// COMMAND_CENTER_SPEC §3.12: the sigil is a pure function of the rules (same rules → the same svg, whatever the state;
+// each family its own mark; an unknown family a neutral glyph, never a throw); the constellation puts longs left of the
+// line and shorts right of it, is laid out per coin (order-free), says "in cash" when empty and eases when holdings move.
+try {
+  const I = coreContext("");
+  load(I, ["ident"]);
+  const run = (src) => vm.runInContext(src, I);
+  I.__x = null; I.__o = null;
+  const sigil = (x, o) => { I.__x = x; I.__o = o || {}; return run("COMP.sigil(__x, __o)"); };
+  const sky = (h, o) => { I.__x = h; I.__o = o || {}; return run("COMP.sky(__x, __o)"); };
+  const markOf = (svg) => svg.replace(/^[\s\S]*?(<path class="ix-tks"[^>]*>)?(?=<(path|circle|rect) class="ix-m)/, "").replace(/<\/svg>$/, "");
+  const fams = { trend: { kind: "target", bar_s: 86400, n_names: 2 }, carry: { kind: "carry", bar_s: 3600, n_names: 6 },
+    ls: { kind: "target", bar_s: 86400, shadow: { family: "ls_xs" }, n_names: 30 }, rot: { kind: "target", bar_s: 86400, arena: { family: "bull_momentum" }, n_names: 35 },
+    setups: { kind: "flip", bar_s: 14400, n_names: 14 }, gen: { kind: "target", bar_s: 86400, arena: { family: "vol_breakout" } } };
+  const id = {};
+  id.families = Object.fromEntries(Object.entries(fams).map(([k, x]) => [k, run("COMP.identOf(" + JSON.stringify(x) + ").f")]));
+  const marks = Object.entries(fams).map(([k, x]) => markOf(sigil(Object.assign({ id: "b-" + k }, x))));
+  id.marks_distinct = new Set(marks).size;
+  const row = { id: "trend-1d", kind: "target", bar_s: 86400, sig: { f: "trend", tf: "1d", n: 2 }, pot_chg_pct: -3.4, last_t: 1 };
+  const row2 = Object.assign({}, row, { pot_chg_pct: 9.9, last_t: 2, hold: [["BTC", 30, "l"]] });     // same rules, other state
+  id.same_rules_same_svg = sigil(row) === sigil(row2) && sigil(row) === sigil(JSON.parse(JSON.stringify(row)));
+  id.rules_change_svg = sigil(row) !== sigil(Object.assign({}, row, { sig: { f: "trend", tf: "1d", n: 3 } }));
+  const dash = (x) => (sigil(x).match(/stroke-dasharray="([^"]+)"/) || [])[1];
+  id.cadence_distinct = new Set([dash({ kind: "carry", bar_s: 3600 }), dash({ kind: "carry", bar_s: 14400 }), dash({ kind: "carry", bar_s: 86400 })]).size;
+  id.ticks = ((sigil({ sig: { f: "rot", tf: "1d", n: 13, k: 3 } }).match(/class="ix-tks" d="([^"]+)"/) || [])[1] || "").split("M").length - 1;
+  id.unknown = sigil({ sig: { f: "weird", tf: "2w", n: "x" } });
+  id.unknown_kind = run("COMP.identOf({ kind: 'zzz' }).f") + "," + run("COMP.identOf(null).f") + "," + run("COMP.identOf({ cfg: { kind: 'target', tf: '1d', target: { family: 'ls_xs', ls: { top_n: 30 } } } }).n");
+  id.retired = sigil(Object.assign({ enabled: false }, row), { off: true });
+  // the constellation: a long-short book (coordinates from each star's translate)
+  const LS = [{ c: "SOL", w: 9.2, s: "l" }, { c: "AVAX", w: 7.1, s: "l" }, { c: "LINK", w: 8.4, s: "l" }, { c: "DOGE", w: 8.8, s: "s" }, { c: "ADA", w: 7.4, s: "s" }, { c: "LTC", w: 9.6, s: "s" }];
+  const stars = (svg) => [...svg.matchAll(/<g transform="translate\(([\d.]+) ([\d.]+)\)">[\s\S]*?<circle class="ix-(l|s|dim)"/g)].map((m) => ({ x: +m[1], y: +m[2], s: m[3] }));
+  const ls = sky(LS, { key: "t1", f: "ls" }), st = stars(ls);
+  id.ls = { n: st.length, longs_left: st.filter((p) => p.s === "l").every((p) => p.x < 120), shorts_right: st.filter((p) => p.s === "s").every((p) => p.x > 120),
+    divider: ls.includes('class="ix-div"'), labels: ls.includes(">long<") && ls.includes(">short<") };
+  id.order_free = stars(sky(LS, { key: "t4", f: "ls" })).map((p) => p.x + "," + p.y).join() === stars(sky(LS.slice().reverse(), { key: "t5", f: "ls" })).map((p) => p.x + "," + p.y).join();
+  const empty = sky([], { key: "e", f: "ls" });
+  id.empty = { dim: empty.includes('class="ix-dim"'), words: empty.includes(">in cash<"), no_divider: !empty.includes("ix-div"), mini: sky([], { key: "e2", mini: true }).includes("ix-dim") };
+  id.long_only_cash = sky([{ c: "BTC", w: 35.5, s: "l" }], { key: "c", f: "trend" }).includes('class="ix-cash"');
+  sky([{ c: "BTC", w: 30, s: "l" }, { c: "ETH", w: 20, s: "l" }], { key: "mv", f: "trend" });
+  const moved = sky([{ c: "BTC", w: 45, s: "l" }, { c: "SOL", w: 10, s: "l" }], { key: "mv", f: "trend" });
+  id.eases = { moved: /class="ix-mv" style="--fx:/.test(moved), arrived: moved.includes('class="ix-new"'), still: !/ix-mv|ix-new/.test(sky([{ c: "BTC", w: 45, s: "l" }, { c: "SOL", w: 10, s: "l" }], { key: "mv", f: "trend" })) };
+  id.carry_pair = (sky([{ c: "ETH", w: 16.7, s: "c" }], { key: "cp" }).match(/class="ix-[ls]"/g) || []).length;
+  I.__h = LS; id.words = run("COMP.skyWords(__h)"); id.words_empty = run("COMP.skyWords([])"); id.words_long = run("COMP.skyWords([{ c: 'BTC', w: 35.5, s: 'l' }])");
+  id.row_hold = run("JSON.stringify(COMP.holdOfRow({ hold: [['BTC', 35.5, 'l'], ['DOGE', 8, 's'], ['ETH', 16.7, 'c'], ['bad']] }))") + "|" + run("COMP.holdOfRow({})");
+  I.__A = row; run("AGENTS = [__A]"); id.tip = run("tipText('sigil:trend-1d', null)") || ""; id.tip = String(id.tip).replace(/<[^>]*>/g, " ");
+  facts.ident = id;
+  for (const k of ["unknown", "retired", "words", "words_empty", "words_long", "tip"]) if (/undefined|NaN|\bnull\b/.test(id[k])) bad("ident " + k + " has broken output: " + String(id[k]).slice(0, 200));
+} catch (e) {
+  bad("the identity harness threw: " + (e && e.stack || e));
 }
 console.log(JSON.stringify({ ok: problems.length === 0, problems, facts }));

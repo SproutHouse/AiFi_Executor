@@ -331,6 +331,12 @@
     if (A.shadow) t += ' · Shadow';
     return '<span class="fl-ty"' + hint('kind') + '>' + esc(t) + '</span>';
   }
+  // the bot's sigil (who it is, from its rules) and its constellation (what it holds now): ident.js, spec §3.12
+  function sigHtml(A, size, off) { return COMP.sigil ? '<span class="fl-sg"' + hint('sigil') + '>' + COMP.sigil(A, { size, off, t: off ? null : lastT(A) }) + '</span>' : ''; }
+  function skyHtml(A) {
+    const h = COMP.sky && COMP.holdOfRow ? COMP.holdOfRow(A) : null;
+    return h ? '<span class="fl-sky"' + hint('sky') + '>' + COMP.sky(h, { key: 'tile:' + A.id, f: COMP.identOf(A).f, mini: true }) + '</span>' : '';
+  }
   function statusHtml(A, st) {
     const K = st.K || {}, lt = lastT(A);
     let rest = '';
@@ -347,7 +353,7 @@
     if (since != null && now - since >= 7 * D && num(A.wk_pct) != null) cap += ' · this week ' + esc(fmt.pct(A.wk_pct));
     if ((st.k === 'stale' || st.k === 'behind') && lastT(A) != null) cap += ' · as of ' + esc(fmt.when(lastT(A)));
     const sp = A.spark === undefined ? '' : COMP.sparkSvg(A.spark, { w: 140, h: 40 });
-    return '<span class="fl-num"><span class="fl-bigw">' + v + '<span class="fl-cap"' + hint('since') + '>' + cap + '</span></span><span class="fl-spw">' + sp + '</span></span>';
+    return '<span class="fl-num"><span class="fl-bigw">' + v + '<span class="fl-cap"' + hint('since') + '>' + cap + '</span></span>' + skyHtml(A) + '<span class="fl-spw">' + sp + '</span></span>';
   }
   function tileCls(st) { return 'fl-tile fl-' + (st.lvl || 'mute') + (st.k === 'stale' || st.k === 'behind' ? ' fl-stale' : ''); }
   function ariaOf(A, st, now, s, lt) {
@@ -364,12 +370,12 @@
     const strip = COMP.beatStrip(A.beat, { bar: barS(A), lim, nextT: K.next, fresh: o && o.fresh });
     const prob = (st.lvl === 'warn' || st.lvl === 'bad') && !st.v1 ? '<span class="fl-prob">' + esc(plain(tail(st.head ? st.head.sentence : st.sentence))) + '</span>' : '';
     const sh = A.shadow ? '<span class="fl-shadow"' + hint('shadow') + '>' + esc(isObj(A.shadow) && A.shadow.label ? A.shadow.label : SHADOWW) + '</span>' : '';
-    return { a: ariaOf(A, st, now, s, lt) + (A.shadow ? ' ' + plain(isObj(A.shadow) && A.shadow.label ? A.shadow.label : SHADOWW) + '.' : ''), h: '<span class="fl-r1"><b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b>' + typeChip(A) + modePill(A) + '</span>'
+    return { a: ariaOf(A, st, now, s, lt) + (A.shadow ? ' ' + plain(isObj(A.shadow) && A.shadow.label ? A.shadow.label : SHADOWW) + '.' : ''), h: '<span class="fl-r1">' + sigHtml(A, 26) + '<b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b>' + typeChip(A) + modePill(A) + '</span>'
       + sh + statusHtml(A, st) + bigHtml(A, now, st) + '<span class="fl-stats">' + s.h + '</span>' + '<span class="fl-hbw">' + strip + '</span>' + lt.h + prob };
   }
   function compactInner(A, st, now) {
     const p = num(A.pot_chg_pct), lt = lastTrade(A, now), lim = limOf(A.sb);
-    return '<i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i><b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b><span class="fl-cw"' + hint('st') + '>' + esc(st.word) + '</span>'
+    return '<i class="dot ' + (DOTC[st.lvl] || 'mute') + '"></i>' + sigHtml(A, 20) + '<b class="fl-name"' + hint('name') + '>' + esc(nm(A)) + '</b><span class="fl-cw"' + hint('st') + '>' + esc(st.word) + '</span>'
       + '<span class="fl-cp ' + fmt.cls(p) + '">' + (p == null ? '—' : esc(fmt.pct(p))) + '</span>' + lt.h
       + '<span class="fl-micro">' + COMP.beatStrip(A.beat, { bar: barS(A), lim, nextT: (st.K || {}).next }) + '</span>';
   }
@@ -429,7 +435,7 @@
     if (!shown.length && f !== 'all') h = '<div class="card fl-none"><div class="empty">No bot matches “' + esc((FILTERS.find(x => x[0] === f) || [])[1] || f) + '”. <button type="button" class="btn small ghost" data-fl-f="all">Show all ›</button></div></div>';
     const ret = rows().filter(A => A.enabled === false);
     if (ret.length) h += '<details class="disc fl-ret"><summary>Retired (' + ret.length + ')</summary><div class="body fl-grid">'
-      + ret.map(A => '<a class="fl-tile fl-mute fl-retired" href="' + esc(href(A)) + '" data-id="' + esc(A.id) + '"><span class="fl-r1"><b class="fl-name">' + esc(nm(A)) + '</b>' + typeChip(A) + '</span><span class="fl-status"><i class="dot mute"></i><b class="fl-sw0"' + hint('retired') + '>Retired</b></span></a>').join('') + '</div></details>';
+      + ret.map(A => '<a class="fl-tile fl-mute fl-retired" href="' + esc(href(A)) + '" data-id="' + esc(A.id) + '"><span class="fl-r1">' + sigHtml(A, 26, true) + '<b class="fl-name">' + esc(nm(A)) + '</b>' + typeChip(A) + '</span><span class="fl-status"><i class="dot mute"></i><b class="fl-sw0"' + hint('retired') + '>Retired</b></span></a>').join('') + '</div></details>';
     return h;
   }
 

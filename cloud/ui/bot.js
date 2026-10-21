@@ -201,7 +201,13 @@
     const nav = pv && nx ? '<nav class="bt-nav" aria-label="Other bots"><a class="btn small ghost" href="' + esc(href(pv)) + '" data-bt-go="-1" aria-label="Previous bot: ' + esc(nameOfId(pv)) + '">‹</a>'
       + '<span class="sub">' + esc(nameOfId(me())) + ' · ' + (i + 1) + ' of ' + r.length + '</span><a class="btn small ghost" href="' + esc(href(nx)) + '" data-bt-go="1" aria-label="Next bot: ' + esc(nameOfId(nx)) + '">›</a></nav>' : '';
     const desc = A && A.desc ? String(A.desc) : '';
-    const id = '<div class="bt-id"><span class="pill bt-type' + (c.inf ? ' bt-inf' : '') + '"' + hint('kind', '', true) + '>' + esc(kindName(c.k, c.s)) + '</span>' + nav + '</div>'
+    // its sigil (who it is, from its rules) and constellation (what it holds now): ident.js, spec §3.12; retired: grey, no sky
+    const off = !!(A && A.enabled === false), src = A && (A.sig || !b.cfg) ? A : b;
+    const sg = COMP.sigil ? '<span class="bt-sg"' + hint('sigil') + '>' + safe(() => COMP.sigil(src, { size: 40, off, t: off ? null : num(obj(b.clock).last_t), cls: '' }), 'Sigil') + '</span>' : '';
+    const hold = !off && COMP.sky && COMP.holdOfBundle ? COMP.holdOfBundle(b) : null;
+    const sky = hold ? '<figure class="bt-sky"' + hint('sky') + '>' + safe(() => COMP.sky(hold, { key: 'bot:' + me(), f: COMP.identOf(src).f }), 'Constellation')
+      + '<figcaption class="cap">' + esc(COMP.skyWords(hold)) + '</figcaption></figure>' : '';
+    const id = '<div class="bt-id">' + sg + '<span class="pill bt-type' + (c.inf ? ' bt-inf' : '') + '"' + hint('kind', '', true) + '>' + esc(kindName(c.k, c.s)) + '</span>' + nav + '</div>'
       + (desc ? (desc.length > 90 ? '<details class="bt-desc"><summary><span>' + esc(desc) + '</span><b class="bt-mo">more</b></summary></details>' : '<p class="bt-desc">' + esc(desc) + '</p>') : '');
     let nums = '<div class="bt-n"><span class="bt-pct ' + fmt.cls(chg) + '" data-v="' + (chg == null ? '' : chg) + '"' + hint('ret') + '>' + fmt.pct(chg) + '</span><span class="bt-ncap" id="bt-ncap"' + hint('since') + '>' + potCap(b) + '</span></div>';
     if (c.k === 'flip') {
@@ -213,8 +219,8 @@
     const spk = vals.length > 1 ? '<a class="bt-spark" href="#results/curve" aria-label="' + esc(sl + '. Open the interactive curve') + '">' + safe(() => spark(vals, { w: 320, h: 56, t0: pts[0][0], t1: pts[pts.length - 1][0], label: sl }), 'Sparkline') + '</a>'
       : '<p class="cap bt-spark">The line appears after two checks.</p>';
     return '<section class="card bt-hero' + c.rise + '" id="overview-hero">' + id
-      + '<div class="bt-verdict" id="bt-verdict">' + verdictHtml() + '</div><p class="bt-sched" id="bt-sched">' + schedHtml(b) + '</p>'
-      + '<div class="bt-nums">' + nums + spk + '</div>' + beatHtml(b, c) + '<p class="bt-act" id="bt-act"' + hint('last') + '>' + actHtml(b, c) + '</p></section>';
+      + (sky ? '<div class="bt-top"><div class="bt-main">' : '') + '<div class="bt-verdict" id="bt-verdict">' + verdictHtml() + '</div><p class="bt-sched" id="bt-sched">' + schedHtml(b) + '</p>'
+      + '<div class="bt-nums">' + nums + spk + '</div>' + (sky ? '</div>' + sky + '</div>' : '') + beatHtml(b, c) + '<p class="bt-act" id="bt-act"' + hint('last') + '>' + actHtml(b, c) + '</p></section>';
   }
 
   // ----------------------------------------------------------------------------------- 5.2 wins & losses --

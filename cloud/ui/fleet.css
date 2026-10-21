@@ -107,6 +107,12 @@
 .fl-sp polyline{fill:none;stroke:var(--ink-2);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
 .fl-sp .fl-sp0{stroke:var(--line-2);stroke-width:1;stroke-dasharray:3 3}
 .fl-sp circle{fill:var(--ink)}
+/* the sigil before the name and the small constellation between the number and the sparkline (ui/ident.js) */
+.fl-sg{flex:none;display:inline-flex;margin-right:2px}
+.fl-sky{flex:0 0 auto;display:block;width:72px;align-self:center}
+.fl-tile.fl-stale .fl-sky{opacity:.6}
+@media(max-width:640px){.fl-sg .ix-sig{width:22px;height:22px}.fl-r1 .fl-name{flex:0 0 auto;max-width:48%}}
+@media(max-width:340px){.fl-sky{display:none}}
 .fl-spna,.fl-hbna{font-size:var(--fs-xs);color:var(--muted)}
 .fl-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2);align-items:start}
 .fl-st{display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-start;column-gap:5px;min-width:0;line-height:1.3}

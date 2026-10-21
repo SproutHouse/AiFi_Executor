@@ -3,7 +3,7 @@
 The page script is not one file. `cloud/worker.js` joins these modules, in this order, into ONE script inside one IIFE:
 
 ```
-'(function(){"use strict";' + core + gaterun + now + activity + positions + results + rules + arrival + factory + fleet + bot + boot + '})();'
+'(function(){"use strict";' + core + gaterun + now + activity + positions + results + rules + arrival + factory + ident + fleet + bot + boot + '})();'
 ```
 
 At join time the Worker drops the `CORE API` comment block, whole-line `//` comments, blank lines and indentation (line
@@ -12,7 +12,7 @@ and wraps every module except core in `try { … } catch (e) { console.error(…
 module cannot stop the ones after it (boot.js is last). Never use a template literal or a string that spans lines.
 
 The CSS is appended in the same order: `design.js` (AiFi tokens, magenta accent) → `mission.js` (shared executor
-vocabulary, spec §11–13) → `ui/<module>.css` (gaterun, now, activity, positions, results, rules, arrival, factory, fleet, bot).
+vocabulary, spec §11–13) → `ui/<module>.css` (gaterun, now, activity, positions, results, rules, arrival, factory, ident, fleet, bot).
 
 The **AiFi Lab page** (`/lab`, COMMAND_CENTER_SPEC §11) has its own, smaller bundle, joined the same way:
 `core + lab + boot`, with `design.js` → `mission.js` → `ui/lab.css`. `ui/lab.js` never reaches the Command Center's or a
@@ -61,6 +61,13 @@ Core only routes it (`ready()` is true at once); lab.js loads its own data, play
        `COMP.sparkSvg(values, {w, h, t0, t1, label})` → html, the pot sparkline (numbers or `[t, v]` pairs);
        `COMP.roster()` → html, the rail's mini roster; `COMP.fleetSummary()` (master only) and `COMP.fleetLoading()`
        (fleet.js); `COMP.fleetFactory(factory, done)` → html, the master's Bot factory card (fleet.js).
+     - `COMP.identOf(rowOrBundle)` → `{f, bar, n, k}`, `COMP.sigil(rowOrBundle, {size, off, t})` → svg html (the bot's sigil:
+       drawn from its rules only: ring = checks a day, ticks = coins in its universe, middle mark = family; `off` greys a
+       retired bot's), `COMP.holdOfRow(A)` / `COMP.holdOfBundle(b)` → `[{c, w, s}]`, `COMP.sky(hold, {key, f, mini})` →
+       svg html (the constellation: one star per holding sized by % of pot, longs green, shorts coral right of a line,
+       carry pairs as both legs, a hollow cash mark, one dim star "in cash"; stable per coin, eases to new places) and
+       `COMP.skyWords(hold)` (ident.js, COMMAND_CENTER_SPEC §3.12). Their motion follows the wall clock (`data-ix`, set by
+       ident.js's MutationObserver) so a re-render never jumps; prefers-reduced-motion stops it.
      - `COMP.labEvidence(shortlistEntry)` → html, the lab's evidence for one shortlisted bot: not luck now (and at its
        trial), vs Bitcoin held and at the same risk for the backtest, the unseen year and paper, execution verified with
        its checks, the edge evidence meter (factory.js; the Shortlist cards and an arena bot's Strategy section). Every
@@ -97,7 +104,7 @@ Core only routes it (`ready()` is true at once); lab.js loads its own data, play
    `#overview`, `#positions` and `#book` → `#overview/holding`, `#trades` → `#results`, `#logic/x` → `#rules/x`.
 6. **CSS.** Shared, un-prefixed classes and the `.st-*` vocabulary live in `cloud/mission.js`. A module's own classes live
    in its `ui/<module>.css` and carry its prefix (lab `lb-`): now `nw-`, gaterun `gr-`, activity `ac-`, positions `ps-`,
-   results `rs-`, rules `ru-`, arrival `ar-`, factory `fx-`, fleet `fl-` (also the shells' own bits), bot `bt-`. Use design tokens (`var(--…)`) only; no raw colours except where
+   results `rs-`, rules `ru-`, arrival `ar-`, factory `fx-`, ident `ix-`, fleet `fl-` (also the shells' own bits), bot `bt-`. Use design tokens (`var(--…)`) only; no raw colours except where
    `design.js` itself uses them. design.js still defines bare `.deck`, `.plan`, `.setup` and `.trend .tl`: do not reuse
    those names.
 7. **localStorage keys**, never trusted to exist: `ex.seenEv`, `ex.seen`, `ex.gr`, `ex.nw.R`, `ex.r.<pos id>` (per bot),

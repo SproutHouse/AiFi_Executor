@@ -379,6 +379,34 @@ explains itself in one or two plain sentences.
   and the backtest-vs-paper table.
 - Every key and every status word is checked for words (no "undefined", "NaN" or money) by the client harness.
 
+### 3.12 Bot identity: sigil and constellation (both pages, 2026-10-21)
+
+Each bot gets an abstract identity so the page feels alive without adding numbers (`ui/ident.js`, `ui/ident.css`).
+
+- **Sigil (who it is).** A 40×40 SVG glyph drawn from the bot's rules only, so it never changes unless they do; the
+  row's `sig` = `{f, tf, n, k?}` (`dashboard_push.sigil_of`; an older row falls back to its `kind` and arena or shadow
+  family). Outer ring: one dash per check in a day (hourly 24, 4-hour 6, daily one ring with a gap; unknown: dotted).
+  Ticks inside: one per coin in its universe (at most 48). Middle mark, in the family's flat accent: **trend** a rising
+  line (teal), **carry** two linked rings (violet), **ls** (long-short book) a bar up and a bar down on a midline (mauve),
+  **rot** (rotation / momentum) `k` ranked spokes, longest first (amber), **setups** (the signal trader) a bracket
+  around a dot (slate), **gen** (any other or unknown family) a plain ring with a dot (grey). Motion: the ring turns once
+  in 75 s; a faint tick shows once on the ring when a newer check lands. Placed before the name on every tile (26 px, 22
+  on a phone, 20 compact) and in the bot page's header (40 px). Retired: grey, still, no tick. Tip `sigil` explains it.
+- **Constellation (what it holds now).** One star per holding (the row's `hold` = `[coin, % of pot, side]`, biggest
+  first, at most 12; the bot page reads its own `pos` and `carry`), area by % of pot (50% and up is the largest), longs
+  green, shorts coral; a long-short book splits at a dashed line (longs left, shorts right); a carry pair shows both legs
+  joined; faint lines join each star to its nearest bigger neighbour on the same side; a hollow dashed mark is the cash
+  of a long-only book. Each coin's place is seeded by its name (then pushed apart), so stars do not jump between
+  refreshes; when holdings change they ease to their new place and size (1.2 s), and a new one grows in. Empty book: one
+  calm dim star and "in cash". Motion: each star drifts 1–2 px and dims slightly over 14–23 s. A small one (72×44) sits
+  between a tile's return and its sparkline (hidden under 340 px); the bot page's (240×132, coin labels on stars big
+  enough) sits beside the verdict and numbers, with its words below ("Holding 3 long, 3 short …"). Retired: none.
+- **Motion rules.** All motion is CSS; its delay follows the wall clock (ident.js sets it on every inserted element), so a
+  re-render resumes the same phase instead of jumping. `prefers-reduced-motion` stops every animation. No glow, flat
+  token colours in both themes. The client harness checks: same rules → the same svg, six distinct marks, three distinct
+  cadence rings, an unknown family → the neutral glyph, longs left / shorts right, order-free layout, the empty state,
+  and the ease.
+
 ---
 
 ## 4. Tile anatomy
@@ -791,6 +819,8 @@ In `run_events`, `carry_in` adds `(c, R.t)` to `matched_open` (so the ledger cro
 | `push_fail` | `{since, why, alerted}` \| absent | set by the fleet step while this bot's pushes fail; `since` survives the streak, `alerted` turns true once a job holding the alert channel has reported it (§12.1) |
 | `open_pct` | float \| null | Σ `L.pos[].pnl_pct`: the open result in % of pot (§12.5) |
 | `held` | `[≤8 coins]` | `L.pos[].c` + `L.carry[].c` |
+| `sig` | `{f, tf, n, k?}` | `L.cfg` + `L.order` (§3.12, `sigil_of`: the rules only) |
+| `hold` | `[≤12 [coin, % of pot, "l"\|"s"\|"c"]]` | `L.pos[].val_pct`/side + `L.carry[].cap_pct`, biggest first (§3.12; `fit_row` keeps 6 when over budget) |
 | `deployed_pct` | float \| null | Σ `L.pos[].val_pct` (at the last marks) + Σ `L.carry[].cap_pct` (1 dp) |
 | `carry` | object (carry only) | copy of `L.carry_sum` |
 

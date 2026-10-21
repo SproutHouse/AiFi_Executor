@@ -1,0 +1,40 @@
+/* ui/ident.css — the sigil and the constellation (ui/ident.js). Flat colours from the design tokens; no glow. */
+.ix-sig{flex:none;display:block;overflow:visible;color:var(--ix,var(--muted))}
+.ix-f-trend{--ix:color-mix(in srgb,var(--good) 55%,var(--violet))}
+.ix-f-carry{--ix:var(--violet)}
+.ix-f-ls{--ix:color-mix(in srgb,var(--bad) 50%,var(--violet))}
+.ix-f-rot{--ix:color-mix(in srgb,var(--warn) 80%,var(--violet))}
+.ix-f-setups{--ix:color-mix(in srgb,var(--ink-2) 65%,var(--violet))}
+.ix-f-gen{--ix:var(--muted)}
+.ix-sig .ix-ring{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;opacity:.85}
+.ix-sig .ix-tks{fill:none;stroke:currentColor;stroke-width:1.1;opacity:.5}
+.ix-sig .ix-m{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ix-sig .ix-th{stroke-width:1.2;opacity:.6}
+.ix-sig .ix-mf{fill:currentColor}
+.ix-sig .ix-tk{fill:currentColor;opacity:0}
+.ix-sig .ix-tk.on{animation:ix-tk 2.4s var(--ease) 1}
+.ix-sig.ix-off{color:var(--muted);opacity:.55}
+.ix-spin{transform-box:fill-box;transform-origin:center;animation:ix-spin 75s linear infinite}
+@keyframes ix-spin{to{transform:rotate(360deg)}}
+@keyframes ix-tk{0%{opacity:0}15%{opacity:.9}100%{opacity:0}}
+
+.ix-sky{display:block;max-width:100%;height:auto;overflow:visible}
+.ix-sky .ix-l{fill:var(--good)}
+.ix-sky .ix-s{fill:color-mix(in srgb,var(--bad) 82%,var(--warn))}
+.ix-sky .ix-dim{fill:var(--muted)}
+.ix-sky .ix-cash{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 2}
+.ix-sky .ix-ln{fill:none;stroke:var(--line-2);stroke-width:1}
+.ix-sky .ix-pl{stroke:var(--muted);stroke-width:1.2}
+.ix-sky .ix-div{fill:none;stroke:var(--line-2);stroke-width:1;stroke-dasharray:3 3}
+.ix-sky .ix-lab,.ix-sky .ix-cn{fill:var(--muted);font:500 9px var(--mono)}
+.ix-sky .ix-cn{fill:var(--ink-2)}
+.ix-mini .ix-ln{stroke-width:.75}
+.ix-dr{transform-box:fill-box;transform-origin:center;animation:ix-dr 18s ease-in-out infinite}
+.ix-calm{opacity:.8;animation:ix-calm 9s ease-in-out infinite}
+.ix-mv{transform-box:fill-box;transform-origin:center;animation:ix-mv 1.2s var(--ease) 1 both}
+.ix-new{transform-box:fill-box;transform-origin:center;animation:ix-new 1.2s var(--ease) 1 both}
+@keyframes ix-dr{0%,100%{transform:none;opacity:1}50%{transform:translate(var(--dx),var(--dy));opacity:.8}}
+@keyframes ix-calm{0%,100%{opacity:.8}50%{opacity:.45}}
+@keyframes ix-mv{from{transform:translate(var(--fx),var(--fy)) scale(var(--fs))}to{transform:none}}
+@keyframes ix-new{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.ix-spin,.ix-dr,.ix-calm,.ix-mv,.ix-new,.ix-sig .ix-tk.on{animation:none}}

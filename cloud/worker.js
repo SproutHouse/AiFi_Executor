@@ -14,6 +14,7 @@ import RESULTS from "./ui/results.js";
 import RULES from "./ui/rules.js";
 import ARRIVAL from "./ui/arrival.js";
 import FACTORY from "./ui/factory.js";
+import IDENT from "./ui/ident.js";
 import FLEET from "./ui/fleet.js";
 import BOT from "./ui/bot.js";
 import LAB from "./ui/lab.js";
@@ -26,6 +27,7 @@ import RESULTS_CSS from "./ui/results.css";
 import RULES_CSS from "./ui/rules.css";
 import ARRIVAL_CSS from "./ui/arrival.css";
 import FACTORY_CSS from "./ui/factory.css";
+import IDENT_CSS from "./ui/ident.css";
 import FLEET_CSS from "./ui/fleet.css";
 import BOT_CSS from "./ui/bot.css";
 import LAB_CSS from "./ui/lab.css";
@@ -43,7 +45,7 @@ const DOC_TITLES = { how_it_works: "How it works", logic: "Decision logic", risk
 // module is one block. Modules are joined with ";" on its own line so a missing semicolon or a trailing
 // line comment in one file can never swallow the next; then the text is made safe to inline in <script>.
 const MODULES = [["core", CORE], ["gaterun", GATERUN], ["now", NOW], ["activity", ACTIVITY], ["positions", POSITIONS],
-                 ["results", RESULTS], ["rules", RULES], ["arrival", ARRIVAL], ["factory", FACTORY], ["fleet", FLEET], ["bot", BOT], ["boot", BOOT]];
+                 ["results", RESULTS], ["rules", RULES], ["arrival", ARRIVAL], ["factory", FACTORY], ["ident", IDENT], ["fleet", FLEET], ["bot", BOT], ["boot", BOOT]];
 const inlineSafe = (s) => String(s).replace(/<\/(script)/gi, "<\\/$1").replace(/<!--/g, "<\\!--");
 // Size (spec §15): the CORE API comment block, whole-line // comments, blank lines and indentation are dropped
 // at join time (about 65 KB). Line breaks stay, so automatic semicolon insertion is untouched. This is safe
@@ -68,7 +70,7 @@ const LAB_CLIENT = bundle([["core", CORE], ["lab", LAB], ["boot", BOOT]]);
 // CSS comments and indentation are dropped the same way (no stylesheet has "/*" inside a string or url()).
 const leanCss = (c) => String(c || "").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map(l => l.trim()).filter(Boolean).join("\n");
 const CSS = [DESIGN_CSS, MISSION_CSS, GATERUN_CSS, NOW_CSS, ACTIVITY_CSS, POSITIONS_CSS, RESULTS_CSS, RULES_CSS, ARRIVAL_CSS, FACTORY_CSS,
-             FLEET_CSS, BOT_CSS].map(leanCss).join("\n");
+             IDENT_CSS, FLEET_CSS, BOT_CSS].map(leanCss).join("\n");
 const CSS_LAB = [DESIGN_CSS, MISSION_CSS, LAB_CSS].map(leanCss).join("\n");
 const LAB_DAY = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 

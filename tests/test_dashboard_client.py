@@ -35,8 +35,39 @@ class JoinedClient(unittest.TestCase):
         # for the review's honesty fixes: the lab's evidence on the Shortlist and an arena bot's page (not luck now, vs Bitcoin,
         # execution, edge), "Page behind" and who to suspect when a bot is stale, lifetime carry with the hedge result, and
         # % of pot first on every sale (449.9 KB measured); +6 KB on 2026-10-18 for the shadow experiment's words (its tile line
-        # and chip, the long-short book's Rules sentences, short legs on cards and in the event log; 455.6 KB measured)
-        self.assertLess(size, 461_000)
+        # and chip, the long-short book's Rules sentences, short legs on cards and in the event log; 455.6 KB measured); +11 KB on
+        # 2026-10-21 for each bot's identity (ui/ident.js: the sigil and the constellation, spec §3.12; 470.3 KB measured)
+        self.assertLess(size, 472_000)
+
+    def test_identity_sigil_and_constellation(self):
+        # COMMAND_CENTER_SPEC §3.12 (tests/client_join_check.mjs, core + ident in a vm)
+        i = (self.res.get("facts") or {}).get("ident")
+        self.assertIsNotNone(i, self.res.get("problems"))
+        # the sigil: the rules only, one mark per family, an unknown family a neutral glyph, a retired bot grey and still
+        self.assertEqual(i["families"], {k: k for k in ("trend", "carry", "ls", "rot", "setups", "gen")})
+        self.assertEqual(i["marks_distinct"], 6)
+        self.assertTrue(i["same_rules_same_svg"])
+        self.assertTrue(i["rules_change_svg"])
+        self.assertEqual(i["cadence_distinct"], 3)               # hourly, 4-hour and daily rings differ
+        self.assertEqual(i["ticks"], 13)                         # one tick per coin in the universe
+        self.assertIn("ix-f-gen", i["unknown"])
+        self.assertEqual(i["unknown_kind"], "gen,gen,30")
+        self.assertIn("ix-off", i["retired"])
+        self.assertNotIn("ix-spin", i["retired"])
+        self.assertNotIn("ix-tk", i["retired"].replace("ix-tks", ""))
+        self.assertIn("Trend follower", i["tip"])
+        self.assertIn("2 coins it can choose from", i["tip"])
+        # the constellation: longs left of the line, shorts right, laid out per coin, calm when empty, eases when moved
+        self.assertEqual(i["ls"], {"n": 6, "longs_left": True, "shorts_right": True, "divider": True, "labels": True})
+        self.assertTrue(i["order_free"])
+        self.assertEqual(i["empty"], {"dim": True, "words": True, "no_divider": True, "mini": True})
+        self.assertTrue(i["long_only_cash"])
+        self.assertEqual(i["eases"], {"moved": True, "arrived": True, "still": True})
+        self.assertEqual(i["carry_pair"], 2)                     # a carry pair shows both legs
+        self.assertEqual(i["words"], "Holding 3 long, 3 short. Each star is one holding, sized by its share of the pot.")
+        self.assertEqual(i["words_empty"], "In cash: holding nothing right now.")
+        self.assertIn("about 65% of the pot in cash", i["words_long"])
+        self.assertEqual(i["row_hold"], '[{"c":"BTC","w":35.5,"s":"l"},{"c":"DOGE","w":8,"s":"s"},{"c":"ETH","w":16.7,"s":"c"}]|null')
 
     def test_tips_have_words(self):
         # COMMAND_CENTER_SPEC §3.11: every TIP key and every status word has plain words (checked in the harness); a few
