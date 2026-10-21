@@ -42,6 +42,7 @@ BEAT_N = {3600: 24, 14400: 18, 86400: 14}  # heartbeat slots per bar length (Com
 ACTED = ("bought", "sold", "resized", "carry_in", "carry_out", "carry_closed")   # event types that are the bot acting
 CARRY_GATE_PCT = 80                        # capture-efficiency go-live gate when settings.carry.capture_gate_pct is absent
 ROW_BUDGET, ROW_SPARK_N, ROW_RECENT_N = 3072, 24, 5   # one exec:agents row (§6.3)
+ROW_HOLD_N = 12                            # holdings a row carries for its tile's constellation
 ROW_KEYS = ("last_t", "last_slot", "late_min", "lag_med_min", "lag_rng", "lag_n", "limit_min", "sched_min", "bar_s")
 # carry_sum keys that stay on the bot page: the tile reads the rest (row budget)
 ROW_CARRY_DROP = ("open_pct", "closed_pct", "capture_open_pct", "fund_all_pct", "cost_all_pct", "closed_n", "closed_ret_pct", "leg_open_pct")
@@ -90,6 +91,52 @@ ISO_RX = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2
 
 
 # ------------------------------------------------------------------------------------------------ numbers --
+
+ROT_FAMILIES = ("rs_rotation", "bull_momentum")
+
+
+def sigil_of(cfg, order):
+    """A bot's identity for its sigil (the Command Center's tiles and its page header): who it is, from its rules only, so
+    it changes only when the rules do. f: family (trend, carry, ls = long-short book, rot = rotation / momentum, setups =
+    the signal trader, gen = anything else), tf: how often it checks, n: coins in its universe, k: how many it holds at
+    most (rotation). Counts and words only."""
+    cfg = cfg if isinstance(cfg, dict) else {}
+    kind, t, c = cfg.get("kind"), cfg.get("target") or {}, cfg.get("carry") or {}
+    n, k = len(order or []) or None, None
+    if kind == "flip":
+        f = "setups"
+    elif kind == "carry":
+        f, n = "carry", c.get("basket_n") or n
+    elif kind == "target":
+        fam = t.get("family")
+        if fam == "ls_xs":
+            f, n = "ls", (t.get("ls") or {}).get("top_n") or n
+        elif fam in ROT_FAMILIES:
+            f, n, k = "rot", t.get("n_coins") or n, t.get("top")
+        else:
+            f, n = ("trend" if fam is None else "gen"), t.get("n_coins") or n
+    else:
+        f = "gen"
+    out = {"f": f, "tf": cfg.get("tf"), "n": n if isinstance(n, int) else None}
+    if isinstance(k, int):
+        out["k"] = k
+    return out
+
+
+def hold_of(pos, carry, cap=ROW_HOLD_N):
+    """What a bot holds now, for its constellation: [coin, % of pot at market, side] per holding, biggest first; side "l"
+    long, "s" short (the long-short book), "c" a carry pair (long spot + short perp). % of pot only, never money."""
+    out = []
+    for p in pos or []:
+        w = p.get("val_pct", p.get("size_pct"))
+        if isinstance(p.get("c"), str) and isinstance(w, (int, float)):
+            out.append([p["c"], num(abs(w), 1), "s" if p.get("side") == "short" else "l"])
+    for x in carry or []:
+        if isinstance(x.get("c"), str) and isinstance(x.get("cap_pct"), (int, float)):
+            out.append([x["c"], num(x["cap_pct"], 1), "c"])
+    out.sort(key=lambda r: (-r[1], r[0]))
+    return out[:cap]
+
 
 def bull_words(family, pm):
     """A bull_momentum recipe's market filter and pick rule in owner words (Rules tab); {} for other families."""
@@ -1961,6 +2008,7 @@ def agent_summary(b, agent=None):
            "last24": L.get("last24"), "beat": L.get("beat"), "act": L.get("act"),
            "recent": loud[:ROW_RECENT_N], "recent_more": max(0, len(loud) - ROW_RECENT_N),
            "held": ([p.get("c") for p in pos] + [c.get("c") for c in carry])[:8],
+           "sig": sigil_of(cfg, L.get("order")), "hold": hold_of(pos, carry),
            "deployed_pct": num(sum(sizes), 1) if all(isinstance(x, (int, float)) for x in sizes) else None,
            "open_pct": num(sum(pnl)) if pnl and all(isinstance(x, (int, float)) for x in pnl) else None}
     if shadow:      # a shadow experiment (agents/index.json "shadow"): a recipe the lab failed, paper only, never live
@@ -1979,7 +2027,7 @@ def spark_of(pot, n):
 def fit_row(row, pot=None, budget=ROW_BUDGET):
     """Keep one exec:agents row within ROW_BUDGET bytes. The latest events go last (2026-10-16: A03's long description
     cut its `recent` from 3 rows to 1, so the master's log silently lost its buy): the description is cut to 160
-    characters, then spark → 12 points, then sb.alerts → 1, then recent → 1 row, then none; every recent row cut is
+    characters, then spark → 12 points, then hold → its 6 biggest, then sb.alerts → 1, then recent → 1 row, then none; every recent row cut is
     counted in `recent_more`, which the log shows. Raises if it still does not fit."""
     def size():
         return len(dumps(row))
@@ -1993,6 +2041,8 @@ def fit_row(row, pot=None, budget=ROW_BUDGET):
         row["desc"] = row["desc"][:159].rstrip() + "…"
     if size() > budget:
         row.update(spark_of(pot or {}, 12) if pot else {"spark": row["spark"][-12:]})
+    if size() > budget and len(row.get("hold") or []) > 6:      # the tile's constellation keeps the 6 biggest
+        row["hold"] = row["hold"][:6]
     if size() > budget:
         row["sb"]["alerts"] = row["sb"]["alerts"][:1]
     if size() > budget:

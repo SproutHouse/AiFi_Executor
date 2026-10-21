@@ -469,6 +469,46 @@ class FleetStep(Fixtures):
         self.assertEqual([x["key"] for x in bulks[0]], ["exec:agents"])
 
 
+class Identity(Fixtures):
+    """COMMAND_CENTER_SPEC §3.12: a row's sigil (sig: family, cadence, universe size) comes from the rules alone, and its
+    constellation (hold: coin, % of pot, side) carries no money."""
+    def test_sigil_of_each_family(self):
+        sig = DP.sigil_of
+        self.assertEqual(sig({"kind": "flip", "tf": "4h"}, ["BTC"] * 14), {"f": "setups", "tf": "4h", "n": 14})
+        self.assertEqual(sig({"kind": "carry", "tf": "1h", "carry": {"basket_n": 6}}, []), {"f": "carry", "tf": "1h", "n": 6})
+        self.assertEqual(sig({"kind": "target", "tf": "1d", "target": {"family": None, "n_coins": 2}}, ["BTC", "ETH"]),
+                         {"f": "trend", "tf": "1d", "n": 2})
+        self.assertEqual(sig({"kind": "target", "tf": "1d", "target": {"family": "ls_xs", "ls": {"top_n": 30}}}, ["X"]),
+                         {"f": "ls", "tf": "1d", "n": 30})
+        self.assertEqual(sig({"kind": "target", "tf": "1d", "target": {"family": "bull_momentum", "n_coins": 35, "top": 3}}, []),
+                         {"f": "rot", "tf": "1d", "n": 35, "k": 3})
+        self.assertEqual(sig({"kind": "target", "tf": "1d", "target": {"family": "vol_breakout", "n_coins": 9}}, [])["f"], "gen")
+        self.assertEqual(sig({}, None), {"f": "gen", "tf": None, "n": None})
+        self.assertEqual(sig(None, None)["f"], "gen")
+
+    def test_sigil_is_the_rules_only(self):
+        a, b = row_for(self.carry, "carry-1h"), row_for(self.carry_late, "carry-1h")   # same rules, different state
+        self.assertEqual(a["sig"], b["sig"])
+        self.assertEqual(a["sig"]["f"], "carry")
+        self.assertEqual(row_for(self.target, "arena-01")["sig"]["f"] in ("trend", "rot", "gen"), True)
+
+    def test_hold_sides_sizes_and_no_money(self):
+        h = DP.hold_of([{"c": "SOL", "val_pct": 9.24}, {"c": "DOGE", "val_pct": -8.8, "side": "short"}, {"c": "X"}],
+                       [{"c": "ETH", "cap_pct": 16.7}])
+        self.assertEqual(h, [["ETH", 16.7, "c"], ["SOL", 9.2, "l"], ["DOGE", 8.8, "s"]])     # biggest first; "X" has no size
+        self.assertEqual(DP.hold_of([], []), [])
+        self.assertEqual(len(DP.hold_of([{"c": f"C{i}", "val_pct": i + 1} for i in range(20)], [])), DP.ROW_HOLD_N)
+        for name, b, agent in (("carry", self.carry, "carry-1h"), ("target", self.target, "arena-01"), ("real", self.real, "core")):
+            r = row_for(b, agent)
+            self.assertIsInstance(r["hold"], list, name)
+            for c, w, s in r["hold"]:
+                self.assertIsInstance(c, str)
+                self.assertIn(s, ("l", "s", "c"))
+                self.assertGreaterEqual(w, 0)
+            assert_no_money(self, {"sig": r["sig"], "hold": r["hold"]}, b["money"])
+            self.assertLessEqual(len(DP.dumps(r)), DP.ROW_BUDGET, name)
+
+
 class RowsDirPush(Fixtures):
     """A push child with EXECUTOR_ROWS_DIR writes only its own keys and saves its row after the write succeeded."""
 
