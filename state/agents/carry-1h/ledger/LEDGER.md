@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-22T07:05:52.472702Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-22T08:05:52.890484Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -31,6 +31,4 @@ _Rendered 2026-10-22T07:05:52.472702Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- HYPE: carry EXITING · funding -0.1%/yr below exit
-- HYPE: carry CLOSED · +0.02% of pot · capture 61%
 - evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 5 open
