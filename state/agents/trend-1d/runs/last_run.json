@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-21T02:05:46Z",
+  "t": "2026-10-22T00:05:46Z",
   "agent": "trend-1d",
   "tf": "1d",
   "mode": "paper",
-  "hours": "auto",
+  "hours": "approval",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -15,7 +15,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 4.716591068232505,
+    "drawdown_pct": 4.20605533794834,
     "halt": false,
     "peak": 1012.864731247214
   },
@@ -29,8 +29,9 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 126 min after the bar close",
-    "BTC: target 46% of pot, holding 36% → hold",
+    "BTC weekly Bullish · daily Bullish · data 6 min after the bar close",
+    "BTC: target 65% of pot, holding 36% → increase",
+    "BTC: resized to 65% of pot, stop 71639",
     "ETH: target 0% of pot, holding 0% → none",
     "evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open"
   ],
@@ -43,13 +44,13 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 82990.0,
+      "close": 84041.0,
       "trigger": null,
-      "why": "close 82990 above its 50-day average 81585; volatility 32% → weight 0.93",
+      "why": "close 84041 above its 50-day average 81717; volatility 23% → weight 1.31",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": -5.2491672000000005,
       "days": 1500,
-      "mark": 82982.0
+      "mark": 84235.0
     },
     {
       "coin": "ETH",
@@ -59,15 +60,15 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 2448.6,
+      "close": 2473.0,
       "trigger": null,
-      "why": "close 2448.6 at or below its 50-day average 2550.6",
+      "why": "close 2473 at or below its 50-day average 2551.7",
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 2453.7
+      "mark": 2479.3
     }
   ],
-  "equity": 965.0876921618062,
-  "hours_local": "22:05 EDT"
+  "equity": 970.0362663579688,
+  "hours_local": "20:05 EDT"
 }

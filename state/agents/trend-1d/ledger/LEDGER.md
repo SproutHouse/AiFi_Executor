@@ -1,12 +1,12 @@
 # Ledger
 
-_Rendered 2026-10-21T02:05:47.497347Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-22T00:05:48.919622Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| trend | BTC | target | T | 84285.1 | 71642.4 | 34.8% | 3x | 2026-09-27T00:22 |
+| trend | BTC | target | T | 84281.5 | 71639.3 | 34.8% | 3x | 2026-09-27T00:22 |
 
 ## Closed trades, summary
 
@@ -22,7 +22,8 @@ _Rendered 2026-10-21T02:05:47.497347Z in paper mode from state/positions_paper.j
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 126 min after the bar close
-- BTC: target 46% of pot, holding 36% → hold
+- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- BTC: target 65% of pot, holding 36% → increase
+- BTC: resized to 65% of pot, stop 71639
 - ETH: target 0% of pot, holding 0% → none
 - evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open
