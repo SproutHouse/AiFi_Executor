@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-22T06:05:52.125299Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-22T07:05:52.472702Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -8,19 +8,19 @@ _Rendered 2026-10-22T06:05:52.125299Z in paper mode from state/positions_paper.j
 |---|---|---|---|---|---|---|---|---|
 | carry | PUMP | carry | None | 0.00495399 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | ZEC | carry | None | 1343.73 | — | 0.0% | —x | 2026-09-27T02:14 |
-| carry | HYPE | carry | None | 87.0708 | — | 0.0% | —x | 2026-10-01T21:06 |
 | carry | BTC | carry | None | 81673.2 | — | 0.0% | —x | 2026-10-15T00:08 |
 | carry | XPL | carry | None | 0.085169 | — | 0.0% | —x | 2026-10-16T09:06 |
 | carry | ETH | carry | None | 2466.76 | — | 0.0% | —x | 2026-10-16T12:07 |
 
 ## Closed trades, summary
 
-- Trades 4 · win rate 25% · average -0.02 R · total -0.1 R · profit factor 0.02 · worst losing streak 2 · costs -0.00 R per trade
+- Trades 5 · win rate 40% · average -0.02 R · total -0.1 R · profit factor 0.03 · worst losing streak 2 · costs -0.00 R per trade
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-22T07:05 | carry | HYPE | carry | C | 87.0708 | — | +0.00 | n/a | funding below exit | 490 |
 | 2026-10-13T08:07 | carry | XPL | carry | C | 0.102059 | — | -0.03 | n/a | funding below exit | 390 |
 | 2026-10-11T12:07 | carry | ETH | carry | C | 2680.32 | — | +0.00 | n/a | funding below exit | 346 |
 | 2026-10-11T08:07 | carry | BTC | carry | C | 84628.3 | — | -0.01 | n/a | funding below exit | 324 |
@@ -31,4 +31,6 @@ _Rendered 2026-10-22T06:05:52.125299Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 6 open
+- HYPE: carry EXITING · funding -0.1%/yr below exit
+- HYPE: carry CLOSED · +0.02% of pot · capture 61%
+- evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 5 open
