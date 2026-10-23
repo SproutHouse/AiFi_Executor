@@ -1,21 +1,19 @@
 {
-  "t": "2026-10-22T02:05:46Z",
+  "t": "2026-10-23T00:05:47Z",
   "agent": "trend-1d",
   "tf": "1d",
   "mode": "paper",
-  "hours": "auto",
+  "hours": "approval",
   "dry": false,
   "fresh": true,
   "failed": false,
   "btc_weekly": "Bullish",
   "btc_daily": "Bullish",
-  "positions": [
-    "BTC"
-  ],
+  "positions": [],
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 4.92951230669988,
+    "drawdown_pct": 6.397477342460734,
     "halt": false,
     "peak": 1012.864731247214
   },
@@ -29,10 +27,11 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 126 min after the bar close",
-    "BTC: target 65% of pot, holding 65% → hold",
+    "BTC weekly Bullish · daily Bullish · data 6 min after the bar close",
+    "BTC: target 0% of pot, holding 65% → close",
+    "BTC [trend]: closed on below its average at 81279 → -0.26 R · -0.03 R vs BTC",
     "ETH: target 0% of pot, holding 0% → none",
-    "evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 1 open"
+    "evaluated 2 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 0 open"
   ],
   "readings": [
     {
@@ -43,13 +42,13 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 84041.0,
+      "close": 81410.0,
       "trigger": null,
-      "why": "close 84041 above its 50-day average 81717; volatility 23% → weight 1.31",
+      "why": "close 81410 at or below its 50-day average 81799",
       "vol_m": null,
-      "funding_pct": -3.96171,
+      "funding_pct": 10.950000000000001,
       "days": 1500,
-      "mark": 83293.0
+      "mark": 81320.0
     },
     {
       "coin": "ETH",
@@ -59,15 +58,15 @@
       "h4": null,
       "range": null,
       "line": null,
-      "close": 2473.0,
+      "close": 2388.1,
       "trigger": null,
-      "why": "close 2473 at or below its 50-day average 2551.7",
+      "why": "close 2388.1 at or below its 50-day average 2551.7",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 6.3696588,
       "days": 1500,
-      "mark": 2447.8
+      "mark": 2386.2
     }
   ],
-  "equity": 962.938312664926,
-  "hours_local": "22:05 EDT"
+  "equity": 947.3100793064124,
+  "hours_local": "20:05 EDT"
 }

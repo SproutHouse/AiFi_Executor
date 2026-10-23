@@ -1,52 +1,5 @@
 {
-  "updated": "2026-10-22T02:05:49.049452Z",
+  "updated": "2026-10-23T00:05:48.470990Z",
   "mode": "paper",
-  "positions": {
-    "BTC": {
-      "coin": "BTC",
-      "side": "long",
-      "kind": "target",
-      "tier": "T",
-      "mode": "paper",
-      "entry": 84281.50356373395,
-      "stop": 71639.27802917385,
-      "initial_stop": 71642.35327499999,
-      "notional": 635.2669466225004,
-      "sz": 0.007537442021808611,
-      "risk_amt": 95.29004199337506,
-      "leverage": 3,
-      "notional_pct_equity": 34.813104995719186,
-      "entry_fee": 0.2858701259801252,
-      "funding_paid": 1.4064080658709923,
-      "opened": "2026-09-27T00:22:28Z",
-      "opened_ts": 1790468548,
-      "last_bar_t": 1792540800,
-      "last_funding_ts": 1792634746,
-      "context": {
-        "btc_weekly": "Bullish",
-        "pair_weekly": "No data",
-        "pair_daily": "No data",
-        "h4_range": null,
-        "funding_annual_pct": 10.950000000000001,
-        "hours_mode": "approval"
-      },
-      "rules": [
-        "LOGIC v1.3",
-        "agent:trend-1d",
-        "trigger:target",
-        "tier:T",
-        "stop:1d-line",
-        "long-only",
-        "book:trend",
-        "target:close 84413 above its 50-day average 75725; volatility 43% →"
-      ],
-      "stop_cloid": null,
-      "entry_cloid": null,
-      "book": "trend",
-      "benchmark": "BTC",
-      "bench_entry": 84243.0,
-      "mark": 83293.0,
-      "upnl_pct": -1.1728594317096386
-    }
-  }
+  "positions": {}
 }

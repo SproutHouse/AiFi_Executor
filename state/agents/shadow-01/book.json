@@ -1,5 +1,69 @@
 {
   "peak": 1000.0,
-  "day": "2026-10-21",
-  "equity_seen": 1000.0
+  "day": "2026-10-22",
+  "equity_seen": 1000.0,
+  "last_rebalance": {
+    "day": "2026-10-22",
+    "ranked": 29,
+    "k": 8,
+    "long": [
+      "CRV",
+      "NEAR",
+      "STRK",
+      "VVV",
+      "WLD",
+      "ZEC",
+      "ZRO",
+      "kPEPE"
+    ],
+    "short": [
+      "DOGE",
+      "ETH",
+      "LINK",
+      "LTC",
+      "MON",
+      "SOL",
+      "XPL",
+      "XRP"
+    ],
+    "why": null,
+    "refused_long": {
+      "LIT": "mark vs Binance 355.79%",
+      "XMR": "mark vs Binance 401.59%"
+    },
+    "refused_short": {},
+    "universe": [
+      "BTC",
+      "ETH",
+      "HYPE",
+      "ZEC",
+      "NEAR",
+      "SOL",
+      "PUMP",
+      "XRP",
+      "ENA",
+      "WLD",
+      "LIT",
+      "SUI",
+      "UNI",
+      "ZRO",
+      "ONDO",
+      "XPL",
+      "VVV",
+      "DOGE",
+      "XMR",
+      "ARB",
+      "AAVE",
+      "TAO",
+      "kPEPE",
+      "AVAX",
+      "LINK",
+      "STRK",
+      "CRV",
+      "FARTCOIN",
+      "MON",
+      "LTC"
+    ],
+    "excluded": {}
+  }
 }
