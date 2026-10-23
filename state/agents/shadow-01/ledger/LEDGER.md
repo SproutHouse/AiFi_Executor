@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-23T00:07:25.776810Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-23T01:07:11.748766Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -35,38 +35,22 @@ None yet.
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- BTC weekly Bullish · daily Bullish · data 66 min after the bar close
 - long-short book 2026-10-22: 29 names ranked of 30 eligible (top 30 by Hyperliquid volume); long CRV, NEAR, STRK, VVV, WLD, ZEC, ZRO, kPEPE · short DOGE, ETH, LINK, LTC, MON, SOL, XPL, XRP
-- CRV: target +5% of pot, holding +0% → open
-- CRV: ENTERED CRV long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- DOGE: target -5% of pot, holding -0% → open
-- DOGE: ENTERED DOGE short [longshort] · book tier S · stop 0.15764 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- ETH: target -5% of pot, holding -0% → open
-- ETH: ENTERED ETH short [longshort] · book tier S · stop 4770 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- LINK: target -5% of pot, holding -0% → open
-- LINK: ENTERED LINK short [longshort] · book tier S · stop 23.904 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- LTC: target -5% of pot, holding -0% → open
-- LTC: ENTERED LTC short [longshort] · book tier S · stop 117.07 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- MON: target -5% of pot, holding -0% → open
-- MON: ENTERED MON short [longshort] · book tier S · stop 0.042197 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- NEAR: target +5% of pot, holding +0% → open
-- NEAR: ENTERED NEAR long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- SOL: target -5% of pot, holding -0% → open
-- SOL: ENTERED SOL short [longshort] · book tier S · stop 207.06 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- STRK: target +5% of pot, holding +0% → open
-- STRK: ENTERED STRK long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- VVV: target +5% of pot, holding +0% → open
-- VVV: ENTERED VVV long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- WLD: target +5% of pot, holding +0% → open
-- WLD: ENTERED WLD long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- XPL: target -5% of pot, holding -0% → open
-- XPL: ENTERED XPL short [longshort] · book tier S · stop 0.15107 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- XRP: target -5% of pot, holding -0% → open
-- XRP: ENTERED XRP short [longshort] · book tier S · stop 2.6165 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- ZEC: target +5% of pot, holding +0% → open
-- ZEC: ENTERED ZEC long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- ZRO: target +5% of pot, holding +0% → open
-- ZRO: ENTERED ZRO long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- kPEPE: target +5% of pot, holding +0% → open
-- kPEPE: ENTERED kPEPE long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot
-- evaluated 16 names · 0 triggers · 0 refused · 0 proposed · 16 entered · 16 open
+- CRV: target +5% of pot, holding +5% → hold
+- DOGE: target -5% of pot, holding -5% → hold
+- ETH: target -5% of pot, holding -5% → hold
+- LINK: target -5% of pot, holding -5% → hold
+- LTC: target -5% of pot, holding -5% → hold
+- MON: target -5% of pot, holding -5% → hold
+- NEAR: target +5% of pot, holding +5% → hold
+- SOL: target -5% of pot, holding -5% → hold
+- STRK: target +5% of pot, holding +5% → hold
+- VVV: target +5% of pot, holding +5% → hold
+- WLD: target +5% of pot, holding +5% → hold
+- XPL: target -5% of pot, holding -5% → hold
+- XRP: target -5% of pot, holding -5% → hold
+- ZEC: target +5% of pot, holding +5% → hold
+- ZRO: target +5% of pot, holding +5% → hold
+- kPEPE: target +5% of pot, holding +5% → hold
+- evaluated 16 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 16 open

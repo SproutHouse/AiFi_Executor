@@ -1,12 +1,11 @@
 # Ledger
 
-_Rendered 2026-10-23T00:05:53.382127Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-23T01:05:55.035825Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
 | Book | Coin | Kind | Tier | Entry | Stop | Notional % eq | Lev | Opened |
 |---|---|---|---|---|---|---|---|---|
-| carry | PUMP | carry | None | 0.00495399 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | ZEC | carry | None | 1343.73 | — | 0.0% | —x | 2026-09-27T02:14 |
 | carry | BTC | carry | None | 81673.2 | — | 0.0% | —x | 2026-10-15T00:08 |
 | carry | XPL | carry | None | 0.085169 | — | 0.0% | —x | 2026-10-16T09:06 |
@@ -14,12 +13,13 @@ _Rendered 2026-10-23T00:05:53.382127Z in paper mode from state/positions_paper.j
 
 ## Closed trades, summary
 
-- Trades 5 · win rate 40% · average -0.02 R · total -0.1 R · profit factor 0.03 · worst losing streak 2 · costs -0.00 R per trade
+- Trades 6 · win rate 33% · average -0.01 R · total -0.1 R · profit factor 0.03 · worst losing streak 2 · costs -0.00 R per trade
 
 ## Last 50 closed trades
 
 | Closed | Book | Coin | Kind | Tier | Entry | Exit | R | R vs benchmark | Reason | Hours |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-23T01:05 | carry | PUMP | carry | C | 0.00495399 | — | -0.01 | n/a | funding below exit | 623 |
 | 2026-10-22T07:05 | carry | HYPE | carry | C | 87.0708 | — | +0.00 | n/a | funding below exit | 490 |
 | 2026-10-13T08:07 | carry | XPL | carry | C | 0.102059 | — | -0.03 | n/a | funding below exit | 390 |
 | 2026-10-11T12:07 | carry | ETH | carry | C | 2680.32 | — | +0.00 | n/a | funding below exit | 346 |
@@ -31,4 +31,8 @@ _Rendered 2026-10-23T00:05:53.382127Z in paper mode from state/positions_paper.j
 ## Last run
 
 - BTC weekly Bullish · daily Bullish · data 6 min after the bar close
-- evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 5 open
+- PUMP: carry EXITING · funding -0.8%/yr below exit
+- PUMP: carry dust · spot remainder below the exchange's size step, written off at the mark
+- PUMP: carry dust · perp remainder below the exchange's size step, written off at the mark
+- PUMP: carry CLOSED · -0.24% of pot · capture 68%
+- evaluated 6 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 4 open

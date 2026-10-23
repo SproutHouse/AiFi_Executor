@@ -1,5 +1,5 @@
 {
-  "t": "2026-10-23T00:05:53Z",
+  "t": "2026-10-23T01:05:55Z",
   "agent": "shadow-01",
   "tf": "1d",
   "mode": "paper",
@@ -30,7 +30,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 0.0,
+    "drawdown_pct": 0.21691200377938458,
     "halt": false,
     "peak": 1000.0
   },
@@ -41,44 +41,28 @@
     "triggers": 0,
     "refused": 0,
     "proposed": 0,
-    "entered": 16
+    "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 6 min after the bar close",
+    "BTC weekly Bullish · daily Bullish · data 66 min after the bar close",
     "long-short book 2026-10-22: 29 names ranked of 30 eligible (top 30 by Hyperliquid volume); long CRV, NEAR, STRK, VVV, WLD, ZEC, ZRO, kPEPE · short DOGE, ETH, LINK, LTC, MON, SOL, XPL, XRP",
-    "CRV: target +5% of pot, holding +0% → open",
-    "CRV: ENTERED CRV long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "DOGE: target -5% of pot, holding -0% → open",
-    "DOGE: ENTERED DOGE short [longshort] · book tier S · stop 0.15764 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "ETH: target -5% of pot, holding -0% → open",
-    "ETH: ENTERED ETH short [longshort] · book tier S · stop 4770 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "LINK: target -5% of pot, holding -0% → open",
-    "LINK: ENTERED LINK short [longshort] · book tier S · stop 23.904 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "LTC: target -5% of pot, holding -0% → open",
-    "LTC: ENTERED LTC short [longshort] · book tier S · stop 117.07 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "MON: target -5% of pot, holding -0% → open",
-    "MON: ENTERED MON short [longshort] · book tier S · stop 0.042197 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "NEAR: target +5% of pot, holding +0% → open",
-    "NEAR: ENTERED NEAR long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "SOL: target -5% of pot, holding -0% → open",
-    "SOL: ENTERED SOL short [longshort] · book tier S · stop 207.06 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "STRK: target +5% of pot, holding +0% → open",
-    "STRK: ENTERED STRK long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "VVV: target +5% of pot, holding +0% → open",
-    "VVV: ENTERED VVV long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "WLD: target +5% of pot, holding +0% → open",
-    "WLD: ENTERED WLD long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "XPL: target -5% of pot, holding -0% → open",
-    "XPL: ENTERED XPL short [longshort] · book tier S · stop 0.15107 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "XRP: target -5% of pot, holding -0% → open",
-    "XRP: ENTERED XRP short [longshort] · book tier S · stop 2.6165 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "ZEC: target +5% of pot, holding +0% → open",
-    "ZEC: ENTERED ZEC long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "ZRO: target +5% of pot, holding +0% → open",
-    "ZRO: ENTERED ZRO long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "kPEPE: target +5% of pot, holding +0% → open",
-    "kPEPE: ENTERED kPEPE long [longshort] · book tier L · stop 0 (100.0% away) · size 4.9% of pot at 3x · risk 4.90% of pot",
-    "evaluated 16 names · 0 triggers · 0 refused · 0 proposed · 16 entered · 16 open"
+    "CRV: target +5% of pot, holding +5% → hold",
+    "DOGE: target -5% of pot, holding -5% → hold",
+    "ETH: target -5% of pot, holding -5% → hold",
+    "LINK: target -5% of pot, holding -5% → hold",
+    "LTC: target -5% of pot, holding -5% → hold",
+    "MON: target -5% of pot, holding -5% → hold",
+    "NEAR: target +5% of pot, holding +5% → hold",
+    "SOL: target -5% of pot, holding -5% → hold",
+    "STRK: target +5% of pot, holding +5% → hold",
+    "VVV: target +5% of pot, holding +5% → hold",
+    "WLD: target +5% of pot, holding +5% → hold",
+    "XPL: target -5% of pot, holding -5% → hold",
+    "XRP: target -5% of pot, holding -5% → hold",
+    "ZEC: target +5% of pot, holding +5% → hold",
+    "ZRO: target +5% of pot, holding +5% → hold",
+    "kPEPE: target +5% of pot, holding +5% → hold",
+    "evaluated 16 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 16 open"
   ],
   "readings": [
     {
@@ -95,7 +79,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.36376
+      "mark": 0.36371
     },
     {
       "coin": "DOGE",
@@ -109,9 +93,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": -2.743632,
+      "funding_pct": 2.1101088000000003,
       "days": 200,
-      "mark": 0.078857
+      "mark": 0.078993
     },
     {
       "coin": "ETH",
@@ -125,9 +109,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 6.340488,
+      "funding_pct": 10.1327796,
       "days": 200,
-      "mark": 2386.2
+      "mark": 2389.6
     },
     {
       "coin": "LINK",
@@ -141,9 +125,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 3.9667908,
+      "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 11.958
+      "mark": 11.98725
     },
     {
       "coin": "LTC",
@@ -157,9 +141,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 1.8524771999999998,
       "days": 200,
-      "mark": 58.564
+      "mark": 58.7372
     },
     {
       "coin": "MON",
@@ -173,9 +157,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": -10.9616508,
+      "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.021109
+      "mark": 0.021223
     },
     {
       "coin": "NEAR",
@@ -191,7 +175,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 4.886
+      "mark": 4.8955
     },
     {
       "coin": "SOL",
@@ -205,9 +189,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 10.950000000000001,
+      "funding_pct": 8.2555992,
       "days": 200,
-      "mark": 103.58
+      "mark": 103.8
     },
     {
       "coin": "STRK",
@@ -223,7 +207,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.05322
+      "mark": 0.05286
     },
     {
       "coin": "VVV",
@@ -239,7 +223,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 26.241
+      "mark": 25.958
     },
     {
       "coin": "WLD",
@@ -255,7 +239,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.54603
+      "mark": 0.54916
     },
     {
       "coin": "XPL",
@@ -271,7 +255,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.075573
+      "mark": 0.076052
     },
     {
       "coin": "XRP",
@@ -287,7 +271,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 1.3089
+      "mark": 1.3092
     },
     {
       "coin": "ZEC",
@@ -303,7 +287,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 1221.9
+      "mark": 1218.2
     },
     {
       "coin": "ZRO",
@@ -319,7 +303,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 1.7833
+      "mark": 1.7899
     },
     {
       "coin": "kPEPE",
@@ -335,9 +319,9 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.004394
+      "mark": 0.004407
     }
   ],
-  "equity": 999.254588485308,
-  "hours_local": "20:05 EDT"
+  "equity": 997.8289010602523,
+  "hours_local": "21:05 EDT"
 }
