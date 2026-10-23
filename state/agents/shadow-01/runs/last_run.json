@@ -1,9 +1,9 @@
 {
-  "t": "2026-10-23T01:05:55Z",
+  "t": "2026-10-23T02:05:54Z",
   "agent": "shadow-01",
   "tf": "1d",
   "mode": "paper",
-  "hours": "approval",
+  "hours": "auto",
   "dry": false,
   "fresh": true,
   "failed": false,
@@ -30,7 +30,7 @@
   "open_proposals": [],
   "throttle": {
     "multiplier": 1.0,
-    "drawdown_pct": 0.21691200377938458,
+    "drawdown_pct": 0.21105608113108476,
     "halt": false,
     "peak": 1000.0
   },
@@ -44,7 +44,7 @@
     "entered": 0
   },
   "summary": [
-    "BTC weekly Bullish · daily Bullish · data 66 min after the bar close",
+    "BTC weekly Bullish · daily Bullish · data 126 min after the bar close",
     "long-short book 2026-10-22: 29 names ranked of 30 eligible (top 30 by Hyperliquid volume); long CRV, NEAR, STRK, VVV, WLD, ZEC, ZRO, kPEPE · short DOGE, ETH, LINK, LTC, MON, SOL, XPL, XRP",
     "CRV: target +5% of pot, holding +5% → hold",
     "DOGE: target -5% of pot, holding -5% → hold",
@@ -79,7 +79,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.36371
+      "mark": 0.36302
     },
     {
       "coin": "DOGE",
@@ -93,9 +93,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 2.1101088000000003,
+      "funding_pct": 0.1914936,
       "days": 200,
-      "mark": 0.078993
+      "mark": 0.078955
     },
     {
       "coin": "ETH",
@@ -109,9 +109,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 10.1327796,
+      "funding_pct": 10.684747200000002,
       "days": 200,
-      "mark": 2389.6
+      "mark": 2388.7
     },
     {
       "coin": "LINK",
@@ -127,7 +127,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 11.98725
+      "mark": 12.017
     },
     {
       "coin": "LTC",
@@ -141,9 +141,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 1.8524771999999998,
+      "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 58.7372
+      "mark": 58.844
     },
     {
       "coin": "MON",
@@ -159,7 +159,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.021223
+      "mark": 0.021253
     },
     {
       "coin": "NEAR",
@@ -175,7 +175,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 4.8955
+      "mark": 4.9197
     },
     {
       "coin": "SOL",
@@ -189,9 +189,9 @@
       "trigger": null,
       "why": "short leg, weight -4.9% of equity",
       "vol_m": null,
-      "funding_pct": 8.2555992,
+      "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 103.8
+      "mark": 103.85
     },
     {
       "coin": "STRK",
@@ -207,7 +207,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.05286
+      "mark": 0.05292
     },
     {
       "coin": "VVV",
@@ -223,7 +223,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 25.958
+      "mark": 26.0169
     },
     {
       "coin": "WLD",
@@ -239,7 +239,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.54916
+      "mark": 0.55284
     },
     {
       "coin": "XPL",
@@ -255,7 +255,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.076052
+      "mark": 0.076261
     },
     {
       "coin": "XRP",
@@ -271,7 +271,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 1.3092
+      "mark": 1.3102
     },
     {
       "coin": "ZEC",
@@ -287,7 +287,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 1218.2
+      "mark": 1212.3
     },
     {
       "coin": "ZRO",
@@ -303,7 +303,7 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 1.7899
+      "mark": 1.7866
     },
     {
       "coin": "kPEPE",
@@ -319,9 +319,9 @@
       "vol_m": null,
       "funding_pct": 10.950000000000001,
       "days": 200,
-      "mark": 0.004407
+      "mark": 0.004423
     }
   ],
-  "equity": 997.8289010602523,
-  "hours_local": "21:05 EDT"
+  "equity": 997.8870395816591,
+  "hours_local": "22:05 EDT"
 }
