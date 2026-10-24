@@ -1,6 +1,6 @@
 # Ledger
 
-_Rendered 2026-10-23T02:07:11.269544Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
+_Rendered 2026-10-24T00:06:05.914101Z in paper mode from state/positions_paper.json and state/ledger/*.jsonl. Do not edit._
 
 ## Open positions
 
@@ -35,22 +35,6 @@ None yet.
 
 ## Last run
 
-- BTC weekly Bullish · daily Bullish · data 126 min after the bar close
-- long-short book 2026-10-22: 29 names ranked of 30 eligible (top 30 by Hyperliquid volume); long CRV, NEAR, STRK, VVV, WLD, ZEC, ZRO, kPEPE · short DOGE, ETH, LINK, LTC, MON, SOL, XPL, XRP
-- CRV: target +5% of pot, holding +5% → hold
-- DOGE: target -5% of pot, holding -5% → hold
-- ETH: target -5% of pot, holding -5% → hold
-- LINK: target -5% of pot, holding -5% → hold
-- LTC: target -5% of pot, holding -5% → hold
-- MON: target -5% of pot, holding -5% → hold
-- NEAR: target +5% of pot, holding +5% → hold
-- SOL: target -5% of pot, holding -5% → hold
-- STRK: target +5% of pot, holding +5% → hold
-- VVV: target +5% of pot, holding +5% → hold
-- WLD: target +5% of pot, holding +5% → hold
-- XPL: target -5% of pot, holding -5% → hold
-- XRP: target -5% of pot, holding -5% → hold
-- ZEC: target +5% of pot, holding +5% → hold
-- ZRO: target +5% of pot, holding +5% → hold
-- kPEPE: target +5% of pot, holding +5% → hold
+- BTC weekly Bullish · daily Bullish · data 6 min after the bar close
+- long-short book: between rebalances (next on 2026-10-29); 16 names held as they drift
 - evaluated 16 names · 0 triggers · 0 refused · 0 proposed · 0 entered · 16 open
